@@ -32,7 +32,7 @@ const getBackendUrl = (): string => {
   }
   
   // Priority 3: Fallback to localhost (for web/emulator)
-  return 'https://rit-transport-backend.onrender.com/api';
+  return 'https://ritgate-backend.onrender.com/api';
 };
 
 export const API_CONFIG = {
@@ -43,7 +43,7 @@ export const API_CONFIG = {
   
   // List of possible backend URLs to try (only used for local discovery/fallback)
   POSSIBLE_URLS: [
-    'https://rit-transport-backend.onrender.com/api',
+    'https://ritgate-backend.onrender.com/api',
     'http://10.0.2.2:8080/api', // Android emulator
   ],
 };
@@ -208,5 +208,5 @@ export const STORAGE_KEYS = {
 
 // Optional: list of fallback backend URLs for health check (api.service can use if needed)
 export const POSSIBLE_BACKEND_URLS: string[] = [
-  'https://rit-transport-backend.onrender.com/api',
+  'https://ritgate-backend.onrender.com/api',
 ];

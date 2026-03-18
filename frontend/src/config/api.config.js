@@ -41,7 +41,7 @@ var getBackendUrl = function () {
     }
     // Priority 4: Fallback to localhost (for web/emulator)
     console.log('📍 Using fallback URL: localhost');
-    return 'https://rit-transport-backend.onrender.com/api';
+    return 'https://ritgate-backend.onrender.com/api';
 };
 exports.API_CONFIG = {
     BASE_URL: getBackendUrl(),
@@ -50,7 +50,7 @@ exports.API_CONFIG = {
     RETRY_DELAY: 1000, // 1 second
     // List of possible backend URLs to try (for health check)
     POSSIBLE_URLS: [
-        'https://rit-transport-backend.onrender.com/api',
+        'https://ritgate-backend.onrender.com/api',
         'http://10.0.2.2:8080/api', // Android emulator
     ],
 };
@@ -122,5 +122,5 @@ exports.STORAGE_KEYS = {
 // Optional: list of fallback backend URLs for health check (api.service can use if needed)
 exports.POSSIBLE_BACKEND_URLS = [
     'http://192.168.29.119:8080/api',
-    'https://rit-transport-backend.onrender.com/api',
+    'https://ritgate-backend.onrender.com/api',
 ];
