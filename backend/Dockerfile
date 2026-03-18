@@ -17,7 +17,7 @@ RUN ./gradlew clean build -x test
 # ===============================
 # RUNTIME STAGE (Lightweight)
 # ===============================
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
