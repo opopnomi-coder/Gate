@@ -422,14 +422,14 @@ public class AuthController {
             otpTimestamp.put(student.getEmail(), System.currentTimeMillis());
             
             // Send OTP via Email
-            emailService.sendOTP(student.getEmail(), otp, student.getFirstName() + " " + student.getLastName());
+            emailService.sendOTP(student.getEmail(), otp, student.getFullName());
             
             // Log OTP to console
             System.out.println("\n" + "=".repeat(70));
             System.out.println("🔐 OTP GENERATED - STUDENT LOGIN");
             System.out.println("=".repeat(70));
             System.out.println("│ Reg No      : " + student.getRegNo());
-            System.out.println("│ Name        : " + student.getFirstName() + " " + student.getLastName());
+            System.out.println("│ Name        : " + student.getFullName());
             System.out.println("│ Email       : " + student.getEmail());
             System.out.println("│ Department  : " + student.getDepartment());
             System.out.println("├" + "─".repeat(68));
