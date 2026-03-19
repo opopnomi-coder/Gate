@@ -10,12 +10,17 @@ import java.util.Optional;
 
 @Repository
 public interface SecurityPersonnelRepository extends JpaRepository<SecurityPersonnel, Long> {
+
+    // securityId maps to staff_code column
     Optional<SecurityPersonnel> findBySecurityId(String securityId);
-    
-    // Case-insensitive security ID lookup
+
     @Query("SELECT s FROM SecurityPersonnel s WHERE LOWER(s.securityId) = LOWER(:securityId)")
     Optional<SecurityPersonnel> findBySecurityIdIgnoreCase(@Param("securityId") String securityId);
-    
-    Optional<SecurityPersonnel> findByQrCode(String qrCode);
+
+    // qrCode is transient — not queryable from DB; kept for compat
+    default Optional<SecurityPersonnel> findByQrCode(String qrCode) {
+        return Optional.empty();
+    }
+
     Optional<SecurityPersonnel> findByEmail(String email);
 }

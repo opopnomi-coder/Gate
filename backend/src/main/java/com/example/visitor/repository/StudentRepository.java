@@ -11,11 +11,12 @@ import java.util.Optional;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
+
+    // regNo field maps to register_number column
     Optional<Student> findByRegNo(String regNo);
-    
+
     @Query("SELECT s FROM Student s WHERE s.regNo IN :regNos")
     List<Student> findByRegNoIn(@Param("regNos") List<String> regNos);
-    
-    // Find students by department
+
     List<Student> findByDepartment(String department);
 }
