@@ -1,182 +1,141 @@
 package com.example.visitor.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Email service using Brevo HTTP API (port 443 — never blocked by Render).
+ * Replaces JavaMailSender which uses SMTP (ports 587/465 — blocked on Render free tier).
+ */
 @Service
 public class EmailService {
-    
-    @org.springframework.beans.factory.annotation.Value("${backend.base.url:http://localhost:8080}")
+
+    @Value("${backend.base.url:http://localhost:8080}")
     private String backendBaseUrl;
-    
-    @Autowired
-    private JavaMailSender mailSender;
-    
-    public void sendApprovalRequestEmail(String staffEmail, String staffName, String visitorName, 
-                                        String visitorEmail, String visitorPhone, String purpose, 
-                                        Integer numberOfPeople, String department, Long visitorId) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(staffEmail);
-            message.setSubject("Visitor Approval Request - " + visitorName);
-            message.setText(
-                "Dear " + staffName + ",\n\n" +
-                "You have a new visitor approval request:\n\n" +
-                "Visitor Details:\n" +
-                "Name: " + visitorName + "\n" +
-                "Email: " + visitorEmail + "\n" +
-                "Phone: " + visitorPhone + "\n" +
-                "Number of People: " + numberOfPeople + "\n" +
-                "Department: " + department + "\n" +
-                "Purpose: " + purpose + "\n\n" +
-                "To approve or reject this request, please click the links below:\n" +
-                "Approve: " + backendBaseUrl + "/api/visitors/" + visitorId + "/approve\n" +
-                "Reject: " + backendBaseUrl + "/api/visitors/" + visitorId + "/reject\n\n" +
-                "Best regards,\n" +
-                "RIT Gate Visitor Management System"
-            );
-            
-            mailSender.send(message);
-            System.out.println("Approval request email sent to: " + staffEmail);
-        } catch (Exception e) {
-            System.err.println("Error sending approval request email: " + e.getMessage());
-            e.printStackTrace();
+
+    @Value("${brevo.api.key:${BREVO_API_KEY:}}")
+    private String brevoApiKey;
+
+    @Value("${brevo.sender.email:${BREVO_SENDER_EMAIL:noreply@ritgate.in}}")
+    private String senderEmail;
+
+    @Value("${brevo.sender.name:RIT Gate}")
+    private String senderName;
+
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    // ─── core send ────────────────────────────────────────────────────────────
+
+    private void sendEmail(String toEmail, String toName, String subject, String textBody) {
+        if (brevoApiKey == null || brevoApiKey.isBlank()) {
+            System.err.println("❌ BREVO_API_KEY not configured — cannot send email to " + toEmail);
+            throw new RuntimeException("BREVO_API_KEY is not configured");
         }
-    }
-    
-    public void sendQRCodeEmail(String visitorEmail, String visitorName, String qrCode, 
-                               String personToMeet, String department) {
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("sender", Map.of("name", senderName, "email", senderEmail));
+        payload.put("to", List.of(Map.of("email", toEmail, "name", toName != null ? toName : toEmail)));
+        payload.put("subject", subject);
+        payload.put("textContent", textBody);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", brevoApiKey);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(visitorEmail);
-            message.setSubject("Your Visitor Pass - RIT Gate");
-            message.setText(
-                "Dear " + visitorName + ",\n\n" +
-                "Your visit request has been approved by " + personToMeet + "!\n\n" +
-                "Your Visitor Details:\n" +
-                "QR Code: " + qrCode + "\n" +
-                "Person to Meet: " + personToMeet + "\n" +
-                "Department: " + department + "\n\n" +
-                "Please show this QR code at the gate for entry.\n" +
-                "You can also save this email for reference.\n\n" +
-                "Best regards,\n" +
-                "RIT Gate Visitor Management System"
-            );
-            
-            mailSender.send(message);
-            System.out.println("QR code email sent to: " + visitorEmail);
+            ResponseEntity<String> response = restTemplate.postForEntity(BREVO_API_URL, entity, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("✅ Email sent via Brevo API to: " + toEmail);
+            } else {
+                System.err.println("❌ Brevo API returned " + response.getStatusCode() + ": " + response.getBody());
+                throw new RuntimeException("Brevo API error: " + response.getStatusCode());
+            }
         } catch (Exception e) {
-            System.err.println("Error sending QR code email: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    public void sendRejectionEmail(String visitorEmail, String visitorName, String personToMeet) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(visitorEmail);
-            message.setSubject("Visit Request Update - RIT Gate");
-            message.setText(
-                "Dear " + visitorName + ",\n\n" +
-                "We regret to inform you that your visit request to meet " + personToMeet + 
-                " has been declined.\n\n" +
-                "Please contact " + personToMeet + " directly for more information or to reschedule.\n\n" +
-                "Best regards,\n" +
-                "RIT Gate Visitor Management System"
-            );
-            
-            mailSender.send(message);
-            System.out.println("Rejection email sent to: " + visitorEmail);
-        } catch (Exception e) {
-            System.err.println("Error sending rejection email: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Send visitor pass email with QR code and manual code
-     */
-    public void sendVisitorPassEmail(String visitorEmail, String visitorName, String qrCode,
-                                    String manualCode, String personToMeet, String department,
-                                    String visitDate, String visitTime) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(visitorEmail);
-            message.setSubject("Your Visitor Gate Pass – Approved");
-            message.setText(
-                "Dear " + visitorName + ",\n\n" +
-                "✅ Your visit request has been APPROVED!\n\n" +
-                "═══════════════════════════════════════\n" +
-                "VISITOR PASS DETAILS\n" +
-                "═══════════════════════════════════════\n\n" +
-                "Visitor Name: " + visitorName + "\n" +
-                "Person to Meet: " + personToMeet + "\n" +
-                "Department: " + department + "\n" +
-                "Visit Date: " + visitDate + "\n" +
-                "Visit Time: " + visitTime + "\n\n" +
-                "═══════════════════════════════════════\n" +
-                "ENTRY METHODS\n" +
-                "═══════════════════════════════════════\n\n" +
-                "📱 QR CODE (Recommended):\n" +
-                qrCode + "\n\n" +
-                "🔢 MANUAL ENTRY CODE:\n" +
-                ">>> " + manualCode + " <<<\n\n" +
-                "═══════════════════════════════════════\n" +
-                "INSTRUCTIONS\n" +
-                "═══════════════════════════════════════\n\n" +
-                "1. Show this email at the security gate\n" +
-                "2. Security will scan your QR code OR\n" +
-                "3. Provide the manual code: " + manualCode + "\n" +
-                "4. You will be granted entry after verification\n\n" +
-                "⚠️ IMPORTANT:\n" +
-                "- Keep this email safe\n" +
-                "- Do not share your codes with others\n" +
-                "- Valid only for the specified date and time\n\n" +
-                "If you have any questions, please contact " + personToMeet + ".\n\n" +
-                "Best regards,\n" +
-                "RIT Gate Visitor Management System"
-            );
-            
-            mailSender.send(message);
-            System.out.println("✅ Visitor pass email sent to: " + visitorEmail + " (QR: " + qrCode + ", Manual: " + manualCode + ")");
-        } catch (Exception e) {
-            System.err.println("❌ Error sending visitor pass email: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Failed to send visitor pass email", e);
+            System.err.println("❌ Brevo HTTP error sending to " + toEmail + ": " + e.getMessage());
+            throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
         }
     }
 
+    // ─── public methods ───────────────────────────────────────────────────────
 
-    /**
-     * Send OTP email for authentication
-     */
     public void sendOTP(String email, String otp, String userName) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setSubject("Your OTP for Login - RIT Gate");
-            message.setText(
-                "Dear " + userName + ",\n\n" +
-                "Your One-Time Password (OTP) for login is:\n\n" +
-                ">>> " + otp + " <<<\n\n" +
-                "This OTP is valid for 5 minutes.\n" +
-                "Please do not share this OTP with anyone.\n\n" +
-                "If you did not request this OTP, please ignore this email.\n\n" +
-                "Best regards,\n" +
-                "RIT Gate Visitor Management System"
-            );
-
-            mailSender.send(message);
-            System.out.println("✅ OTP email sent to: " + email);
-        } catch (Exception e) {
-            System.err.println("❌ SMTP ERROR sending OTP to " + email + ": " + e.getMessage());
-            System.err.println("❌ SMTP cause: " + (e.getCause() != null ? e.getCause().getMessage() : "null"));
-            e.printStackTrace();
-            // Re-throw so the controller returns a real error instead of false success
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
-        }
+        String subject = "Your OTP for Login - RIT Gate";
+        String body =
+            "Dear " + userName + ",\n\n" +
+            "Your One-Time Password (OTP) for login is:\n\n" +
+            ">>> " + otp + " <<<\n\n" +
+            "This OTP is valid for 5 minutes.\n" +
+            "Please do not share this OTP with anyone.\n\n" +
+            "If you did not request this OTP, please ignore this email.\n\n" +
+            "Best regards,\nRIT Gate Visitor Management System";
+        sendEmail(email, userName, subject, body);
     }
 
+    public void sendApprovalRequestEmail(String staffEmail, String staffName, String visitorName,
+                                         String visitorEmail, String visitorPhone, String purpose,
+                                         Integer numberOfPeople, String department, Long visitorId) {
+        String subject = "Visitor Approval Request - " + visitorName;
+        String body =
+            "Dear " + staffName + ",\n\n" +
+            "You have a new visitor approval request:\n\n" +
+            "Visitor Details:\n" +
+            "Name: " + visitorName + "\nEmail: " + visitorEmail + "\nPhone: " + visitorPhone +
+            "\nNumber of People: " + numberOfPeople + "\nDepartment: " + department +
+            "\nPurpose: " + purpose + "\n\n" +
+            "Approve: " + backendBaseUrl + "/api/visitors/" + visitorId + "/approve\n" +
+            "Reject: " + backendBaseUrl + "/api/visitors/" + visitorId + "/reject\n\n" +
+            "Best regards,\nRIT Gate Visitor Management System";
+        sendEmail(staffEmail, staffName, subject, body);
+    }
+
+    public void sendQRCodeEmail(String visitorEmail, String visitorName, String qrCode,
+                                String personToMeet, String department) {
+        String subject = "Your Visitor Pass - RIT Gate";
+        String body =
+            "Dear " + visitorName + ",\n\n" +
+            "Your visit request has been approved by " + personToMeet + "!\n\n" +
+            "QR Code: " + qrCode + "\nPerson to Meet: " + personToMeet +
+            "\nDepartment: " + department + "\n\n" +
+            "Please show this QR code at the gate for entry.\n\n" +
+            "Best regards,\nRIT Gate Visitor Management System";
+        sendEmail(visitorEmail, visitorName, subject, body);
+    }
+
+    public void sendRejectionEmail(String visitorEmail, String visitorName, String personToMeet) {
+        String subject = "Visit Request Update - RIT Gate";
+        String body =
+            "Dear " + visitorName + ",\n\n" +
+            "We regret to inform you that your visit request to meet " + personToMeet +
+            " has been declined.\n\n" +
+            "Please contact " + personToMeet + " directly for more information.\n\n" +
+            "Best regards,\nRIT Gate Visitor Management System";
+        sendEmail(visitorEmail, visitorName, subject, body);
+    }
+
+    public void sendVisitorPassEmail(String visitorEmail, String visitorName, String qrCode,
+                                     String manualCode, String personToMeet, String department,
+                                     String visitDate, String visitTime) {
+        String subject = "Your Visitor Gate Pass – Approved";
+        String body =
+            "Dear " + visitorName + ",\n\n" +
+            "Your visit request has been APPROVED!\n\n" +
+            "Visitor Name: " + visitorName + "\nPerson to Meet: " + personToMeet +
+            "\nDepartment: " + department + "\nVisit Date: " + visitDate +
+            "\nVisit Time: " + visitTime + "\n\n" +
+            "QR CODE: " + qrCode + "\n\n" +
+            "MANUAL ENTRY CODE: " + manualCode + "\n\n" +
+            "Show this email at the security gate.\n\n" +
+            "Best regards,\nRIT Gate Visitor Management System";
+        sendEmail(visitorEmail, visitorName, subject, body);
+    }
 }

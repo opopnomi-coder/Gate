@@ -1,10 +1,9 @@
 package com.example.visitor.controller;
 
+import com.example.visitor.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -17,10 +16,10 @@ import java.util.Map;
 public class HealthController {
 
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailService emailService;
 
-    @Value("${spring.mail.username:NOT_SET}")
-    private String mailUsername;
+    @Value("${brevo.api.key:NOT_SET}")
+    private String brevoApiKey;
 
     @GetMapping("/health")
     public ResponseEntity<?> healthCheck() {
@@ -32,22 +31,28 @@ public class HealthController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/test-smtp")
-    public ResponseEntity<?> testSmtp() {
+    /**
+     * Test Brevo HTTP API email sending.
+     * Usage: GET /api/test-email?to=someone@example.com
+     */
+    @GetMapping("/test-email")
+    public ResponseEntity<?> testEmail(@RequestParam(defaultValue = "") String to) {
         Map<String, Object> response = new HashMap<>();
-        response.put("mailUsername", mailUsername);
+        response.put("brevoApiKeyConfigured", !brevoApiKey.isBlank() && !"NOT_SET".equals(brevoApiKey));
+
+        if (to.isBlank()) {
+            response.put("status", "SKIPPED");
+            response.put("message", "Provide ?to=email@example.com to send a test email");
+            return ResponseEntity.ok(response);
+        }
+
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(mailUsername);
-            message.setSubject("SMTP Test - RIT Gate");
-            message.setText("SMTP is working. Sent at: " + LocalDateTime.now());
-            mailSender.send(message);
+            emailService.sendOTP(to, "123456", "Test User");
             response.put("status", "SUCCESS");
-            response.put("message", "Test email sent to " + mailUsername);
+            response.put("message", "Test OTP email sent to " + to);
         } catch (Exception e) {
             response.put("status", "FAILED");
             response.put("error", e.getMessage());
-            response.put("cause", e.getCause() != null ? e.getCause().getMessage() : "null");
         }
         return ResponseEntity.ok(response);
     }

@@ -7,18 +7,15 @@ services:
       - key: PORT
         value: 8080
       - key: SPRING_DATASOURCE_URL
-        sync: false # Set in Render: jdbc:mysql://centerbeam.proxy.rlwy.net:58876/railway?useSSL=true&allowPublicKeyRetrieval=true
+        sync: false # Set in Render: jdbc:mysql://centerbeam.proxy.rlwy.net:58876/railway?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - key: SPRING_DATASOURCE_USERNAME
         sync: false # Set in Render: root
       - key: SPRING_DATASOURCE_PASSWORD
         sync: false # Set in Render Dashboard
-      - key: SPRING_MAIL_HOST
-        value: smtp.gmail.com
-      - key: SPRING_MAIL_PORT
-        value: 587
-      - key: SPRING_MAIL_USERNAME
-        sync: false # Set in Render Dashboard
-      - key: SPRING_MAIL_PASSWORD
-        sync: false # Set in Render Dashboard (App Password)
       - key: BACKEND_BASE_URL
-        sync: false # Set to your Render URL: https://rit-backend.onrender.com
+        value: https://ritgate-backend.onrender.com
+      # Brevo HTTP API key — get from Brevo dashboard -> API Keys tab
+      - key: BREVO_API_KEY
+        sync: false # Set in Render Dashboard
+      - key: BREVO_SENDER_EMAIL
+        sync: false # Set to your verified sender email in Brevo
