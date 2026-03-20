@@ -9,6 +9,7 @@ import {
   Alert,
   Text,
   BackHandler,
+  Animated,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Student, Staff, HOD, HR, SecurityPersonnel, UserType, UserRole, ScreenName } from './types';
@@ -47,6 +48,16 @@ import HODBulkGatePassScreen from './screens/hod/HODBulkGatePassScreen';
 import ModernBulkGatePassScreen from './screens/staff/ModernBulkGatePassScreen';
 import MyRequestsScreen from './screens/staff/MyRequestsScreen';
 import NotificationsScreen from './screens/shared/NotificationsScreen';
+
+// Inner component that can access ThemeContext for transition animation
+const ThemedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { transitionOpacity, theme } = useTheme();
+  return (
+    <Animated.View style={[{ flex: 1, opacity: transitionOpacity }, { backgroundColor: theme.background }]}>
+      {children}
+    </Animated.View>
+  );
+};
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -782,9 +793,17 @@ const App: React.FC = () => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
+      <ThemeProvider userId={
+        student?.regNo ||
+        staff?.staffCode ||
+        hod?.hodCode ||
+        hr?.hrCode ||
+        security?.securityId ||
+        undefined
+      }>
         <NotificationProvider>
           <ProfileProvider>
+            <ThemedApp>
             <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
               <StatusBar
                 barStyle="dark-content"
@@ -793,6 +812,7 @@ const App: React.FC = () => {
               />
               {renderCurrentScreen()}
             </View>
+            </ThemedApp>
           </ProfileProvider>
         </NotificationProvider>
       </ThemeProvider>

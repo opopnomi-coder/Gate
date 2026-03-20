@@ -19,6 +19,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useProfile } from '../../context/ProfileContext';
 import { apiService } from '../../services/api';
 import ColorPickerModal from '../../components/ColorPickerModal';
+import ThemePresetSelector from '../../components/ThemePresetSelector';
 
 interface ProfileScreenProps {
   user: any;
@@ -288,6 +289,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </TouchableOpacity>
         </View>
 
+        <ThemePresetSelector
+          onCustomize={() => openColorPicker('primary', 'Primary Color')}
+        />
+
+        {/* Custom color pickers (shown when Custom preset is active) */}
         <View style={styles.themeRow}>
           <TouchableOpacity
             style={[styles.themeItem, { backgroundColor: theme.surface }]}
