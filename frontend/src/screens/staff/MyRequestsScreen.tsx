@@ -36,8 +36,8 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         apiService.getStaffBulkPassRequests(user.staffCode),
       ]);
       let combined: any[] = [];
-      if (singleResult.success && singleResult.requests) combined = [...singleResult.requests];
-      if (bulkResult.success && bulkResult.requests) combined = [...combined, ...bulkResult.requests];
+      if (singleResult.success) combined = [...((singleResult as any).requests || singleResult.data || [])];
+      if (bulkResult.success) combined = [...combined, ...(bulkResult.requests || [])];
       combined.sort((a, b) => {
         if (a.status === 'APPROVED' && b.status !== 'APPROVED') return -1;
         if (a.status !== 'APPROVED' && b.status === 'APPROVED') return 1;

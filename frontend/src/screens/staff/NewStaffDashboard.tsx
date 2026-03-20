@@ -78,18 +78,18 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       // Combine all types of requests
       let allRequests: any[] = [];
 
-      if (ownRequestsResponse.success && ownRequestsResponse.requests) {
+      if (ownRequestsResponse.success) {
+        const ownReqs = ((ownRequestsResponse as any).requests || ownRequestsResponse.data || []);
         // Mark own requests
-        allRequests = ownRequestsResponse.requests.map((req: any) => ({
+        allRequests = ownReqs.map((req: any) => ({
           ...req,
           isOwnRequest: true,
           requestType: 'GATEPASS'
         }));
       }
 
-      if (assignedRequestsResponse.success && assignedRequestsResponse.requests) {
-        // Mark assigned requests (student requests needing approval)
-        const assignedReqs = assignedRequestsResponse.requests.map((req: any) => ({
+      if (assignedRequestsResponse.success) {
+        const assignedReqs = ((assignedRequestsResponse as any).requests || assignedRequestsResponse.data || []).map((req: any) => ({
           ...req,
           isOwnRequest: false,
           requestType: 'GATEPASS'

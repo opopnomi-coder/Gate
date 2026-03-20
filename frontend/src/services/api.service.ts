@@ -420,6 +420,22 @@ class ApiService {
   async rediscoverBackend(): Promise<boolean> { return true; }
   async setManualIP(_ip: string): Promise<boolean> { return false; }
   async clearManualIP(): Promise<boolean> { return true; }
+
+  // ── Visitor approval ──────────────────────────────────────────────────────
+  async approveVisitorRequest(visitorId: string | number): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/visitors/${visitorId}/approve`, { method: 'POST' }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed to approve visitor request' }; }
+  }
+
+  async rejectVisitorRequest(visitorId: string | number, reason: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/visitors/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed to reject visitor request' }; }
+  }
+
+  async getBulkGatePassDetails(requestId: number): Promise<any> {
+    try { return await this.makeRequest(`${this.baseURL}/bulk-pass/${requestId}`, { method: 'GET' }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed to fetch bulk gate pass details' }; }
+  }
 }
 
 export const apiService = new ApiService();
