@@ -10,7 +10,6 @@ import {
   Animated,
   Image,
   Dimensions,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Student, Staff, HOD } from '../../types';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import { useActionLock } from '../../context/ActionLockContext';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 
@@ -32,11 +32,11 @@ interface GatePassRequestScreenProps {
 
 const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, navigation, onBack }) => {
   const { theme, isDark } = useTheme();
+  const { withLock, isLocked } = useActionLock();
   const [purpose, setPurpose] = useState('');
   const [reason, setReason] = useState('');
   const [requestDate, setRequestDate] = useState(new Date());
   const [attachment, setAttachment] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -130,6 +130,8 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
   };
 
   const handleSubmit = async () => {
+    if (isLocked) return; // prevent double-tap
+
     if (!purpose.trim()) {
       setErrorMessage('Please provide a purpose for your gate pass request.');
       setShowErrorModal(true);
@@ -149,28 +151,26 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
       return;
     }
 
-    setLoading(true);
-
     const payload = isStaff
       ? { staffCode: identifier, purpose: purpose.trim(), reason: reason.trim(), requestDate: requestDate.toISOString(), attachmentUri: attachment?.base64Uri }
       : { regNo: identifier, purpose: purpose.trim(), reason: reason.trim(), requestDate: requestDate.toISOString(), attachmentUri: attachment?.base64Uri || undefined };
 
-    try {
-      const response = isStaff
-        ? await apiService.submitStaffGatePassRequest(payload as any)
-        : await apiService.submitGatePassRequest(payload as any);
-      if (response.success) {
-        setShowSuccessModal(true);
-      } else {
-        setErrorMessage(response.message || 'Failed to submit request. Please try again.');
+    await withLock(async () => {
+      try {
+        const response = isStaff
+          ? await apiService.submitStaffGatePassRequest(payload as any)
+          : await apiService.submitGatePassRequest(payload as any);
+        if (response.success) {
+          setShowSuccessModal(true);
+        } else {
+          setErrorMessage(response.message || 'Failed to submit request. Please try again.');
+          setShowErrorModal(true);
+        }
+      } catch (error: any) {
+        setErrorMessage(error.message || 'Failed to submit request. Please try again.');
         setShowErrorModal(true);
       }
-    } catch (error: any) {
-      setErrorMessage(error.message || 'Failed to submit request. Please try again.');
-      setShowErrorModal(true);
-    } finally {
-      setLoading(false);
-    }
+    }, 'Submitting request...');
   };
 
   return (
@@ -264,7 +264,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
           </View>
 
           {/* Submit Button */}
-          <TouchableOpacity style={[styles.submitBtn, loading && { opacity: 0.7 }]} onPress={handleSubmit} disabled={loading}>
+          <TouchableOpacity style={[styles.submitBtn, isLocked && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLocked}>
             <LinearGradient
               colors={theme.gradients.primary as [string, string, ...string[]]}
               style={styles.btnGradient}
@@ -272,17 +272,8 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
               end={{ x: 1, y: 0 }}
             >
               <View style={styles.btnContent}>
-                {loading ? (
-                  <>
-                    <ActivityIndicator size="small" color="#FFF" />
-                    <Text style={styles.submitText}>SUBMITTING...</Text>
-                  </>
-                ) : (
-                  <>
-                    <Ionicons name="send" size={20} color="#FFF" style={styles.btnIcon} />
-                    <Text style={styles.submitText}>SUBMIT REQUEST</Text>
-                  </>
-                )}
+                <Ionicons name="send" size={20} color="#FFF" style={styles.btnIcon} />
+                <Text style={styles.submitText}>SUBMIT REQUEST</Text>
               </View>
             </LinearGradient>
           </TouchableOpacity>

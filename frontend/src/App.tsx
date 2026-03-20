@@ -1,7 +1,7 @@
 // CLEAN VERSION OF APP.TSX - Only SmartGate Screens
 // This is the corrected version that should replace the current App.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -10,6 +10,8 @@ import {
   Text,
   BackHandler,
   Animated,
+  ToastAndroid,
+  Platform,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Student, Staff, HOD, HR, SecurityPersonnel, UserType, UserRole, ScreenName } from './types';
@@ -18,6 +20,7 @@ import { professionalTheme } from './styles/professionalTheme';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ProfileProvider, useProfile } from './context/ProfileContext';
+import { ActionLockProvider, useActionLock } from './context/ActionLockContext';
 
 // ✅ ONLY SmartGate Screens
 import HomeScreen from './screens/HomeScreen';
@@ -60,6 +63,25 @@ const ThemedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+// Reads isLocked from ActionLockContext to block swipe during API calls
+const AppNavigator: React.FC<{
+  children: React.ReactNode;
+  isRootScreen: boolean;
+  isLoading: boolean;
+  onBack: () => void;
+}> = ({ children, isRootScreen, isLoading, onBack }) => {
+  const { isLocked } = useActionLock();
+  return (
+    <SwipeBackWrapper
+      enabled={!isRootScreen && !isLoading}
+      locked={isLocked}
+      onBack={onBack}
+    >
+      {children}
+    </SwipeBackWrapper>
+  );
+};
+
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [student, setStudent] = React.useState<Student | null>(null);
@@ -70,6 +92,9 @@ const App: React.FC = () => {
   const [security, setSecurity] = React.useState<SecurityPersonnel | null>(null);
   const [currentScreen, setCurrentScreen] = React.useState<ScreenName>('HOME');
   const [userType, setUserType] = React.useState<UserType | null>(null);
+
+  // Double-back-to-exit tracking
+  const lastBackPress = useRef<number>(0);
 
   React.useEffect(() => {
     console.log('🚀 App mounted - starting initialization');
@@ -295,20 +320,37 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     const onBackPress = () => {
+      // Never allow back during loading
+      if (isLoading) return true;
+
+      // Block back if action lock is active (checked via global ref set by ActionLockProvider)
+      if ((global as any).__actionLocked) return true;
+
       if (currentScreen === 'UNIFIED_LOGIN') {
         goBackToHome();
         return true;
       }
+
       if (ROOT_SCREENS.includes(currentScreen)) {
-        return false; // let system handle (exits app)
+        // Double-back-to-exit on root screens
+        const now = Date.now();
+        if (now - lastBackPress.current < 2000) {
+          return false; // let system exit
+        }
+        lastBackPress.current = now;
+        if (Platform.OS === 'android') {
+          ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
+        }
+        return true;
       }
+
       navigateBack();
       return true;
     };
 
     const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => sub.remove();
-  }, [currentScreen, userType]);
+  }, [currentScreen, userType, isLoading]);
 
   const goBackToHome = () => {
     setUserType(null);
@@ -804,25 +846,28 @@ const App: React.FC = () => {
         security?.securityId ||
         undefined
       }>
-        <NotificationProvider>
-          <ProfileProvider>
-            <ThemedApp>
-              <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
-                <StatusBar
-                  barStyle="dark-content"
-                  backgroundColor="transparent"
-                  translucent={true}
-                />
-                <SwipeBackWrapper
-                  enabled={!isRootScreen && !isLoading}
-                  onBack={currentScreen === 'UNIFIED_LOGIN' ? goBackToHome : navigateBack}
-                >
-                  {renderCurrentScreen()}
-                </SwipeBackWrapper>
-              </View>
-            </ThemedApp>
-          </ProfileProvider>
-        </NotificationProvider>
+        <ActionLockProvider>
+          <NotificationProvider>
+            <ProfileProvider>
+              <ThemedApp>
+                <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
+                  <StatusBar
+                    barStyle="dark-content"
+                    backgroundColor="transparent"
+                    translucent={true}
+                  />
+                  <AppNavigator
+                    isRootScreen={isRootScreen}
+                    isLoading={isLoading}
+                    onBack={currentScreen === 'UNIFIED_LOGIN' ? goBackToHome : navigateBack}
+                  >
+                    {renderCurrentScreen()}
+                  </AppNavigator>
+                </View>
+              </ThemedApp>
+            </ProfileProvider>
+          </NotificationProvider>
+        </ActionLockProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
