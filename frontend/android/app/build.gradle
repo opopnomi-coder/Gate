@@ -92,8 +92,8 @@ android {
         applicationId 'com.mygate.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 7
-        versionName "7.0.0"
+        versionCode 8
+        versionName "8.0.0"
         buildConfigField "boolean", "IS_PRODUCTION", "true"
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
