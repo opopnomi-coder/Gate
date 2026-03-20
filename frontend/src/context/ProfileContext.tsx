@@ -56,47 +56,23 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
 
         result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'] as any,
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.8,
         });
       } else {
-        // On Android 13+ (API 33+), READ_MEDIA_IMAGES is used.
-        // On Android 14+ (API 34+), limited photo access may be granted.
-        // expo-image-picker handles the picker UI natively — we just need to
-        // check if we can ask, and if permanently denied, send user to Settings.
-        const { status, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-        if (status !== 'granted') {
-          if (!canAskAgain) {
-            // Permanently denied — must go to Settings
-            openAppSettings();
-          } else {
-            Alert.alert(
-              'Permission Required',
-              'Photo library access is needed to set your profile picture.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Allow',
-                  onPress: async () => {
-                    const retry = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    if (retry.status !== 'granted') {
-                      if (!retry.canAskAgain) openAppSettings();
-                    } else {
-                      await launchGallery();
-                    }
-                  },
-                },
-              ]
-            );
-          }
+        // On Android 13+ READ_MEDIA_IMAGES is already granted (shown in permissions screen).
+        // Just try to launch the picker — if the OS denies it, it will return canceled.
+        // Only show settings dialog if canAskAgain is false (permanently denied).
+        const permResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permResult.status !== 'granted' && !permResult.canAskAgain) {
+          openAppSettings();
           return;
         }
 
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'] as any,
           allowsEditing: true,
           aspect: [1, 1],
           quality: 0.8,
@@ -110,25 +86,7 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
     } catch (error) {
       console.error('Error capturing image:', error);
-      Alert.alert('Error', 'Failed to capture image. Please try again.');
-    }
-  };
-
-  const launchGallery = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const imageUri = result.assets[0].uri;
-        setProfileImage(imageUri);
-        await AsyncStorage.setItem('profile_image', imageUri);
-      }
-    } catch (error) {
-      console.error('Error launching gallery:', error);
+      Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
   };
 
