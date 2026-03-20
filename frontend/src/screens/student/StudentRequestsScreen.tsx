@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { Student } from '../../types';
 import { apiService } from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
 import RequestTimeline from '../../components/RequestTimeline';
 import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import GatePassQRModal from '../../components/GatePassQRModal';
@@ -30,6 +31,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
   student,
   onTabChange,
 }) => {
+  const { theme, isDark } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,21 +167,21 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.surface} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Requests</Text>
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>My Requests</Text>
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#9CA3AF" />
+      <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
+        <Ionicons name="search" size={20} color={theme.textTertiary} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder="Search requests..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={theme.textTertiary}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -189,20 +191,20 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
       <ScrollView
         style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
         }
         contentContainerStyle={styles.scrollContent}
       >
         {filteredRequests.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="document-text-outline" size={64} color="#D1D5DB" />
-            <Text style={styles.emptyText}>No requests found</Text>
+            <Ionicons name="document-text-outline" size={64} color={theme.border} />
+            <Text style={[styles.emptyText, { color: theme.textTertiary }]}>No requests found</Text>
           </View>
         ) : (
           filteredRequests.map((request) => (
             <TouchableOpacity
               key={request.id}
-              style={styles.requestCard}
+              style={[styles.requestCard, { backgroundColor: theme.cardBackground }]}
               onPress={() => {
                 setSelectedRequest(request);
                 setSelectedRequestId(request.id);
@@ -214,39 +216,25 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
               }}
             >
               <View style={styles.requestHeader}>
-                <Text style={styles.requestTitle} numberOfLines={1}>
+                <Text style={[styles.requestTitle, { color: theme.text }]} numberOfLines={1}>
                   {request.purpose || 'Gate Pass Request'}
                 </Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    { backgroundColor: getStatusColor(request.status) + '20' },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statusText,
-                      { color: getStatusColor(request.status) },
-                    ]}
-                  >
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) + '20' }]}>
+                  <Text style={[styles.statusText, { color: getStatusColor(request.status) }]}>
                     {getStatusLabel(request.status)}
                   </Text>
                 </View>
               </View>
-              <Text style={styles.requestDate}>{formatDate(request.requestDate)}</Text>
-              
+              <Text style={[styles.requestDate, { color: theme.textTertiary }]}>{formatDate(request.requestDate)}</Text>
               {request.status === 'APPROVED' && (
                 <TouchableOpacity
-                  style={styles.quickQrButton}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    handleViewQR(request);
-                  }}
+                  style={[styles.quickQrButton, { backgroundColor: theme.success + '20' }]}
+                  onPress={(e) => { e.stopPropagation(); handleViewQR(request); }}
                   activeOpacity={0.7}
                 >
                   <View style={styles.quickQrContent}>
-                    <Ionicons name="qr-code-outline" size={16} color="#10B981" />
-                    <Text style={styles.quickQrText}>
+                    <Ionicons name="qr-code-outline" size={16} color={theme.success} />
+                    <Text style={[styles.quickQrText, { color: theme.success }]}>
                       {request.requestType === 'BULK' ? 'View Group Pass QR' : 'View QR Code'}
                     </Text>
                   </View>
@@ -258,38 +246,23 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onTabChange('HOME')}
-        >
-          <Ionicons name="home-outline" size={24} color="#9CA3AF" />
-          <Text style={styles.navLabel}>Home</Text>
+      <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+        <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}>
+          <Ionicons name="home-outline" size={24} color={theme.textTertiary} />
+          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Home</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onTabChange('REQUESTS')}
-        >
-          <Ionicons name="document-text" size={24} color="#1F2937" />
-          <Text style={styles.navLabelActive}>Requests</Text>
-          <View style={styles.activeIndicator} />
+        <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('REQUESTS')}>
+          <Ionicons name="document-text" size={24} color={theme.primary} />
+          <Text style={[styles.navLabelActive, { color: theme.primary }]}>Requests</Text>
+          <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onTabChange('HISTORY')}
-        >
-          <Ionicons name="time-outline" size={24} color="#9CA3AF" />
-          <Text style={styles.navLabel}>History</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HISTORY')}>
+          <Ionicons name="time-outline" size={24} color={theme.textTertiary} />
+          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>History</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onTabChange('PROFILE')}
-        >
-          <Ionicons name="person-outline" size={24} color="#9CA3AF" />
-          <Text style={styles.navLabel}>Profile</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('PROFILE')}>
+          <Ionicons name="person-outline" size={24} color={theme.textTertiary} />
+          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Profile</Text>
         </TouchableOpacity>
       </View>
 
@@ -301,85 +274,65 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
         onRequestClose={() => setShowDetailModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.detailModalContainer}>
-            <View style={styles.modalHandle} />
-
-            {/* Header */}
-            <View style={styles.modalHeader}>
+          <View style={[styles.detailModalContainer, { backgroundColor: theme.surface }]}>
+            <View style={[styles.modalHandle, { backgroundColor: theme.border }]} />
+            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <View>
-                <Text style={styles.modalTitle}>Request Details</Text>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>Request Details</Text>
                 {selectedRequest && (
-                  <Text style={styles.modalSubtitle}>
+                  <Text style={[styles.modalSubtitle, { color: theme.textTertiary }]}>
                     {formatDate(selectedRequest.requestDate)}
                   </Text>
                 )}
               </View>
-              <TouchableOpacity onPress={() => setShowDetailModal(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={20} color="#6B7280" />
+              <TouchableOpacity onPress={() => setShowDetailModal(false)} style={[styles.closeButton, { backgroundColor: theme.surfaceHighlight }]}>
+                <Ionicons name="close" size={20} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {selectedRequest && (
               <ScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false}>
-
-                {/* Pass Details */}
-                <View style={styles.infoSection}>
-                  <Text style={styles.sectionTitleBold}>Pass Details</Text>
-
+                <View style={[styles.infoSection, { backgroundColor: theme.surfaceHighlight }]}>
+                  <Text style={[styles.sectionTitleBold, { color: theme.text }]}>Pass Details</Text>
                   <View style={styles.detailChipRow}>
-                    <View style={styles.detailChip}>
-                      <Ionicons name="flag-outline" size={14} color="#6B7280" />
-                      <Text style={styles.detailChipLabel}>Purpose</Text>
-                      <Text style={styles.detailChipValue}>{selectedRequest.purpose || 'N/A'}</Text>
+                    <View style={[styles.detailChip, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+                      <Ionicons name="flag-outline" size={14} color={theme.textSecondary} />
+                      <Text style={[styles.detailChipLabel, { color: theme.textTertiary }]}>Purpose</Text>
+                      <Text style={[styles.detailChipValue, { color: theme.text }]}>{selectedRequest.purpose || 'N/A'}</Text>
                     </View>
-                    <View style={styles.detailChip}>
-                      <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-                      <Text style={styles.detailChipLabel}>Date</Text>
-                      <Text style={styles.detailChipValue}>
-                        {new Date(selectedRequest.requestDate).toLocaleDateString('en-GB', {
-                          day: '2-digit', month: 'short', year: 'numeric'
-                        })}
+                    <View style={[styles.detailChip, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+                      <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
+                      <Text style={[styles.detailChipLabel, { color: theme.textTertiary }]}>Date</Text>
+                      <Text style={[styles.detailChipValue, { color: theme.text }]}>
+                        {new Date(selectedRequest.requestDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </Text>
                     </View>
                   </View>
-
                   {selectedRequest.reason && (
-                    <View style={styles.reasonBox}>
-                      <Text style={styles.reasonLabel}>Reason</Text>
-                      <Text style={styles.reasonText}>{selectedRequest.reason}</Text>
+                    <View style={[styles.reasonBox, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+                      <Text style={[styles.reasonLabel, { color: theme.textTertiary }]}>Reason</Text>
+                      <Text style={[styles.reasonText, { color: theme.textSecondary }]}>{selectedRequest.reason}</Text>
                     </View>
                   )}
                 </View>
 
-                {/* Attachment */}
                 {selectedRequest.attachmentUri && (
-                  <View style={styles.infoSection}>
-                    <Text style={styles.sectionTitleBold}>Attachment</Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setPreviewAttachmentUri(selectedRequest.attachmentUri);
-                        setShowAttachmentPreview(true);
-                      }}
-                      activeOpacity={0.85}
-                    >
-                      <View style={styles.attachmentContainer}>
-                        <Image
-                          source={{ uri: selectedRequest.attachmentUri }}
-                          style={styles.attachmentImage}
-                          resizeMode="cover"
-                        />
-                        <View style={styles.attachmentTapHint}>
-                          <Ionicons name="eye-outline" size={16} color="#6B7280" />
-                          <Text style={styles.attachmentTapText}>Tap to preview full image</Text>
+                  <View style={[styles.infoSection, { backgroundColor: theme.surfaceHighlight }]}>
+                    <Text style={[styles.sectionTitleBold, { color: theme.text }]}>Attachment</Text>
+                    <TouchableOpacity onPress={() => { setPreviewAttachmentUri(selectedRequest.attachmentUri); setShowAttachmentPreview(true); }} activeOpacity={0.85}>
+                      <View style={[styles.attachmentContainer, { borderColor: theme.border }]}>
+                        <Image source={{ uri: selectedRequest.attachmentUri }} style={styles.attachmentImage} resizeMode="cover" />
+                        <View style={[styles.attachmentTapHint, { backgroundColor: theme.surfaceHighlight, borderTopColor: theme.border }]}>
+                          <Ionicons name="eye-outline" size={16} color={theme.textSecondary} />
+                          <Text style={[styles.attachmentTapText, { color: theme.textSecondary }]}>Tap to preview full image</Text>
                         </View>
                       </View>
                     </TouchableOpacity>
                   </View>
                 )}
 
-                {/* Request Status (timeline) */}
-                <View style={styles.infoSection}>
-                  <Text style={styles.sectionTitleBold}>Request Status</Text>
+                <View style={[styles.infoSection, { backgroundColor: theme.surfaceHighlight }]}>
+                  <Text style={[styles.sectionTitleBold, { color: theme.text }]}>Request Status</Text>
                   <RequestTimeline
                     status={selectedRequest.status}
                     staffApproval={selectedRequest.staffApproval || 'PENDING'}
@@ -390,20 +343,11 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
                   />
                 </View>
 
-                {/* Final status pill at the bottom */}
                 <View style={styles.finalStatusRow}>
-                  <View style={[
-                    styles.finalStatusBadge,
-                    { backgroundColor: getStatusColor(selectedRequest.status) + '18',
-                      borderColor: getStatusColor(selectedRequest.status) }
-                  ]}>
+                  <View style={[styles.finalStatusBadge, { backgroundColor: getStatusColor(selectedRequest.status) + '18', borderColor: getStatusColor(selectedRequest.status) }]}>
                     <Ionicons
-                      name={
-                        selectedRequest.status === 'APPROVED' ? 'checkmark-circle' :
-                        selectedRequest.status === 'REJECTED' ? 'close-circle' : 'time'
-                      }
-                      size={18}
-                      color={getStatusColor(selectedRequest.status)}
+                      name={selectedRequest.status === 'APPROVED' ? 'checkmark-circle' : selectedRequest.status === 'REJECTED' ? 'close-circle' : 'time'}
+                      size={18} color={getStatusColor(selectedRequest.status)}
                     />
                     <Text style={[styles.finalStatusText, { color: getStatusColor(selectedRequest.status) }]}>
                       {getStatusLabel(selectedRequest.status)}
@@ -411,13 +355,9 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
                   </View>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.closeModalButton}
-                  onPress={() => setShowDetailModal(false)}
-                >
-                  <Text style={styles.closeModalButtonText}>Close</Text>
+                <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.surfaceHighlight }]} onPress={() => setShowDetailModal(false)}>
+                  <Text style={[styles.closeModalButtonText, { color: theme.text }]}>Close</Text>
                 </TouchableOpacity>
-
                 <View style={{ height: 20 }} />
               </ScrollView>
             )}
@@ -425,43 +365,24 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
         </View>
       </Modal>
 
-      {/* Bulk Request Detail Modal */}
       <MyRequestsBulkModal
         visible={showBulkModal}
         onClose={() => setShowBulkModal(false)}
         requestId={selectedRequestId || 0}
-        requesterInfo={{
-          name: `${student.firstName} ${student.lastName || ''}`,
-          role: 'STUDENT',
-          department: student.department || 'N/A'
-        }}
+        requesterInfo={{ name: `${student.firstName} ${student.lastName || ''}`, role: 'STUDENT', department: student.department || 'N/A' }}
       />
 
-      {/* Fullscreen Attachment Preview Modal */}
-      <Modal
-        visible={showAttachmentPreview}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowAttachmentPreview(false)}
-      >
+      <Modal visible={showAttachmentPreview} animationType="fade" transparent={true} onRequestClose={() => setShowAttachmentPreview(false)}>
         <View style={styles.attachmentPreviewOverlay}>
-          <TouchableOpacity
-            style={styles.attachmentPreviewClose}
-            onPress={() => setShowAttachmentPreview(false)}
-          >
+          <TouchableOpacity style={styles.attachmentPreviewClose} onPress={() => setShowAttachmentPreview(false)}>
             <Ionicons name="close" size={26} color="#FFFFFF" />
           </TouchableOpacity>
           {previewAttachmentUri && (
-            <Image
-              source={{ uri: previewAttachmentUri }}
-              style={styles.attachmentPreviewImage}
-              resizeMode="contain"
-            />
+            <Image source={{ uri: previewAttachmentUri }} style={styles.attachmentPreviewImage} resizeMode="contain" />
           )}
         </View>
       </Modal>
 
-      {/* QR Code Modal */}
       <GatePassQRModal
         visible={showQRModal}
         onClose={() => setShowQRModal(false)}
@@ -476,468 +397,72 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
+  container: { flex: 1 },
+  header: { paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1 },
+  headerTitle: { fontSize: 24, fontWeight: '700' },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 10,
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: 20, marginTop: 16,
+    paddingHorizontal: 16, paddingVertical: 12,
+    borderRadius: 12, gap: 10,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 100,
-  },
-  emptyState: {
-    paddingVertical: 80,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    marginTop: 16,
-  },
+  searchInput: { flex: 1, fontSize: 16 },
+  content: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 },
+  emptyState: { paddingVertical: 80, alignItems: 'center' },
+  emptyText: { fontSize: 16, fontWeight: '600', marginTop: 16 },
   requestCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 16, padding: 16, marginBottom: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
   },
-  requestHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  requestTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
-    flex: 1,
-    marginRight: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  requestDate: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    marginTop: 4,
-  },
+  requestHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  requestTitle: { fontSize: 16, fontWeight: '700', flex: 1, marginRight: 8 },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  requestDate: { fontSize: 13, marginTop: 4 },
   bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 8,
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 8,
+    borderTopWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05, shadowRadius: 8, elevation: 8,
   },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    position: 'relative',
-  },
-  navLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  navLabelActive: {
-    fontSize: 12,
-    color: '#1F2937',
-    marginTop: 4,
-    fontWeight: '700',
-  },
-  activeIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    width: 32,
-    height: 3,
-    backgroundColor: '#1F2937',
-    borderRadius: 2,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  modalSubtitle: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 3,
-    fontWeight: '500',
-  },
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    padding: 20,
-  },
-  modalSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#6B7280',
-    marginBottom: 12,
-    letterSpacing: 0.5,
-  },
-  modalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  modalLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  modalValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-
-  qrModalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-  },
-  qrModalContent: {
-    padding: 20,
-  },
-  qrCodeContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  qrCodeWrapper: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  qrCodeImage: {
-    width: 200,
-    height: 200,
-  },
-  qrLoadingContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qrLoadingText: {
-    fontSize: 16,
-    color: '#9CA3AF',
-  },
-  manualCodeContainer: {
-    backgroundColor: '#F3F4F6',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  manualCodeLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  manualCodeText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    letterSpacing: 2,
-  },
-  qrInstructions: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  detailModalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    maxHeight: '90%',
-    paddingBottom: 20,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  detailModalContent: {
-    paddingHorizontal: 20,
-  },
-  infoSection: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitleBold: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1F2937',
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#1F2937',
-    fontWeight: '700',
-  },
-  attachmentContainer: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  attachmentImage: {
-    width: '100%',
-    height: 200,
-  },
-  closeModalButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 15,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  closeModalButtonText: {
-    fontWeight: '800',
-    color: '#1F2937',
-  },
-  viewQRButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#10B981',
-    paddingVertical: 15,
-    borderRadius: 16,
-    marginBottom: 12,
-    gap: 8,
-  },
-  viewQRButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  attachmentTapHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    gap: 6,
-    backgroundColor: '#F9FAFB',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  attachmentTapText: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-  attachmentPreviewOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.96)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  attachmentPreviewClose: {
-    position: 'absolute',
-    top: 52,
-    right: 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 20,
-    padding: 10,
-  },
-  attachmentPreviewImage: {
-    width: '95%',
-    height: '78%',
-    borderRadius: 12,
-  },
-  quickQrButton: {
-    marginTop: 12,
-    backgroundColor: '#D1FAE5',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  quickQrContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  quickQrText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#065F46',
-  },
-  detailChipRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-  },
-  detailChip: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    gap: 4,
-  },
-  detailChipLabel: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  detailChipValue: {
-    fontSize: 14,
-    color: '#1F2937',
-    fontWeight: '700',
-  },
-  reasonBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  reasonLabel: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  reasonText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-    lineHeight: 20,
-  },
-  finalStatusRow: {
-    alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 4,
-  },
-  finalStatusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
-    borderWidth: 1.5,
-  },
-  finalStatusText: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
+  navItem: { flex: 1, alignItems: 'center', paddingVertical: 8, position: 'relative' },
+  navLabel: { fontSize: 12, marginTop: 4, fontWeight: '500' },
+  navLabelActive: { fontSize: 12, marginTop: 4, fontWeight: '700' },
+  activeIndicator: { position: 'absolute', bottom: 0, width: 32, height: 3, borderRadius: 2 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  detailModalContainer: { borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: '90%', paddingBottom: 20 },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 20, borderBottomWidth: 1 },
+  modalTitle: { fontSize: 20, fontWeight: '700' },
+  modalSubtitle: { fontSize: 12, marginTop: 3, fontWeight: '500' },
+  closeButton: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
+  detailModalContent: { paddingHorizontal: 20 },
+  infoSection: { borderRadius: 16, padding: 16, marginBottom: 16 },
+  sectionTitleBold: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
+  detailChipRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  detailChip: { flex: 1, borderRadius: 12, padding: 12, borderWidth: 1, gap: 4 },
+  detailChipLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  detailChipValue: { fontSize: 14, fontWeight: '700' },
+  reasonBox: { borderRadius: 12, padding: 12, borderWidth: 1 },
+  reasonLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  reasonText: { fontSize: 14, fontWeight: '500', lineHeight: 20 },
+  attachmentContainer: { borderRadius: 12, overflow: 'hidden', borderWidth: 1 },
+  attachmentImage: { width: '100%', height: 200 },
+  attachmentTapHint: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 6, borderTopWidth: 1 },
+  attachmentTapText: { fontSize: 13, fontWeight: '600' },
+  finalStatusRow: { alignItems: 'center', marginBottom: 16, marginTop: 4 },
+  finalStatusBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 24, borderWidth: 1.5 },
+  finalStatusText: { fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  closeModalButton: { paddingVertical: 15, borderRadius: 16, alignItems: 'center' },
+  closeModalButtonText: { fontWeight: '800' },
+  quickQrButton: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, alignSelf: 'flex-start' },
+  quickQrContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  quickQrText: { fontSize: 12, fontWeight: '700' },
+  attachmentPreviewOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.96)', justifyContent: 'center', alignItems: 'center' },
+  attachmentPreviewClose: { position: 'absolute', top: 52, right: 20, zIndex: 10, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, padding: 10 },
+  attachmentPreviewImage: { width: '95%', height: '78%', borderRadius: 12 },
 });
 
 export default StudentRequestsScreen;
