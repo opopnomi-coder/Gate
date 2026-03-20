@@ -1,7 +1,7 @@
 package com.example.visitor.controller;
 
-import com.example.visitor.entity.GatePassRequest;
-import com.example.visitor.service.UnifiedVisitorService;
+import com.example.visitor.entity.Visitor;
+import com.example.visitor.service.VisitorGatepassService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Unified Visitor Controller - Uses only gate_pass_requests table
- * Replaces old VisitorController that used separate visitors table
+ * Unified Visitor Controller - Persists visitor requests in Visitor table.
  */
 @RestController
 @RequestMapping("/api/unified-visitors")
@@ -19,7 +18,7 @@ import java.util.List;
 public class UnifiedVisitorController {
     
     @Autowired
-    private UnifiedVisitorService unifiedVisitorService;
+    private VisitorGatepassService visitorGatepassService;
     
     /**
      * Register visitor from website
@@ -31,26 +30,27 @@ public class UnifiedVisitorController {
         try {
             System.out.println("📝 Registering visitor: " + request.getName());
             
-            GatePassRequest gatePassRequest = unifiedVisitorService.createVisitorRequest(
-                request.getName(),
-                request.getEmail(),
-                request.getPhone(),
-                request.getDepartment(),
-                request.getStaffCode(),
-                request.getPurpose(),
-                request.getReason(),
-                request.getNumberOfPeople(),
-                request.getVehicleNumber()
-            );
+            Visitor visitor = new Visitor();
+            visitor.setName(request.getName());
+            visitor.setEmail(request.getEmail());
+            visitor.setPhone(request.getPhone());
+            visitor.setDepartment(request.getDepartment());
+            visitor.setStaffCode(request.getStaffCode());
+            visitor.setPersonToMeet(request.getStaffCode());
+            visitor.setPurpose(request.getPurpose() != null ? request.getPurpose() : request.getReason());
+            visitor.setNumberOfPeople(request.getNumberOfPeople() != null ? request.getNumberOfPeople() : 1);
+            visitor.setVehicleNumber(request.getVehicleNumber());
+            visitor.setRegisteredBy("WEBSITE");
             
             VisitorRegistrationResponse response = new VisitorRegistrationResponse();
-            response.setId(gatePassRequest.getId());
-            response.setName(gatePassRequest.getStudentName());
-            response.setEmail(gatePassRequest.getRegNo());
-            response.setDepartment(gatePassRequest.getDepartment());
-            response.setPersonToMeet(request.getStaffCode());
+            Visitor saved = visitorGatepassService.createRequest(visitor);
+            response.setId(saved.getId());
+            response.setName(saved.getName());
+            response.setEmail(saved.getEmail());
+            response.setDepartment(saved.getDepartment());
+            response.setPersonToMeet(saved.getPersonToMeet());
             response.setApprovalStatus("PENDING");
-            response.setMessage("Your visit request has been sent for approval. You will receive an email with your QR code once approved.");
+            response.setMessage("Your visit request has been sent for approval. QR/manual codes will be ready once approved.");
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -70,24 +70,25 @@ public class UnifiedVisitorController {
         try {
             System.out.println("🔐 Security registering visitor: " + request.getName());
             
-            GatePassRequest gatePassRequest = unifiedVisitorService.createVisitorRequestBySecurity(
-                request.getSecurityId(),
-                request.getName(),
-                request.getEmail(),
-                request.getPhone(),
-                request.getDepartmentId(),
-                request.getStaffCode(),
-                request.getPurpose(),
-                request.getNumberOfPeople(),
-                request.getVehicleNumber()
-            );
+            Visitor visitor = new Visitor();
+            visitor.setName(request.getName());
+            visitor.setEmail(request.getEmail());
+            visitor.setPhone(request.getPhone());
+            visitor.setDepartment(request.getDepartmentId());
+            visitor.setStaffCode(request.getStaffCode());
+            visitor.setPersonToMeet(request.getStaffCode());
+            visitor.setPurpose(request.getPurpose());
+            visitor.setNumberOfPeople(request.getNumberOfPeople() != null ? request.getNumberOfPeople() : 1);
+            visitor.setVehicleNumber(request.getVehicleNumber());
+            visitor.setRegisteredBy(request.getSecurityId());
             
             VisitorRegistrationResponse response = new VisitorRegistrationResponse();
-            response.setId(gatePassRequest.getId());
-            response.setName(gatePassRequest.getStudentName());
-            response.setEmail(gatePassRequest.getRegNo());
-            response.setDepartment(gatePassRequest.getDepartment());
-            response.setPersonToMeet(request.getStaffCode());
+            Visitor saved = visitorGatepassService.createRequest(visitor);
+            response.setId(saved.getId());
+            response.setName(saved.getName());
+            response.setEmail(saved.getEmail());
+            response.setDepartment(saved.getDepartment());
+            response.setPersonToMeet(saved.getPersonToMeet());
             response.setApprovalStatus("PENDING");
             response.setMessage("Visitor registered successfully. Request sent for approval.");
             
@@ -110,11 +111,11 @@ public class UnifiedVisitorController {
         try {
             System.out.println("📡 Fetching visitor requests for staff: " + staffCode);
             
-            List<GatePassRequest> requests;
+            List<Visitor> requests;
             if ("PENDING".equalsIgnoreCase(status)) {
-                requests = unifiedVisitorService.getPendingVisitorRequestsForStaff(staffCode);
+                requests = visitorGatepassService.getPendingRequestsForStaff(staffCode);
             } else {
-                requests = unifiedVisitorService.getAllVisitorRequestsForStaff(staffCode);
+                requests = visitorGatepassService.getAllRequestsForStaff(staffCode);
             }
             
             List<VisitorRequestDTO> dtos = requests.stream()
@@ -140,14 +141,14 @@ public class UnifiedVisitorController {
         try {
             System.out.println("✅ Approving visitor request: " + id + " by " + approvedBy);
             
-            GatePassRequest approved = unifiedVisitorService.approveVisitorRequest(id, approvedBy);
+            Visitor approved = visitorGatepassService.approveRequest(id);
             
             VisitorApprovalResponse response = new VisitorApprovalResponse();
             response.setId(approved.getId());
             response.setStatus("APPROVED");
             response.setQrCode(approved.getQrCode());
             response.setManualCode(approved.getManualCode());
-            response.setMessage("Visitor request approved successfully. QR code sent to visitor's email.");
+            response.setMessage("Visitor request approved successfully. QR/manual codes are ready to use.");
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -167,9 +168,8 @@ public class UnifiedVisitorController {
         try {
             System.out.println("❌ Rejecting visitor request: " + id);
             
-            unifiedVisitorService.rejectVisitorRequest(
-                id, 
-                request.getStaffCode(),
+            visitorGatepassService.rejectRequest(
+                id,
                 request.getReason() != null ? request.getReason() : "Rejected by staff"
             );
             
@@ -185,10 +185,10 @@ public class UnifiedVisitorController {
      * GET /api/unified-visitors/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<GatePassRequest> getVisitorRequestById(@PathVariable Long id) {
+    public ResponseEntity<VisitorRequestDTO> getVisitorRequestById(@PathVariable Long id) {
         try {
-            return unifiedVisitorService.getVisitorRequestById(id)
-                    .map(ResponseEntity::ok)
+            return visitorGatepassService.getRequestById(id)
+                    .map(v -> ResponseEntity.ok(convertToDTO(v)))
                     .orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             System.err.println("❌ Error fetching visitor request: " + e.getMessage());
@@ -196,22 +196,22 @@ public class UnifiedVisitorController {
         }
     }
     
-    // Helper method to convert GatePassRequest to DTO
-    private VisitorRequestDTO convertToDTO(GatePassRequest request) {
+    // Helper method to convert Visitor to DTO
+    private VisitorRequestDTO convertToDTO(Visitor visitor) {
         VisitorRequestDTO dto = new VisitorRequestDTO();
-        dto.setRequestId(request.getId());
+        dto.setRequestId(visitor.getId());
         dto.setRequestType("VISITOR");
-        dto.setRequesterName(request.getStudentName());
-        dto.setVisitorEmail(request.getRegNo());
-        dto.setVisitorPhone(extractPhoneFromReason(request.getReason()));
-        dto.setPurpose(request.getPurpose());
-        dto.setDepartment(request.getDepartment());
-        dto.setPersonToMeet(request.getAssignedStaffCode());
-        dto.setStatus(request.getStatus().toString());
-        dto.setCreatedAt(request.getRequestDate());
-        dto.setApprovedAt(request.getStaffApprovalDate());
-        dto.setQrCode(request.getQrCode());
-        dto.setManualCode(request.getManualCode());
+        dto.setRequesterName(visitor.getName());
+        dto.setVisitorEmail(visitor.getEmail());
+        dto.setVisitorPhone(visitor.getPhone());
+        dto.setPurpose(visitor.getPurpose());
+        dto.setDepartment(visitor.getDepartment());
+        dto.setPersonToMeet(visitor.getPersonToMeet());
+        dto.setStatus(visitor.getStatus());
+        dto.setCreatedAt(visitor.getCreatedAt());
+        dto.setApprovedAt(visitor.getApprovedAt());
+        dto.setQrCode(visitor.getQrCode());
+        dto.setManualCode(visitor.getManualCode());
         return dto;
     }
     

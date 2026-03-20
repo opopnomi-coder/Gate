@@ -53,9 +53,6 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
     apiService.wakeUpBackend();
   }, []);
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {

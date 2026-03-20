@@ -707,23 +707,8 @@ public class SecurityController {
                             
                             System.out.println("📋 Visitor details: " + personName + " - Purpose: " + v.getPurpose() + " - Meeting: " + v.getPersonToMeet());
                         } else {
-                            // Try GatePassRequest table (modern visitors)
-                            Optional<GatePassRequest> gpVisOpt = gatePassRequestRepository.findById(visitorId);
-                            if (gpVisOpt.isPresent()) {
-                                GatePassRequest gp = gpVisOpt.get();
-                                personName = gp.getStudentName(); // Visitor name is stored here
-                                department = gp.getDepartment();
-                                
-                                detailedInfo.put("name", personName);
-                                detailedInfo.put("department", department);
-                                detailedInfo.put("purpose", gp.getPurpose());
-                                // Note: Email/Phone/StaffToMeet are not currently in GatePassRequest entity
-                                
-                                System.out.println("📋 Modern Visitor details: " + personName + " from GatePassRequest");
-                            } else {
-                                personName = "Visitor - " + userId;
-                                detailedInfo.put("name", personName);
-                            }
+                            personName = "Visitor - " + userId;
+                            detailedInfo.put("name", personName);
                         }
                     } catch (Exception e) {
                         personName = "Visitor - " + userId;
@@ -889,12 +874,9 @@ public class SecurityController {
             
             // If SIG (Staff/HOD Included Group), add the incharge to participants
             if ("SIG".equals(subtype)) {
-                // Determine if incharge is HOD or Staff
-                if (incharge.startsWith("ADHOD")) {
-                    participants.add("HOD:" + incharge);
-                } else {
-                    participants.add("SF:" + incharge);
-                }
+                // Determine if incharge is HOD or Staff from DB (not via code prefix).
+                boolean isHod = hodRepository.findByHodCode(incharge).isPresent();
+                participants.add((isHod ? "HOD:" : "SF:") + incharge);
                 System.out.println("✅ SIG detected - Added incharge to participants: " + incharge);
             }
             
@@ -972,42 +954,6 @@ public class SecurityController {
                 purpose = gatepass.getPurpose() != null ? gatepass.getPurpose() : "Bulk Pass";
                 reason = gatepass.getReason() != null ? gatepass.getReason() : "";
             }
-            
-            // Create scan log for the bulk pass with detailed information
-            ScanLog scanLog = new ScanLog();
-            scanLog.setQrCode(qrCode);
-            scanLog.setPersonName("Bulk Pass - " + incharge + " (" + participants.size() + " participants)");
-            scanLog.setPersonType(PersonType.VISITOR); // Use VISITOR type for bulk passes
-            scanLog.setStatus(ApprovalStatus.APPROVED);
-            scanLog.setAccessGranted(true);
-            scanLog.setScannedBy("Security Guard");
-            scanLog.setScanLocation("Exit Gate");
-            scanLog.setUserId(incharge);
-            scanLog.setUserType("BULK_PASS");
-            scanLog.setQrId(qrTable.getId());
-            
-            // Store bulk pass details in purpose field for scan history
-            // Format: BULK_PASS|incharge:code|subtype:SEG/SIG|count:X|purpose:text|reason:text|participants:json
-            StringBuilder purposeBuilder = new StringBuilder();
-            purposeBuilder.append("BULK_PASS|");
-            purposeBuilder.append("INCHARGE:").append(incharge).append("|");
-            purposeBuilder.append("SUBTYPE:").append(subtype).append("|");
-            purposeBuilder.append("COUNT:").append(participants.size()).append("|");
-            purposeBuilder.append("PURPOSE:").append(purpose).append("|");
-            purposeBuilder.append("REASON:").append(reason).append("|");
-            purposeBuilder.append("PARTICIPANTS:");
-            
-            // Add participants as JSON-like string
-            for (int i = 0; i < participantDetails.size(); i++) {
-                java.util.Map<String, String> p = participantDetails.get(i);
-                if (i > 0) purposeBuilder.append(";");
-                purposeBuilder.append(p.get("id")).append(":").append(p.get("name"))
-                            .append(":").append(p.get("type"))
-                            .append(":").append(p.get("department") != null ? p.get("department") : "");
-            }
-            
-            scanLog.setPurpose(purposeBuilder.toString());
-            scanLogRepository.save(scanLog);
             
             // Build response
             java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -1622,10 +1568,6 @@ public class SecurityController {
                     // Check legacy Visitor table
                     Optional<Visitor> visitorOpt = visitorRepository.findById(numericId);
                     if (visitorOpt.isPresent()) return visitorOpt.get().getName();
-                    
-                    // Check modern GatePassRequest table
-                    Optional<GatePassRequest> gpVisOpt = gatePassRequestRepository.findById(numericId);
-                    if (gpVisOpt.isPresent()) return gpVisOpt.get().getStudentName(); // Visitor name is stored here
                 } catch(NumberFormatException nfe) {
                     // ID wasn't numeric, ignore
                 }
@@ -1636,9 +1578,6 @@ public class SecurityController {
                 Long numericId = Long.parseLong(userId);
                 Optional<Visitor> vOpt = visitorRepository.findById(numericId);
                 if (vOpt.isPresent()) return vOpt.get().getName();
-                
-                Optional<GatePassRequest> qpOpt = gatePassRequestRepository.findById(numericId);
-                if (qpOpt.isPresent() && "VISITOR".equals(qpOpt.get().getUserType())) return qpOpt.get().getStudentName();
             } catch(NumberFormatException ignored) {}
             
             Optional<HOD> hod = hodRepository.findByHodCode(userId);
@@ -1790,16 +1729,8 @@ public class SecurityController {
                 exitData.put("purpose", exitLog.getPurpose() != null ? exitLog.getPurpose() : "Gate Pass Exit");
                 exitData.put("reason", "");
                 
-                // Fetch purpose from GatePassRequest if it's a visitor
-                if ("VISITOR".equals(displayType)) {
-                    try {
-                        Long numericId = Long.parseLong(exitUserId);
-                        Optional<GatePassRequest> gpOpt = gatePassRequestRepository.findById(numericId);
-                        if (gpOpt.isPresent()) {
-                            exitData.put("purpose", gpOpt.get().getPurpose());
-                        }
-                    } catch (Exception ignored) {}
-                }
+                // Purpose is primarily expected to come from Exit_logs (RailwayExitLog).
+                // Avoid reading from GatePassRequest for visitor purposes to keep visitor data on Visitor table.
                 
                 if (exitLog.getDepartment() != null) exitData.put("department", exitLog.getDepartment());
                 if (exitLog.getEmail() != null) exitData.put("email", exitLog.getEmail());
@@ -2097,37 +2028,88 @@ public class SecurityController {
     @PostMapping("/record-scan")
     public ResponseEntity<?> recordScan(@RequestBody java.util.Map<String, Object> scanData) {
         try {
-            ScanLog scanLog = new ScanLog();
-            scanLog.setQrCode((String) scanData.get("qrCode"));
-            scanLog.setPersonName((String) scanData.get("personName"));
-            scanLog.setPersonType(PersonType.valueOf((String) scanData.get("personType")));
-            scanLog.setPurpose((String) scanData.get("purpose"));
-            scanLog.setStatus(ApprovalStatus.valueOf((String) scanData.get("status")));
-            scanLog.setScanLocation((String) scanData.get("scanLocation"));
-            scanLog.setScannedBy((String) scanData.get("scannedBy"));
-            scanLog.setAccessGranted("APPROVED".equals(scanData.get("status")));
-            
-            // Set required fields
-            String userId = (String) scanData.get("userId");
-            String userType = (String) scanData.get("userType");
-            scanLog.setUserId(userId != null ? userId : "UNKNOWN");
-            scanLog.setUserType(userType != null ? userType : "VISITOR");
-            
-            // Set optional fields
-            if (scanData.get("studentId") != null) {
-                scanLog.setStudentId((String) scanData.get("studentId"));
+            String scanLocation = (String) scanData.get("scanLocation");
+            boolean isExit = scanLocation != null && scanLocation.toLowerCase().contains("exit");
+            Object savedLog;
+
+            if (isExit) {
+                // Exits must be written to Exit_logs (RailwayExitLog).
+                RailwayExitLog exitLog = new RailwayExitLog();
+                exitLog.setQrCode((String) scanData.get("qrCode"));
+                exitLog.setPersonName((String) scanData.get("personName"));
+                exitLog.setPurpose((String) scanData.get("purpose"));
+                exitLog.setVerifiedBy((String) scanData.get("scannedBy"));
+                exitLog.setLocation(scanLocation);
+                exitLog.setScanLocation(scanLocation);
+                exitLog.setExitTime(LocalDateTime.now());
+                exitLog.setAccessGranted("APPROVED".equals(scanData.get("status")));
+
+                // Set required fields
+                String userId = (String) scanData.get("userId");
+                String rawUserType = (String) scanData.get("userType");
+                exitLog.setUserId(userId != null ? userId : "UNKNOWN");
+
+                // Map QR/scanner user types to Exit_logs.user_type values.
+                String mappedUserType = rawUserType;
+                if ("ST".equalsIgnoreCase(rawUserType) || "STUDENT".equalsIgnoreCase(rawUserType)) {
+                    mappedUserType = "STUDENT";
+                } else if ("SF".equalsIgnoreCase(rawUserType) || "STAFF".equalsIgnoreCase(rawUserType)) {
+                    mappedUserType = "STAFF";
+                } else if ("HD".equalsIgnoreCase(rawUserType) || "HOD".equalsIgnoreCase(rawUserType)) {
+                    mappedUserType = "HOD";
+                } else if ("VG".equalsIgnoreCase(rawUserType) || "VISITOR".equalsIgnoreCase(rawUserType)) {
+                    mappedUserType = "VISITOR";
+                }
+                exitLog.setUserType(mappedUserType != null ? mappedUserType : "VISITOR");
+
+                // Best-effort optional fields
+                if (scanData.get("department") != null) {
+                    exitLog.setDepartment((String) scanData.get("department"));
+                }
+                if (scanData.get("email") != null) {
+                    exitLog.setEmail((String) scanData.get("email"));
+                }
+                if (scanData.get("phone") != null) {
+                    exitLog.setPhone((String) scanData.get("phone"));
+                }
+
+                railwayExitLogRepository.save(exitLog);
+                savedLog = exitLog;
+                System.out.println("Exit recorded: " + exitLog.getPersonName() + " - " + exitLog.getScanLocation());
+            } else {
+                // Entry must be stored in Entry table (ScanLog).
+                ScanLog scanLog = new ScanLog();
+                scanLog.setQrCode((String) scanData.get("qrCode"));
+                scanLog.setPersonName((String) scanData.get("personName"));
+                scanLog.setPersonType(PersonType.valueOf((String) scanData.get("personType")));
+                scanLog.setPurpose((String) scanData.get("purpose"));
+                scanLog.setStatus(ApprovalStatus.valueOf((String) scanData.get("status")));
+                scanLog.setScanLocation(scanLocation);
+                scanLog.setScannedBy((String) scanData.get("scannedBy"));
+                scanLog.setAccessGranted("APPROVED".equals(scanData.get("status")));
+
+                // Set required fields
+                String userId = (String) scanData.get("userId");
+                String userType = (String) scanData.get("userType");
+                scanLog.setUserId(userId != null ? userId : "UNKNOWN");
+                scanLog.setUserType(userType != null ? userType : "VISITOR");
+
+                // Set optional fields
+                if (scanData.get("studentId") != null) {
+                    scanLog.setStudentId((String) scanData.get("studentId"));
+                }
+                if (scanData.get("facultyId") != null) {
+                    scanLog.setFacultyId((String) scanData.get("facultyId"));
+                }
+
+                ScanLog savedScan = scanLogRepository.save(scanLog);
+                savedLog = savedScan;
+                System.out.println("Entry recorded: " + savedScan.getPersonName() + " - " + savedScan.getScanLocation());
             }
-            if (scanData.get("facultyId") != null) {
-                scanLog.setFacultyId((String) scanData.get("facultyId"));
-            }
-            
-            ScanLog savedScan = scanLogRepository.save(scanLog);
-            System.out.println("Scan recorded: " + savedScan.getPersonName() + " - " + savedScan.getScanLocation());
             
             // Create notification for security personnel
             String securityId = (String) scanData.get("securityId");
             if (securityId != null) {
-                String scanLocation = (String) scanData.get("scanLocation");
                 String notificationType = (scanLocation != null && scanLocation.toLowerCase().contains("exit")) ? "EXIT" : "ENTRY";
                 String message = String.format("%s %s has %s the premises at %s", 
                     scanData.get("personType"), 
@@ -2145,7 +2127,7 @@ public class SecurityController {
                 System.out.println("Notification created for security: " + securityId);
             }
             
-            return ResponseEntity.ok(savedScan);
+            return ResponseEntity.ok(savedLog);
         } catch (Exception e) {
             System.err.println("Error recording scan: " + e.getMessage());
             e.printStackTrace();
@@ -2275,10 +2257,14 @@ public class SecurityController {
             }
             
             // Step 3: Validate based on user type
-            boolean isValid = false;
+            boolean shouldSaveEntryLog = false;
+            boolean shouldCreateExitLog = false;
+            String exitUserType = null; // Exit_logs.user_type
+            LocalDateTime exitTime = LocalDateTime.now();
+            Long qrIdForExit = null;
             String scanLocation = "Exit Gate";
             
-            if ("SF".equals(type) || "ST".equals(type)) {
+            if ("SF".equals(type) || "ST".equals(type) || "HD".equals(type)) {
                 // Staff/Student: Only use exit column, entry should be null
                 if (qrTable.getEntry() != null) {
                     System.out.println("❌ Invalid: SF/ST should not have entry value");
@@ -2290,10 +2276,12 @@ public class SecurityController {
                 
                 // Check if token matches exit column
                 if (token != null && token.equals(qrTable.getExit())) {
-                    isValid = true;
+                    shouldCreateExitLog = true;
+                    qrIdForExit = qrTable.getId();
+                    exitUserType = "ST".equals(type) ? "STUDENT" : ("SF".equals(type) ? "STAFF" : "HOD");
                     // Delete the row from qr_table
                     qrTableRepository.delete(qrTable);
-                    System.out.println("✅ SF/ST EXIT APPROVED - Deleted row for token: " + token);
+                    System.out.println("✅ EXIT APPROVED (SF/ST/HD) - Deleted row for token: " + token);
                 } else {
                     System.out.println("❌ Token does not match exit column. Expected: " + qrTable.getExit() + ", Got: " + token);
                     return ResponseEntity.status(403).body(java.util.Map.of(
@@ -2307,13 +2295,25 @@ public class SecurityController {
                 if (qrTable.getEntry() != null && qrTable.getExit() == null) {
                     // First scan (Entry)
                     if (token != null && token.equals(qrTable.getEntry())) {
-                        isValid = true;
+                        shouldSaveEntryLog = true;
                         scanLocation = "Entry Gate";
                         // Move token from entry to exit
                         qrTable.setExit(qrTable.getEntry());
                         qrTable.setEntry(null);
                         qrTableRepository.save(qrTable);
                         System.out.println("✅ VG ENTRY APPROVED - Moved token to exit: " + qrCode);
+
+                        // Backfill visitor entry time for consistency with scanQrCodeInternal.
+                        try {
+                            Long visitorId = Long.parseLong(userId);
+                            Optional<Visitor> visitorOpt = visitorRepository.findById(visitorId);
+                            if (visitorOpt.isPresent()) {
+                                Visitor v = visitorOpt.get();
+                                v.setEntryTime(LocalDateTime.now());
+                                v.setScanCount(1);
+                                visitorRepository.save(v);
+                            }
+                        } catch (Exception ignored) {}
                     } else {
                         System.out.println("❌ Token does not match entry column");
                         return ResponseEntity.status(403).body(java.util.Map.of(
@@ -2324,9 +2324,23 @@ public class SecurityController {
                 } else if (qrTable.getEntry() == null && qrTable.getExit() != null) {
                     // Second scan (Exit)
                     if (token != null && token.equals(qrTable.getExit())) {
-                        isValid = true;
+                        shouldCreateExitLog = true;
+                        qrIdForExit = qrTable.getId();
+                        exitUserType = "VISITOR";
                         scanLocation = "Exit Gate";
                         // Delete the row from qr_table
+                        // Backfill visitor exit time for consistency with scanQrCodeInternal.
+                        try {
+                            Long visitorId = Long.parseLong(userId);
+                            Optional<Visitor> visitorOpt = visitorRepository.findById(visitorId);
+                            if (visitorOpt.isPresent()) {
+                                Visitor v = visitorOpt.get();
+                                v.setExitTime(LocalDateTime.now());
+                                v.setScanCount(2);
+                                visitorRepository.save(v);
+                            }
+                        } catch (Exception ignored) {}
+
                         qrTableRepository.delete(qrTable);
                         System.out.println("✅ VG EXIT APPROVED - Deleted row: " + qrCode);
                     } else {
@@ -2380,9 +2394,36 @@ public class SecurityController {
                     phone = st.getPhone();
                     result.put("staffCode", st.getStaffCode());
                 }
+            } else if ("HD".equals(type)) {
+                personType = PersonType.FACULTY;
+                Optional<HOD> hod = hodRepository.findByHodCode(userId);
+                if (hod.isPresent()) {
+                    HOD h = hod.get();
+                    personName = h.getHodName();
+                    department = h.getDepartment();
+                    email = h.getEmail();
+                    phone = h.getPhone();
+                    result.put("staffCode", h.getHodCode());
+                } else {
+                    personName = "HOD - " + userId;
+                }
             } else {
                 personType = PersonType.VISITOR;
-                personName = "Visitor - " + userId;
+                try {
+                    Long visitorId = Long.parseLong(userId);
+                    Optional<Visitor> visitorOpt = visitorRepository.findById(visitorId);
+                    if (visitorOpt.isPresent()) {
+                        Visitor v = visitorOpt.get();
+                        personName = v.getName();
+                        department = v.getDepartment();
+                        email = v.getEmail();
+                        phone = v.getPhone();
+                    } else {
+                        personName = "Visitor - " + userId;
+                    }
+                } catch (Exception e) {
+                    personName = "Visitor - " + userId;
+                }
             }
             
             result.put("name", personName);
@@ -2391,29 +2432,43 @@ public class SecurityController {
             result.put("email", email);
             result.put("phone", phone);
             
-            // Step 4: Create scan log
-            ScanLog scanLog = new ScanLog();
-            scanLog.setQrCode(qrCode);
-            scanLog.setPersonName(personName);
-            scanLog.setPersonType(personType);
-            scanLog.setStatus(ApprovalStatus.APPROVED);
-            scanLog.setAccessGranted(true);
-            scanLog.setScannedBy(scannedBy != null ? scannedBy : "Security Guard");
-            scanLog.setScanLocation(scanLocation);
-            scanLog.setDepartment(department);
-            scanLog.setEmail(email);
-            scanLog.setPhone(phone);
-            scanLog.setUserId(userId);
-            scanLog.setUserType(type);
-            scanLog.setQrId(qrTable.getId());
-            
-            if ("ST".equals(type)) {
-                scanLog.setStudentId(userId);
-            } else if ("SF".equals(type)) {
-                scanLog.setFacultyId(userId);
+            // Step 4: Write to the correct history table
+            if (shouldSaveEntryLog) {
+                // Visitor entries must be stored in Entry table (ScanLog).
+                ScanLog scanLog = new ScanLog();
+                scanLog.setQrCode(qrCode);
+                scanLog.setPersonName(personName);
+                scanLog.setPersonType(personType);
+                scanLog.setStatus(ApprovalStatus.APPROVED);
+                scanLog.setAccessGranted(true);
+                scanLog.setScannedBy(scannedBy != null ? scannedBy : "Security Guard");
+                scanLog.setScanLocation(scanLocation);
+                scanLog.setDepartment(department);
+                scanLog.setEmail(email);
+                scanLog.setPhone(phone);
+                scanLog.setUserId(userId);
+                scanLog.setUserType(type);
+                scanLog.setQrId(qrTable.getId());
+
+                scanLogRepository.save(scanLog);
+            } else if (shouldCreateExitLog) {
+                // Exits must be stored in Exit_logs table (RailwayExitLog).
+                RailwayExitLog exitLog = new RailwayExitLog();
+                exitLog.setQrId(qrIdForExit != null ? qrIdForExit : qrTable.getId());
+                exitLog.setUserId(userId);
+                exitLog.setUserType(exitUserType);
+                exitLog.setExitTime(exitTime);
+                exitLog.setVerifiedBy(scannedBy != null ? scannedBy : "Security Guard");
+                exitLog.setLocation(scanLocation);
+                exitLog.setPersonName(personName);
+                exitLog.setDepartment(department);
+                exitLog.setEmail(email);
+                exitLog.setPhone(phone);
+                exitLog.setQrCode(qrCode);
+                exitLog.setScanLocation(scanLocation);
+                exitLog.setAccessGranted(true);
+                railwayExitLogRepository.save(exitLog);
             }
-            
-            scanLogRepository.save(scanLog);
             
             System.out.println("✅ Single Pass validated successfully for: " + personName);
             return ResponseEntity.ok(result);
@@ -2559,38 +2614,42 @@ public class SecurityController {
             
             System.out.println("✅ Exit time recorded for visitor: " + visitor.getName() + " at " + exitTime);
             
-            // Create scan log for manual exit
-            ScanLog scanLog = new ScanLog();
-            scanLog.setQrCode("MANUAL-EXIT-" + visitor.getId());
-            scanLog.setPersonName(visitor.getName());
-            scanLog.setPersonType(PersonType.VISITOR);
-            scanLog.setStatus(ApprovalStatus.APPROVED);
-            scanLog.setAccessGranted(true);
-            scanLog.setScannedBy(scannedBy != null ? scannedBy : "Security Guard (Manual)");
-            scanLog.setScanLocation("Exit Gate (Manual)");
-            scanLog.setDepartment(visitor.getDepartment());
-            scanLog.setEmail(visitor.getEmail());
-            scanLog.setPhone(visitor.getPhone());
-            scanLog.setPurpose(visitor.getPurpose());
-            scanLog.setUserId(visitor.getId().toString());
-            scanLog.setUserType("VG");
-            
-            scanLogRepository.save(scanLog);
-            
-            System.out.println("✅ Manual exit scan log created for: " + visitor.getName());
-            
-            // Delete QR code from qr_table if exists
+            // Create exit record for manual visitor exit (must go to Exit_logs, not Entry/ScanLog).
+            Optional<QRTable> qrTableOpt = Optional.empty();
             try {
                 if (visitor.getQrCode() != null) {
                     String[] parts = visitor.getQrCode().split("\\|");
                     if (parts.length >= 3) {
                         String token = parts[2];
-                        Optional<QRTable> qrTableOpt = qrTableRepository.findByQrCode(token);
-                        if (qrTableOpt.isPresent()) {
-                            qrTableRepository.delete(qrTableOpt.get());
-                            System.out.println("✅ Deleted QR table entry for visitor: " + visitor.getName());
-                        }
+                        qrTableOpt = qrTableRepository.findByQrCode(token);
                     }
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Could not parse visitor QR code for manual exit: " + e.getMessage());
+            }
+
+            RailwayExitLog exitLog = new RailwayExitLog();
+            exitLog.setQrId(qrTableOpt.isPresent() ? qrTableOpt.get().getId() : null);
+            exitLog.setUserId(visitor.getId().toString());
+            exitLog.setUserType("VISITOR");
+            exitLog.setExitTime(exitTime);
+            exitLog.setVerifiedBy(scannedBy != null ? scannedBy : "Security Guard (Manual)");
+            exitLog.setLocation("Exit Gate (Manual)");
+            exitLog.setPersonName(visitor.getName());
+            exitLog.setDepartment(visitor.getDepartment());
+            exitLog.setEmail(visitor.getEmail());
+            exitLog.setPhone(visitor.getPhone());
+            exitLog.setPurpose(visitor.getPurpose());
+            exitLog.setQrCode(visitor.getQrCode());
+            exitLog.setScanLocation("Exit Gate (Manual)");
+            exitLog.setAccessGranted(true);
+            railwayExitLogRepository.save(exitLog);
+            
+            // Delete QR code from qr_table if exists
+            try {
+                qrTableOpt.ifPresent(qrTableRepository::delete);
+                if (qrTableOpt.isPresent()) {
+                    System.out.println("✅ Deleted QR table entry for visitor: " + visitor.getName());
                 }
             } catch (Exception e) {
                 System.err.println("⚠️ Could not delete QR table entry: " + e.getMessage());
@@ -2904,30 +2963,50 @@ public class SecurityController {
                 ));
             }
             
-            // Use UnifiedVisitorService to create visitor request in Gatepass table
-            // This ensures QR code with manual code is generated upon approval
-            GatePassRequest gatePassRequest = unifiedVisitorService.createVisitorRequestBySecurity(
-                securityId,
-                visitorName,
-                visitorEmail,
-                visitorPhone,
-                departmentId,
-                staffCode,
-                purpose,
-                numberOfPeople,
-                vehicleNumber
-            );
+            // Persist visitor requests in Visitor table (not Gatepass).
+            Optional<Staff> staffOpt = staffRepository.findByStaffCode(staffCode);
+            if (staffOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(java.util.Map.of(
+                    "success", false,
+                    "message", "Staff member not found"
+                ));
+            }
             
-            System.out.println("✅ Visitor registered by security: " + gatePassRequest.getStudentName() + 
-                             " (ID: " + gatePassRequest.getId() + ", Registered by: " + securityId + ")");
+            Staff staff = staffOpt.get();
+            if (staff.getDepartment() != null && departmentId != null &&
+                !DepartmentMapper.isSameDepartment(staff.getDepartment(), departmentId)) {
+                return ResponseEntity.badRequest().body(java.util.Map.of(
+                    "success", false,
+                    "message", "Department mismatch for staff"
+                ));
+            }
+
+            Visitor visitor = new Visitor();
+            visitor.setName(visitorName);
+            visitor.setEmail(visitorEmail);
+            visitor.setPhone(visitorPhone);
+            visitor.setDepartment(departmentId);
+            visitor.setStaffCode(staffCode);
+            visitor.setPersonToMeet(staffCode);
+            visitor.setPurpose(purpose);
+            visitor.setNumberOfPeople(numberOfPeople);
+            visitor.setVehicleNumber(vehicleNumber);
+            visitor.setRegisteredBy(securityId);
+            visitor.setStatus("PENDING");
+
+            Visitor savedVisitor = visitorRepository.save(visitor);
+            visitorRepository.flush();
+            
+            System.out.println("✅ Visitor registered by security: " + savedVisitor.getName() + 
+                             " (ID: " + savedVisitor.getId() + ", Registered by: " + securityId + ")");
             
             return ResponseEntity.ok(java.util.Map.of(
                 "success", true,
-                "message", "Visitor registered successfully. Approval request sent to staff member",
+                "message", "Visitor registered successfully. Pending approval by staff member",
                 "data", java.util.Map.of(
-                    "id", gatePassRequest.getId(),
-                    "name", gatePassRequest.getStudentName(),
-                    "status", gatePassRequest.getStatus().toString(),
+                    "id", savedVisitor.getId(),
+                    "name", savedVisitor.getName(),
+                    "status", savedVisitor.getStatus(),
                     "registeredBy", securityId
                 )
             ));
@@ -2951,7 +3030,7 @@ public class SecurityController {
         try {
             System.out.println("📋 Fetching visitor requests for security: " + securityId);
             
-            // Merge legacy visitors and new GatePassRequest visitors
+            // Visitor requests are persisted in legacy Visitor table.
             List<java.util.Map<String, Object>> visitorData = new java.util.ArrayList<>();
             
             // 1. Fetch from legacy Visitor table
@@ -2986,52 +3065,6 @@ public class SecurityController {
                 data.put("rejectedAt", v.getRejectedAt());
                 data.put("rejectionReason", v.getRejectionReason());
                 data.put("source", "LEGACY");
-                visitorData.add(data);
-            }
-            
-            // 2. Fetch from new GatePassRequest table
-            String searchReason = "Registered by Security: " + securityId;
-            List<GatePassRequest> modernVisitors = gatePassRequestRepository.findAll().stream()
-                .filter(r -> "VISITOR".equals(r.getUserType()) && r.getReason() != null && r.getReason().contains(searchReason))
-                .collect(java.util.stream.Collectors.toList());
-                
-            for (GatePassRequest r : modernVisitors) {
-                java.util.Map<String, Object> data = new java.util.HashMap<>();
-                data.put("id", r.getId() + 1000000); // Offset ID to avoid conflict with legacy IDs in UI
-                data.put("realId", r.getId());
-                data.put("name", r.getStudentName()); // Visitor name mapped to studentName
-                data.put("email", r.getRegNo()); // Email mapped to regNo
-                data.put("phone", ""); // Phone typically not in core GatePass tracking directly, but mapped inside reason sometimes
-                data.put("department", r.getDepartment());
-                
-                // Get staff name to meet
-                String personToMeet = r.getAssignedStaffCode();
-                try {
-                    Optional<Staff> staff = staffRepository.findByStaffCode(r.getAssignedStaffCode());
-                    if (staff.isPresent()) personToMeet = staff.get().getStaffName();
-                } catch(Exception ignored) {}
-                
-                data.put("personToMeet", personToMeet);
-                data.put("purpose", r.getPurpose());
-                data.put("numberOfPeople", r.getStudentCount());
-                data.put("vehicleNumber", "");
-                
-                // Map status exactly to UI expectations
-                String status = "PENDING";
-                if (r.getStatus() == GatePassRequest.RequestStatus.APPROVED || r.getStaffApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
-                    status = "APPROVED";
-                } else if (r.getStatus() == GatePassRequest.RequestStatus.REJECTED || r.getStaffApproval() == GatePassRequest.ApprovalStatus.REJECTED) {
-                    status = "REJECTED";
-                }
-                data.put("status", status);
-                data.put("qrCode", r.getQrCode());
-                data.put("manualCode", r.getManualCode());
-                data.put("qrCollected", r.getQrUsed());
-                data.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt() : r.getRequestDate());
-                data.put("approvedAt", r.getStaffApprovalDate());
-                data.put("rejectedAt", r.getRejectedAt());
-                data.put("rejectionReason", r.getRejectionReason() != null ? r.getRejectionReason() : r.getStaffRemark());
-                data.put("source", "MODERN");
                 visitorData.add(data);
             }
             

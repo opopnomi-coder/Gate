@@ -1,12 +1,15 @@
 package com.example.visitor.service;
 
 import com.example.visitor.entity.ScanLog;
+import com.example.visitor.entity.RailwayExitLog;
 import com.example.visitor.entity.Staff;
 import com.example.visitor.entity.Student;
+import com.example.visitor.entity.HOD;
 import com.example.visitor.entity.PersonType;
 import com.example.visitor.entity.ApprovalStatus;
 import com.example.visitor.entity.QRTable;
-import com.example.visitor.repository.ScanLogRepository;
+import com.example.visitor.repository.RailwayExitLogRepository;
+import com.example.visitor.repository.HODRepository;
 import com.example.visitor.repository.StaffRepository;
 import com.example.visitor.repository.StudentRepository;
 import com.example.visitor.repository.QRTableRepository;
@@ -14,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,16 +25,19 @@ import java.util.stream.Collectors;
 public class GroupPassService {
     
     @Autowired
-    private ScanLogRepository scanLogRepository;
-    
-    @Autowired
     private StudentRepository studentRepository;
     
     @Autowired
     private StaffRepository staffRepository;
+
+    @Autowired
+    private HODRepository hodRepository;
     
     @Autowired
     private QRTableRepository qrTableRepository;
+
+    @Autowired
+    private RailwayExitLogRepository railwayExitLogRepository;
     
     @Transactional
     public Map<String, Object> processGroupPassQR(String qrData, String scannedBy) {
@@ -85,19 +92,67 @@ public class GroupPassService {
             // Calculate total persons
             int totalPersons = calculateTotalPersons(passData, members);
             
-            // Mark the pass as used (single use, like ST/SF)
-            qrRecord.setStatus("USED");
-            qrRecord.setExitScannedAt(java.time.LocalDateTime.now());
-            qrRecord.setExitScannedBy(scannedBy);
-            qrTableRepository.save(qrRecord);
-            
-            // Create scan log
-            ScanLog scanLog = createScanLog(qrData, passData, members, totalPersons, "ENTRY", scannedBy);
-            scanLogRepository.save(scanLog);
+            // Bulk/group pass QR represents an EXIT-only workflow in this app.
+            // Exit history must be written to Exit_logs (not Entry table).
+            LocalDateTime exitTime = LocalDateTime.now();
+            List<Long> exitLogIds = new ArrayList<>();
+            Long qrId = qrRecord.getId();
+            boolean inchargeIsHod = hodRepository.findByHodCode(passData.inchargeStaffId).isPresent();
+
+            // Students exit logs
+            for (String studentRegNo : passData.studentRolls) {
+                RailwayExitLog exitLog = new RailwayExitLog();
+                exitLog.setQrId(qrId);
+                exitLog.setUserId(studentRegNo);
+                exitLog.setUserType("STUDENT");
+                exitLog.setExitTime(exitTime);
+                exitLog.setVerifiedBy(scannedBy != null ? scannedBy : "Security Guard");
+                exitLog.setLocation("Exit Gate");
+                exitLog.setQrCode(qrData);
+                exitLog.setScanLocation("Exit Gate");
+                exitLog.setAccessGranted(true);
+                RailwayExitLog saved = railwayExitLogRepository.save(exitLog);
+                exitLogIds.add(saved.getId());
+            }
+
+            // Staff exit logs
+            for (String staffCode : passData.staffIds) {
+                RailwayExitLog exitLog = new RailwayExitLog();
+                exitLog.setQrId(qrId);
+                exitLog.setUserId(staffCode);
+                exitLog.setUserType("STAFF");
+                exitLog.setExitTime(exitTime);
+                exitLog.setVerifiedBy(scannedBy != null ? scannedBy : "Security Guard");
+                exitLog.setLocation("Exit Gate");
+                exitLog.setQrCode(qrData);
+                exitLog.setScanLocation("Exit Gate");
+                exitLog.setAccessGranted(true);
+                RailwayExitLog saved = railwayExitLogRepository.save(exitLog);
+                exitLogIds.add(saved.getId());
+            }
+
+            // SIG: include incharge as a participant exit log.
+            if ("SIG".equals(passData.subtype)) {
+                RailwayExitLog exitLog = new RailwayExitLog();
+                exitLog.setQrId(qrId);
+                exitLog.setUserId(passData.inchargeStaffId);
+                exitLog.setUserType(inchargeIsHod ? "HOD" : "STAFF");
+                exitLog.setExitTime(exitTime);
+                exitLog.setVerifiedBy(scannedBy != null ? scannedBy : "Security Guard");
+                exitLog.setLocation("Exit Gate");
+                exitLog.setQrCode(qrData);
+                exitLog.setScanLocation("Exit Gate");
+                exitLog.setAccessGranted(true);
+                RailwayExitLog saved = railwayExitLogRepository.save(exitLog);
+                exitLogIds.add(saved.getId());
+            }
+
+            // Consume QR exactly once (one-time gatepass rule).
+            qrTableRepository.delete(qrRecord);
             
             // Build success response
             result.put("status", "VALID");
-            result.put("scanEvent", "ENTRY");
+            result.put("scanEvent", "EXIT");
             result.put("passType", "GROUP_PASS");
             result.put("passSubtype", passData.subtype);
             result.put("inchargeName", members.inchargeName);
@@ -105,11 +160,11 @@ public class GroupPassService {
             result.put("studentNames", members.studentNamesCSV);
             result.put("staffNames", members.staffNamesCSV);
             result.put("totalPersons", totalPersons);
-            result.put("scannedAt", scanLog.getScanTime());
-            result.put("message", "ENTRY SUCCESS");
-            result.put("id", scanLog.getId());
+            result.put("scannedAt", exitTime);
+            result.put("message", "EXIT SUCCESS");
+            result.put("id", exitLogIds.isEmpty() ? null : exitLogIds.get(0));
             
-            System.out.println("✅ Group Pass ENTRY processed (single scan): " + passData.randomToken + " - " + totalPersons + " persons - Status: USED");
+            System.out.println("✅ Group Pass EXIT processed (single scan): " + passData.randomToken + " - " + totalPersons + " persons - Status: USED");
             
         } catch (Exception e) {
             System.err.println("Error processing single scan: " + e.getMessage());
@@ -124,21 +179,9 @@ public class GroupPassService {
         result.put("status", "INVALID");
         result.put("message", "PASS ALREADY USED");
         result.put("errorMessage", errorMessage);
-        
-        // Log the failed attempt
-        ScanLog failedLog = new ScanLog();
-        failedLog.setQrCode(qrData);
-        failedLog.setPersonName("INVALID GROUP PASS");
-        failedLog.setPersonType(PersonType.BULK_PASS);
-        failedLog.setStatus(ApprovalStatus.REJECTED);
-        failedLog.setAccessGranted(false);
-        failedLog.setScannedBy(scannedBy);
-        failedLog.setPurpose("Error: " + errorMessage);
-        failedLog.setScanLocation("Main Gate");
-        failedLog.setUserId("INVALID");
-        failedLog.setUserType("GP");
-        scanLogRepository.save(failedLog);
-        
+
+        // Do not write invalid attempts to Entry table.
+        // Exit history must only be written to Exit_logs when an actual exit occurs.
         return result;
     }
     
@@ -221,10 +264,18 @@ public class GroupPassService {
     private MemberDetails fetchMemberDetails(GroupPassData passData) {
         MemberDetails details = new MemberDetails();
         
-        // Fetch incharge
-        Staff incharge = staffRepository.findByStaffCode(passData.inchargeStaffId)
-                .orElseThrow(() -> new IllegalArgumentException("Incharge not found: " + passData.inchargeStaffId));
-        details.inchargeName = incharge.getStaffName();
+        // Fetch incharge (staff OR HOD)
+        Optional<Staff> inchargeOpt = staffRepository.findByStaffCode(passData.inchargeStaffId);
+        if (inchargeOpt.isPresent()) {
+            details.inchargeName = inchargeOpt.get().getStaffName();
+        } else {
+            Optional<HOD> hodOpt = hodRepository.findByHodCode(passData.inchargeStaffId);
+            if (hodOpt.isPresent()) {
+                details.inchargeName = hodOpt.get().getHodName();
+            } else {
+                throw new IllegalArgumentException("Incharge not found (staff or HOD): " + passData.inchargeStaffId);
+            }
+        }
         
         // Fetch students
         if (!passData.studentRolls.isEmpty()) {
