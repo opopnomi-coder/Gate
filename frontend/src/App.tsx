@@ -48,6 +48,7 @@ import HODBulkGatePassScreen from './screens/hod/HODBulkGatePassScreen';
 import ModernBulkGatePassScreen from './screens/staff/ModernBulkGatePassScreen';
 import MyRequestsScreen from './screens/staff/MyRequestsScreen';
 import NotificationsScreen from './screens/shared/NotificationsScreen';
+import SwipeBackWrapper from './components/SwipeBackWrapper';
 
 // Inner component that can access ThemeContext for transition animation
 const ThemedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -791,6 +792,8 @@ const App: React.FC = () => {
     }
   };
 
+  const isRootScreen = ROOT_SCREENS.includes(currentScreen) || currentScreen === 'UNIFIED_LOGIN';
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider userId={
@@ -804,14 +807,19 @@ const App: React.FC = () => {
         <NotificationProvider>
           <ProfileProvider>
             <ThemedApp>
-            <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
-              <StatusBar
-                barStyle="dark-content"
-                backgroundColor="transparent"
-                translucent={true}
-              />
-              {renderCurrentScreen()}
-            </View>
+              <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
+                <StatusBar
+                  barStyle="dark-content"
+                  backgroundColor="transparent"
+                  translucent={true}
+                />
+                <SwipeBackWrapper
+                  enabled={!isRootScreen && !isLoading}
+                  onBack={currentScreen === 'UNIFIED_LOGIN' ? goBackToHome : navigateBack}
+                >
+                  {renderCurrentScreen()}
+                </SwipeBackWrapper>
+              </View>
             </ThemedApp>
           </ProfileProvider>
         </NotificationProvider>

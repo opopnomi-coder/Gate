@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Animated } from 'react-native';
 import { Student } from '../../types';
 import StudentHomeScreen from './StudentHomeScreen';
@@ -40,7 +40,6 @@ const StudentDashboardContainer: React.FC<StudentDashboardContainerProps> = ({
 
   const handleTabChange = (tab: 'HOME' | 'REQUESTS' | 'HISTORY' | 'PROFILE') => switchTab(tab);
   const handleRequestGatePass = () => switchTab('NEW_REQUEST');
-  const handleRequestSuccess = () => switchTab('REQUESTS');
   const handleBackToHome = () => switchTab('HOME');
 
   const renderScreen = () => {
