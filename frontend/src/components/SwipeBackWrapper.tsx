@@ -78,7 +78,8 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
         Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
-          bounciness: 4,
+          bounciness: 0,
+          speed: 20,
         }).start();
       }
       startedFromEdge.current = false;
@@ -106,9 +107,9 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
     <PanGestureHandler
       onGestureEvent={onGestureEvent}
       onHandlerStateChange={onHandlerStateChange}
-      activeOffsetX={[0, 15]}
-      failOffsetY={[-10, 10]}
-      minDist={5}
+      activeOffsetX={[0, 20]}
+      failOffsetY={[-8, 8]}
+      minDist={12}
       enabled={!locked}
     >
       <Animated.View
