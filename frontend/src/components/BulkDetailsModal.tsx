@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { formatDateTime, formatDateShort } from '../utils/dateUtils';
 import ParticipantsScreen from '../screens/shared/ParticipantsScreen';
 import GatePassQRModal from './GatePassQRModal';
 
@@ -90,10 +91,7 @@ const BulkDetailsModal: React.FC<BulkDetailsModalProps> = ({
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('en-US', {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', hour12: true,
-    });
+    return formatDateTime(dateString);
   };
 
   const students = participants.filter(p => p.type === 'student' || !p.type);
@@ -185,9 +183,7 @@ const BulkDetailsModal: React.FC<BulkDetailsModalProps> = ({
               <View style={[styles.chip, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <Text style={[styles.chipLabel, { color: theme.textTertiary }]}>DATE</Text>
                 <Text style={[styles.chipValue, { color: theme.text }]} numberOfLines={1}>
-                  {new Date(details?.exitDateTime || details?.requestDate || '').toLocaleDateString('en-GB', {
-                    day: '2-digit', month: 'short', year: 'numeric'
-                  })}
+                  {formatDateShort(details?.exitDateTime || details?.requestDate || '')}
                 </Text>
               </View>
               <View style={[styles.chip, { backgroundColor: theme.surface, borderColor: theme.border }]}>

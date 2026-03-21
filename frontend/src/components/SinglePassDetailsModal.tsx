@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { formatDateTime } from '../utils/dateUtils';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -45,7 +46,7 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
 
   const formatDate = (d: string) => {
     if (!d) return 'N/A';
-    return new Date(d).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    return formatDateTime(d);
   };
 
   const getInitials = (name: string) =>

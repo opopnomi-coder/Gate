@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Student } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
+import { formatDateTime } from '../../utils/dateUtils';
 
 interface EntryExitHistoryScreenProps {
   user: Student;
@@ -76,11 +77,7 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
     await loadHistory();
   };
 
-  const formatTime = (timestamp: string) =>
-    new Date(timestamp).toLocaleString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: 'numeric', minute: '2-digit', hour12: true,
-    });
+  const formatTime = (timestamp: string) => formatDateTime(timestamp);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>

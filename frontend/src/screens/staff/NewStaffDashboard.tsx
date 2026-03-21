@@ -18,6 +18,7 @@ import { apiService } from '../../services/api';
 import { useNotifications } from '../../context/NotificationContext';
 import { useProfile } from '../../context/ProfileContext';
 import { useTheme } from '../../context/ThemeContext';
+import { getRelativeTime, formatDateShort } from '../../utils/dateUtils';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
 import StaffRequestTimeline from '../../components/StaffRequestTimeline';
 import NotificationDropdown from '../../components/NotificationDropdown';
@@ -138,7 +139,12 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       setRequests(uniqueRequests);
       
       // Calculate stats from ALL requests assigned to staff (student gate pass + visitor requests, exclude staff's own requests)
-      const assignedPending = uniqueRequests.filter((r: any) => !r.isOwnRequest && r.status === 'PENDING_STAFF').length;
+      const assignedPending = uniqueRequests.filter((r: any) => 
+        !r.isOwnRequest && (
+          r.status === 'PENDING_STAFF' || 
+          (r.requestType === 'VISITOR' && (r.staffApproval === 'PENDING' || r.staffApproval === 'PENDING_STAFF'))
+        )
+      ).length;
       const assignedApproved = uniqueRequests.filter((r: any) => !r.isOwnRequest && r.staffApproval === 'APPROVED').length;
       const assignedRejected = uniqueRequests.filter((r: any) => !r.isOwnRequest && r.staffApproval === 'REJECTED').length;
       
@@ -172,8 +178,9 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
 
     let matchesTab = false;
     if (activeTab === 'PENDING') {
-      // Only show requests waiting for staff approval (strict stage enforcement)
-      matchesTab = request.status === 'PENDING_STAFF';
+      // Gate pass requests waiting for staff approval OR visitor requests still pending
+      matchesTab = request.status === 'PENDING_STAFF' || 
+        (request.requestType === 'VISITOR' && (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF'));
     } else if (activeTab === 'APPROVED') {
       matchesTab = request.staffApproval === 'APPROVED';
     } else if (activeTab === 'REJECTED') {
@@ -432,15 +439,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
 
                 <View style={styles.timeAgoContainer}>
                   <Text style={[styles.timeAgoText, { color: theme.textTertiary }]}>
-                    {(() => {
-                      const d = new Date(request.requestDate || request.createdAt);
-                      const diffMs = Date.now() - d.getTime();
-                      const mins = Math.floor(diffMs / 60000);
-                      if (mins < 60) return `${mins}m ago`;
-                      const hrs = Math.floor(mins / 60);
-                      if (hrs < 24) return `${hrs}h ago`;
-                      return `${Math.floor(hrs / 24)}d ago`;
-                    })()}
+                    {getRelativeTime(request.requestDate || request.createdAt)}
                   </Text>
                 </View>
               </View>
@@ -455,7 +454,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
                   <Text style={[styles.detailText, { color: theme.text }]}>
                     {request.requestType === 'VISITOR' && request.visitDate
                       ? `${request.visitDate}${request.visitTime ? ` at ${request.visitTime}` : ''}`
-                      : new Date(request.requestDate || request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      : formatDateShort(request.requestDate || request.createdAt)}
                   </Text>
                 </View>
                 {request.passType === 'BULK' && (
@@ -679,7 +678,10 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
         request={selectedRequest}
         onApprove={handleApprove}
         onReject={handleReject}
-        showActions={selectedRequest?.status === 'PENDING_STAFF'}
+        showActions={
+          selectedRequest?.status === 'PENDING_STAFF' ||
+          (selectedRequest?.requestType === 'VISITOR' && (selectedRequest?.staffApproval === 'PENDING' || selectedRequest?.staffApproval === 'PENDING_STAFF'))
+        }
         viewerRole="staff"
       />
 

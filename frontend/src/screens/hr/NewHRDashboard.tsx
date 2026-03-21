@@ -15,6 +15,7 @@ import { HR, ScreenName } from '../../types';
 import { apiService } from '../../services/api';
 import { useNotifications } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
+import { formatDateShort } from '../../utils/dateUtils';
 import NotificationDropdown from '../../components/NotificationDropdown';
 import BulkDetailsModal from '../../components/BulkDetailsModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
@@ -306,7 +307,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 <View style={styles.detailItem}>
                   <Ionicons name="calendar" size={16} color={theme.textSecondary} />
                   <Text style={[styles.detailText, { color: theme.text }]}>
-                    Exit: {new Date(request.exitDateTime || request.requestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    Exit: {formatDateShort(request.exitDateTime || request.requestDate)}
                   </Text>
                 </View>
                 {request.requestType === 'BULK' && (

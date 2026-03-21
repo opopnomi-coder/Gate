@@ -43,21 +43,26 @@ public class BulkGatePassService {
             
             log.info("Finding students for staff: '{}' (code: {}) dept: '{}'", staffName, staffCode, department);
             
-            // Strategy 1: exact match on class_incharge
+            // Strategy 1: exact match on class_incharge (staff name stored without suffix like "/AP")
             List<Student> students = studentRepository.findByClassIncharge(staffName);
             log.info("Strategy 1 (exact class_incharge='{}') → {} students", staffName, students.size());
             
-            // Strategy 2: case-insensitive contains match within department
+            // Strategy 2: LIKE match — class_incharge in DB has suffix like "/AP", staff name doesn't
+            // Also use LIKE on department since staff dept ("AI & ML") ≠ student dept ("B.E. CSE (AI & ML)")
             if (students.isEmpty()) {
-                students = studentRepository.findByClassInchargeContainingAndDepartment(staffName, department);
-                log.info("Strategy 2 (contains '{}' in dept '{}') → {} students", staffName, department, students.size());
+                String deptKeyword = com.example.visitor.util.DepartmentMapper.toStudentDeptKeyword(department);
+                students = studentRepository.findByClassInchargeContainingAndDepartment(staffName, deptKeyword);
+                log.info("Strategy 2 (LIKE class_incharge='{}', deptKeyword='{}') → {} students", staffName, deptKeyword, students.size());
+            }
+
+            // Strategy 2b: LIKE on class_incharge only (no dept filter) — last resort before giving up
+            if (students.isEmpty()) {
+                students = studentRepository.findByClassInchargeContaining(staffName);
+                log.info("Strategy 2b (LIKE class_incharge='{}', no dept filter) → {} students", staffName, students.size());
             }
             
-            // Strategy 3: full department fallback
             if (students.isEmpty()) {
-                log.warn("No students matched class_incharge for staff '{}', falling back to full department", staffName);
-                students = studentRepository.findByDepartment(department);
-                log.info("Strategy 3 (full dept fallback) → {} students", students.size());
+                log.warn("No students found with class_incharge matching '{}' for staff '{}'", staffName, staffCode);
             }
             
             // Convert to simple map
@@ -159,8 +164,9 @@ public class BulkGatePassService {
                 
                 Student student = studentOpt.get();
                 
-                // Validate department match
-                if (!department.equals(student.getDepartment())) {
+                // Validate department match (use DepartmentMapper to handle format differences:
+                // staff.department = "AI & ML", student.department = "B.E. CSE (AI & ML)")
+                if (!com.example.visitor.util.DepartmentMapper.isSameDepartment(department, student.getDepartment())) {
                     response.put("success", false);
                     response.put("message", "Student " + regNo + " is not from your department");
                     return response;

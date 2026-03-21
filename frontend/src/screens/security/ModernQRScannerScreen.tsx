@@ -73,8 +73,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
 
     try {
       // Detect if this is a plain ID code (for late entry) or QR code format
-      // QR codes have format like "ST/userid/random" or "SF/userid/random" or "VG/userid/random"
-      const isQRCodeFormat = data.includes('/');
+      // QR codes use '/' (ST/userid/random) or '|' (GP|incharge|students|staff|subtype:token for bulk passes)
+      const isQRCodeFormat = data.includes('/') || data.includes('|');
       const isEntryScanner = scannerType === 'ENTRY';
       
       console.log('🔍 [MODERN] Code format detection:');
@@ -130,7 +130,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
     setIsLoading(true);
     try {
       // Detect if this is a plain ID code (for late entry) or QR code format
-      const isQRCodeFormat = manualCode.includes('/');
+      const isQRCodeFormat = manualCode.includes('/') || manualCode.includes('|');
       const isEntryScanner = scannerType === 'ENTRY';
       
       console.log('🔍 [MODERN] Manual entry code format detection:');

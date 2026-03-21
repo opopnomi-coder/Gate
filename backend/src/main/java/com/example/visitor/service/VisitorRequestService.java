@@ -46,14 +46,11 @@ public class VisitorRequestService {
     }
     
     /**
-     * Generate manual entry code: VIS-XXXXXX
+     * Generate manual entry code: 6-digit number (same as student/staff gate passes)
      */
     public String generateManualCode() {
-        StringBuilder code = new StringBuilder("VIS-");
-        for (int i = 0; i < 6; i++) {
-            code.append(MANUAL_CODE_CHARS.charAt(random.nextInt(MANUAL_CODE_CHARS.length())));
-        }
-        return code.toString();
+        int code = 100000 + random.nextInt(900000);
+        return String.valueOf(code);
     }
     
     /**

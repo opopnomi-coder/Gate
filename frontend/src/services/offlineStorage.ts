@@ -168,7 +168,13 @@ class OfflineStorageService {
   async getCurrentSecurity(): Promise<SecurityPersonnel | null> {
     try {
       const securityData = await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_SECURITY);
-      return securityData ? JSON.parse(securityData) : null;
+      if (!securityData) return null;
+      const parsed = JSON.parse(securityData);
+      // Backfill securityId from userId if missing (old cached sessions)
+      if (!parsed.securityId && parsed.userId) {
+        parsed.securityId = parsed.userId;
+      }
+      return parsed;
     } catch (error) {
       console.error('Error getting current Security:', error);
       return null;

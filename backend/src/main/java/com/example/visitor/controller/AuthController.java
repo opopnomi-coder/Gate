@@ -344,6 +344,7 @@ public class AuthController {
                 security.getGateAssignment(),
                 security.getIsActive()
             );
+            userDTO.setSecurityId(security.getSecurityId());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

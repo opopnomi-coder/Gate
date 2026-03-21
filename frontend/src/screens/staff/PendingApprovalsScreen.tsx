@@ -82,7 +82,11 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
     setVerificationModalVisible(false);
     setShowBulkModal(false);
     try {
-      const res = await apiService.approveGatePassByStaff(user.staffCode, requestId, targetRemark);
+      const request = pendingRequests.find(r => r.id === requestId);
+      const isVisitor = request?.sourceType === 'VISITOR' || request?.passType === 'VISITOR';
+      const res = isVisitor
+        ? await apiService.approveVisitorRequest(requestId, user.staffCode)
+        : await apiService.approveGatePassByStaff(user.staffCode, requestId, targetRemark);
       if (res.success !== false) {
         setPendingRequests(prev => prev.filter(r => r.id !== requestId));
         setFeedbackMessage('Request approved successfully.');
@@ -113,7 +117,11 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
   const doReject = async (requestId: number, reason: string) => {
     setProcessingId(requestId);
     try {
-      const res = await apiService.rejectGatePassByStaff(user.staffCode, requestId, reason.trim());
+      const request = pendingRequests.find(r => r.id === requestId);
+      const isVisitor = request?.sourceType === 'VISITOR' || request?.passType === 'VISITOR';
+      const res = isVisitor
+        ? await apiService.rejectVisitorRequest(requestId, reason.trim())
+        : await apiService.rejectGatePassByStaff(user.staffCode, requestId, reason.trim());
       if (res.success !== false) {
         setPendingRequests(prev => prev.filter(r => r.id !== requestId));
         setFeedbackMessage('Request rejected.');
@@ -180,6 +188,8 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
                   setSelectedBulkId(request.id);
                   setSelectedBulkRequester({ name: request.requestedByStaffName || 'Staff', role: request.userType || 'Staff', department: request.department || 'Dept' });
                   setShowBulkModal(true);
+                } else if (request.passType === 'VISITOR') {
+                  // Visitor requests: just show approve/reject inline, no modal needed
                 } else {
                   setVerificationModalVisible(true);
                 }
@@ -188,21 +198,23 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.inputBackground }]}>
                   <Text style={[styles.avatarText, { color: theme.textSecondary }]}>
-                    {getInitials(request.passType === 'BULK' ? (request.requestedByStaffName || 'BR') : (request.regNo || 'ST'))}
+                    {getInitials(request.passType === 'BULK' ? (request.requestedByStaffName || 'BR') : request.passType === 'VISITOR' ? (request.visitorName || 'VR') : (request.regNo || 'ST'))}
                   </Text>
                 </View>
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
                     <Text style={[styles.requestStudentName, { color: theme.text }]}>
-                      {request.passType === 'BULK' ? (request.requestedByStaffName || 'Bulk Request') : request.regNo}
+                      {request.passType === 'BULK' ? (request.requestedByStaffName || 'Bulk Request') : request.passType === 'VISITOR' ? (request.visitorName || 'Visitor') : request.regNo}
                     </Text>
                     <Text style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
-                      {request.passType === 'BULK' ? '(Bulk Gatepass)' : '(Single Gatepass)'}
+                      {request.passType === 'BULK' ? '(Bulk Gatepass)' : request.passType === 'VISITOR' ? '(Visitor Request)' : '(Single Gatepass)'}
                     </Text>
                   </View>
                   <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
                     {request.passType === 'BULK'
                       ? `${request.userType || 'Staff'} • ${request.department || 'Dept'}`
+                      : request.passType === 'VISITOR'
+                      ? `${request.visitorPhone || ''} • ${request.department || 'Department'}`
                       : `${request.regNo} • ${request.department || 'Department'}`}
                   </Text>
                 </View>
@@ -216,12 +228,22 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
                   <Ionicons name="medical" size={16} color={theme.textSecondary} />
                   <Text style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</Text>
                 </View>
-                <View style={styles.detailItem}>
-                  <Ionicons name="calendar" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>
-                    Exit: {new Date(request.exitDateTime || request.requestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </Text>
-                </View>
+                {request.passType === 'VISITOR' ? (
+                  <View style={styles.detailItem}>
+                    <Ionicons name="people" size={16} color={theme.textSecondary} />
+                    <Text style={[styles.detailText, { color: theme.text }]}>
+                      {request.numberOfPeople || 1} visitor{(request.numberOfPeople || 1) > 1 ? 's' : ''}
+                      {request.vehicleNumber ? ` • ${request.vehicleNumber}` : ''}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.detailItem}>
+                    <Ionicons name="calendar" size={16} color={theme.textSecondary} />
+                    <Text style={[styles.detailText, { color: theme.text }]}>
+                      Exit: {new Date(request.exitDateTime || request.requestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </Text>
+                  </View>
+                )}
                 {request.passType === 'BULK' && (
                   <View style={styles.detailItem}>
                     <Ionicons name="people" size={16} color={theme.textSecondary} />

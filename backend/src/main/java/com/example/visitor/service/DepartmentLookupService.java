@@ -3,6 +3,7 @@ package com.example.visitor.service;
 import com.example.visitor.entity.Staff;
 import com.example.visitor.repository.StaffRepository;
 import com.example.visitor.repository.StudentRepository;
+import com.example.visitor.util.DepartmentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,11 +38,14 @@ public class DepartmentLookupService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String findStaffForDepartment(String department) {
         try {
-            List<Staff> staffList = staffRepository.findByDepartment(department);
+            // Normalize to staff table format (e.g. "B.E. CSE (AI & ML)" → "AI & ML")
+            String staffDept = DepartmentMapper.toStaffDeptFormat(department);
+            log.info("findStaffForDepartment: '{}' → '{}'", department, staffDept);
+            List<Staff> staffList = staffRepository.findByDepartment(staffDept);
             if (!staffList.isEmpty()) {
                 return staffList.get(0).getStaffCode();
             }
-            log.warn("No staff found for department: {}", department);
+            log.warn("No staff found for department: {}", staffDept);
         } catch (Exception e) {
             log.error("Error finding staff for department {}: {}", department, e.getMessage());
         }
@@ -58,10 +62,21 @@ public class DepartmentLookupService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String findHODForDepartment(String department) {
         try {
-            // Step 1: get HOD name from students table (hod column)
-            // Values like "KANAGAVALLI N.", "UMA S./ASSO P", "DR.N.VITHYALAKSHMI N"
+            // Try with the exact department string first, then with all known aliases
+            // (staff.department is "AI & ML" but students.department is "B.E. CSE (AI & ML)")
+            String staffFmt = com.example.visitor.util.DepartmentMapper.toStaffDeptFormat(department);
+
+            // Step 1: get HOD name from students table — try exact dept, then LIKE keyword
             List<String> hodNames = studentRepository.findHodNamesByDepartment(department);
-            log.info("HOD lookup for dept '{}' — raw hod values: {}", department, hodNames);
+            if (hodNames.isEmpty() && !staffFmt.equals(department)) {
+                hodNames = studentRepository.findHodNamesByDepartment(staffFmt);
+            }
+            // Also try via LIKE query using the staff-format keyword
+            if (hodNames.isEmpty()) {
+                try {
+                    hodNames = studentRepository.findHodNamesByDepartmentKeyword(staffFmt);
+                } catch (Exception ignored) {}
+            }
 
             if (!hodNames.isEmpty()) {
                 String rawHod = hodNames.get(0);
@@ -105,7 +120,8 @@ public class DepartmentLookupService {
 
         // Step 3: fallback — role contains "HOD"
         try {
-            List<Staff> staffList = staffRepository.findByDepartment(department);
+            String staffDept = DepartmentMapper.toStaffDeptFormat(department);
+            List<Staff> staffList = staffRepository.findByDepartment(staffDept);
             for (Staff s : staffList) {
                 if (s.getRole() != null && s.getRole().toUpperCase().contains("HOD")) {
                     log.info("HOD role fallback: {} for dept '{}'", s.getStaffCode(), department);

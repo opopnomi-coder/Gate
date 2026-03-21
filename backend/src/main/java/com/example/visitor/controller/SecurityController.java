@@ -103,6 +103,9 @@ public class SecurityController {
     
     @Autowired
     private com.example.visitor.service.UnifiedVisitorService unifiedVisitorService;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
     
     // Parse new QR code format: user_type/user_id/random_qr_number
     private Optional<Person> parseAndFindPerson(String qrCode) {
@@ -583,6 +586,7 @@ public class SecurityController {
             // Step 6: Fetch detailed information from students/staff tables
             java.util.Map<String, Object> detailedInfo = new java.util.HashMap<>();
             detailedInfo.put("qrCode", qrCode);
+            detailedInfo.put("success", true);
             detailedInfo.put("accessGranted", accessGranted);
             detailedInfo.put("status", "APPROVED");
             
@@ -958,6 +962,7 @@ public class SecurityController {
             // Build response
             java.util.Map<String, Object> response = new java.util.HashMap<>();
             response.put("qrCode", qrCode);
+            response.put("success", true);
             response.put("accessGranted", true);
             response.put("status", "APPROVED");
             response.put("type", "BULK_PASS");
@@ -1253,55 +1258,55 @@ public class SecurityController {
         }
     }
     
-    // Get vehicles by status
-    @GetMapping("/vehicles/status/{status}")
-    public ResponseEntity<List<VehicleRegistration>> getVehiclesByStatus(@PathVariable ApprovalStatus status) {
-        try {
-            List<VehicleRegistration> vehicles = vehicleRegistrationRepository.findByStatus(status);
-            return ResponseEntity.ok(vehicles);
-        } catch (Exception e) {
-            System.err.println("Error fetching vehicles by status: " + e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-    
-    // Update vehicle status
-    @PutMapping("/vehicles/{id}/status")
-    public ResponseEntity<VehicleRegistration> updateVehicleStatus(@PathVariable Long id, @RequestBody ApprovalStatus status) {
-        try {
-            Optional<VehicleRegistration> vehicleOpt = vehicleRegistrationRepository.findById(id);
-            if (vehicleOpt.isPresent()) {
-                VehicleRegistration vehicle = vehicleOpt.get();
-                vehicle.setStatus(status);
-                VehicleRegistration updatedVehicle = vehicleRegistrationRepository.save(vehicle);
-                System.out.println("Vehicle status updated: " + vehicle.getLicensePlate() + " - " + status);
-                return ResponseEntity.ok(updatedVehicle);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            System.err.println("Error updating vehicle status: " + e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-    
     // HOD Contact Directory Endpoints
+    // HODs are derived from the `hod` column in the `students` table.
+    // The hod column stores name + optional designation suffix (e.g. "KANAGAVALLI N./ASSO P").
+    // We strip the suffix and look up contact info from the `staff` table by name match.
     @GetMapping("/hods")
     public ResponseEntity<List<HODDTO>> getAllHODs() {
         try {
-            List<HOD> hods = hodRepository.findAll();
-            List<HODDTO> hodDTOs = hods.stream()
-                .map(hod -> new HODDTO(
-                    hod.getHodCode(),
-                    hod.getHodCode(),
-                    hod.getHodName(),
-                    hod.getEmail(),
-                    hod.getPhone(),
-                    hod.getDepartment()
-                ))
-                .collect(Collectors.toList());
-            
-            System.out.println("Fetched " + hodDTOs.size() + " active HODs");
+            // Step 1: Get distinct (hod, department) pairs from students
+            List<java.util.Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "SELECT DISTINCT hod, department FROM students WHERE hod IS NOT NULL AND hod != ''"
+            );
+
+            // Step 2: Build HOD list, deduplicating by cleaned name
+            java.util.Map<String, HODDTO> hodMap = new java.util.LinkedHashMap<>();
+            for (java.util.Map<String, Object> row : rows) {
+                String rawHod = (String) row.get("hod");
+                String dept   = (String) row.get("department");
+                if (rawHod == null || rawHod.isBlank()) continue;
+
+                // Strip designation suffix after '/'
+                String cleanName = rawHod.contains("/") ? rawHod.substring(0, rawHod.indexOf('/')).trim() : rawHod.trim();
+                if (cleanName.isEmpty()) continue;
+
+                // Normalize: strip trailing dots/slashes for dedup key
+                String dedupKey = cleanName.replaceAll("[./]+$", "").trim().toUpperCase();
+                if (hodMap.containsKey(dedupKey)) continue; // already added
+
+                // Step 3: Look up contact info from staff table by name (partial match)
+                List<java.util.Map<String, Object>> staffRows = jdbcTemplate.queryForList(
+                    "SELECT staff_code, name, email, contact_no, department FROM staff WHERE name LIKE ? LIMIT 1",
+                    "%" + cleanName + "%"
+                );
+
+                String staffCode = cleanName.replaceAll("\\s+", "_").toUpperCase();
+                String email = null, phone = null, staffDept = dept;
+
+                if (!staffRows.isEmpty()) {
+                    java.util.Map<String, Object> s = staffRows.get(0);
+                    staffCode = s.get("staff_code") != null ? (String) s.get("staff_code") : staffCode;
+                    email     = (String) s.get("email");
+                    phone     = (String) s.get("contact_no");
+                    if (s.get("department") != null) staffDept = (String) s.get("department");
+                }
+
+                hodMap.put(dedupKey, new HODDTO(staffCode, staffCode, cleanName, email, phone, staffDept));
+            }
+
+            List<HODDTO> hodDTOs = new java.util.ArrayList<>(hodMap.values());
+            System.out.println("Fetched " + hodDTOs.size() + " HODs from students table");
             return ResponseEntity.ok(hodDTOs);
         } catch (Exception e) {
             System.err.println("Error fetching HODs: " + e.getMessage());
@@ -1400,9 +1405,13 @@ public class SecurityController {
             }
             
             System.out.println("Searching for staff with code: " + deptCode + " and name: " + deptFullName);
-            
-            // Fetch staff members from staff table using department code
-            List<Staff> staffList = staffRepository.findByDepartment(deptCode);
+
+            // Convert to the exact format used in staff.department column
+            String staffDeptFormat = DepartmentMapper.toStaffDeptFormat(departmentName);
+            System.out.println("Staff dept format: " + staffDeptFormat);
+
+            // Fetch staff members from staff table using staff-format department name
+            List<Staff> staffList = staffRepository.findByDepartment(staffDeptFormat);
             for (Staff staff : staffList) {
                 if (staff.getIsActive()) {
                     people.add(new PersonToMeetDTO(
@@ -1416,21 +1425,34 @@ public class SecurityController {
                     ));
                 }
             }
-            
-            // Fetch HODs from hods table using full department name
-            List<HOD> hodList = hodRepository.findByDepartment(deptFullName);
-            for (HOD hod : hodList) {
-                if (hod.getIsActive()) {
-                    people.add(new PersonToMeetDTO(
-                        String.valueOf(hod.getId()),
-                        hod.getHodName(),
-                        "Head of Department",
-                        hod.getEmail(),
-                        hod.getPhone(),
-                        hod.getDepartment(),
-                        "HOD"
-                    ));
+
+            // Fetch HODs from students table for this department
+            String shortCode = DepartmentMapper.toShortCode(departmentName);
+            List<java.util.Map<String, Object>> hodRows = jdbcTemplate.queryForList(
+                "SELECT DISTINCT hod FROM students WHERE hod IS NOT NULL AND hod != '' AND department LIKE ?",
+                "%" + (shortCode != null ? shortCode : departmentName) + "%"
+            );
+            java.util.Set<String> addedHods = new java.util.HashSet<>();
+            for (java.util.Map<String, Object> row : hodRows) {
+                String rawHod = (String) row.get("hod");
+                if (rawHod == null || rawHod.isBlank()) continue;
+                String cleanName = rawHod.contains("/") ? rawHod.substring(0, rawHod.indexOf('/')).trim() : rawHod.trim();
+                String dedupKey = cleanName.replaceAll("[./]+$", "").trim().toUpperCase();
+                if (addedHods.contains(dedupKey)) continue;
+                addedHods.add(dedupKey);
+
+                // Try to find contact info from staff table
+                List<java.util.Map<String, Object>> staffRows = jdbcTemplate.queryForList(
+                    "SELECT staff_code, name, email, contact_no FROM staff WHERE name LIKE ? LIMIT 1",
+                    "%" + cleanName + "%"
+                );
+                String email2 = null, phone2 = null, code2 = cleanName.replaceAll("\\s+", "_").toUpperCase();
+                if (!staffRows.isEmpty()) {
+                    email2 = (String) staffRows.get(0).get("email");
+                    phone2 = (String) staffRows.get(0).get("contact_no");
+                    if (staffRows.get(0).get("staff_code") != null) code2 = (String) staffRows.get(0).get("staff_code");
                 }
+                people.add(new PersonToMeetDTO(code2, cleanName, "Head of Department", email2, phone2, deptFullName, "HOD"));
             }
             
             System.out.println("Fetched " + people.size() + " people (staff + HODs) for department: " + departmentName);
@@ -1676,11 +1698,35 @@ public class SecurityController {
                 String uid   = entry.getUserId();
                 String utype = entry.getUserType() != null ? entry.getUserType().toUpperCase() : "UNKNOWN";
                 String name  = entry.getPersonName();
+
+                // For visitors with legacy "null" userId, resolve via QR table passRequestId
+                if (("VISITOR".equals(utype) || "VG".equals(utype)) && (uid == null || "null".equals(uid) || uid.isBlank())) {
+                    if (entry.getQrId() != null) {
+                        try {
+                            Optional<QRTable> qrOpt = qrTableRepository.findById(entry.getQrId());
+                            if (qrOpt.isPresent() && qrOpt.get().getPassRequestId() != null) {
+                                uid = qrOpt.get().getPassRequestId().toString();
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                // For visitors: always do a fresh name lookup (stored personName may be stale "Visitor-null")
+                if ("VISITOR".equals(utype) || "VG".equals(utype)) {
+                    if (uid != null && !"null".equals(uid) && !uid.isBlank()) {
+                        try {
+                            Long visitorId = Long.parseLong(uid);
+                            String freshName = visitorRepository.findById(visitorId).map(v -> v.getName()).orElse(null);
+                            if (freshName != null) name = freshName;
+                        } catch (Exception ignored) {}
+                    }
+                }
+
                 if (name == null || name.isBlank()) name = lookupPersonName(uid, utype);
 
                 java.util.Map<String, Object> rec = new java.util.HashMap<>();
-                rec.put("id",          uid);
-                rec.put("name",        name != null ? name : uid);
+                rec.put("id",          uid != null ? uid : "");
+                rec.put("name",        name != null ? name : (uid != null && !"null".equals(uid) ? "Visitor-" + uid : "Visitor"));
                 rec.put("type",        resolveDisplayType(uid, utype));
                 rec.put("entryTime",   entry.getTimestamp().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME));
                 rec.put("exitTime",    null);
@@ -1701,15 +1747,88 @@ public class SecurityController {
                 String uid   = exitLog.getUserId();
                 String utype = exitLog.getUserType() != null ? exitLog.getUserType().toUpperCase() : "UNKNOWN";
                 String name  = exitLog.getPersonName();
+
+                // For visitors with legacy "null" userId, resolve via QR table passRequestId
+                if (("VISITOR".equals(utype) || "VG".equals(utype)) && (uid == null || "null".equals(uid) || uid.isBlank())) {
+                    if (exitLog.getQrId() != null) {
+                        try {
+                            Optional<QRTable> qrOpt = qrTableRepository.findById(exitLog.getQrId());
+                            if (!qrOpt.isPresent()) {
+                                // QR row deleted after exit — try to find by qrCode string
+                                if (exitLog.getQrCode() != null) {
+                                    String[] parts = exitLog.getQrCode().split("[|/]");
+                                    if (parts.length >= 2 && !"null".equals(parts[1])) {
+                                        uid = parts[1];
+                                    }
+                                }
+                            } else {
+                                Long passReqId = qrOpt.get().getPassRequestId();
+                                if (passReqId != null) uid = passReqId.toString();
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                    // Also try extracting from qrCode string directly
+                    if ((uid == null || "null".equals(uid)) && exitLog.getQrCode() != null) {
+                        String[] parts = exitLog.getQrCode().split("[|/]");
+                        if (parts.length >= 2 && !"null".equals(parts[1])) {
+                            uid = parts[1];
+                        }
+                    }
+                }
+
                 if (name == null || name.isBlank()) name = lookupPersonName(uid, utype);
+
+                // For visitors: always do a fresh name lookup (stored personName may be stale "Visitor-null")
+                if ("VISITOR".equals(utype) || "VG".equals(utype)) {
+                    if (uid != null && !"null".equals(uid) && !uid.isBlank()) {
+                        try {
+                            Long visitorId = Long.parseLong(uid);
+                            String freshName = visitorRepository.findById(visitorId).map(v -> v.getName()).orElse(null);
+                            if (freshName != null) name = freshName;
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                // For visitors, also try looking up by passRequestId if name still null
+                if ((name == null || name.isBlank()) && ("VISITOR".equals(utype) || "VG".equals(utype))) {
+                    if (uid != null && !"null".equals(uid)) {
+                        try {
+                            Long visitorId = Long.parseLong(uid);
+                            name = visitorRepository.findById(visitorId).map(v -> v.getName()).orElse(null);
+                        } catch (Exception ignored) {}
+                    }
+                }
 
                 String exitTimeStr = exitLog.getExitTime().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME);
 
+                // For visitors: find matching entry record to show both entry and exit times
+                String entryTimeStr = null;
+                if ("VISITOR".equals(utype) || "VG".equals(utype)) {
+                    // Look for a matching entry in RailwayEntry by userId or by qrId
+                    for (RailwayEntry entry : allEntries) {
+                        String entryUid = entry.getUserId();
+                        if (uid != null && uid.equals(entryUid)) {
+                            entryTimeStr = entry.getTimestamp().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME);
+                            break;
+                        }
+                    }
+                    // Also try via Visitor entity entryTime
+                    if (entryTimeStr == null && uid != null && !"null".equals(uid)) {
+                        try {
+                            Long visitorId = Long.parseLong(uid);
+                            Optional<Visitor> vOpt = visitorRepository.findById(visitorId);
+                            if (vOpt.isPresent() && vOpt.get().getEntryTime() != null) {
+                                entryTimeStr = vOpt.get().getEntryTime().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME);
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+
                 java.util.Map<String, Object> rec = new java.util.HashMap<>();
-                rec.put("id",          uid);
-                rec.put("name",        name != null ? name : uid);
+                rec.put("id",          uid != null ? uid : "");
+                rec.put("name",        name != null ? name : (uid != null ? "Visitor-" + uid : "Visitor"));
                 rec.put("type",        resolveDisplayType(uid, utype));
-                rec.put("entryTime",   exitTimeStr);
+                rec.put("entryTime",   entryTimeStr != null ? entryTimeStr : exitTimeStr);
                 rec.put("exitTime",    exitTimeStr);
                 rec.put("status",      "EXITED");
                 rec.put("isBulkPass",  false);
@@ -1752,6 +1871,11 @@ public class SecurityController {
                 return studentRepository.findByRegNo(userId).map(s -> s.getFullName()).orElse(null);
             } else if ("STAFF".equals(userType) || "SF".equals(userType) || "HOD".equals(userType) || "HD".equals(userType)) {
                 return staffRepository.findByStaffCode(userId).map(s -> s.getStaffName()).orElse(null);
+            } else if ("VISITOR".equals(userType) || "VG".equals(userType)) {
+                try {
+                    Long visitorId = Long.parseLong(userId);
+                    return visitorRepository.findById(visitorId).map(v -> v.getName()).orElse(null);
+                } catch (NumberFormatException e) { /* ignore */ }
             }
         } catch (Exception e) { /* ignore */ }
         return null;
@@ -2674,16 +2798,37 @@ public class SecurityController {
     // ==================== ESCALATED VISITOR REQUESTS ====================
     
     /**
-     * Get all escalated visitor requests (pending requests that timed out)
+     * Get all escalated visitor requests.
+     * Also auto-escalates any PENDING visitors that have been waiting 5+ minutes
+     * (in case the scheduler hasn't fired yet).
      */
     @GetMapping("/escalated-visitors")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> getEscalatedVisitors() {
         try {
+            java.time.LocalDateTime fiveMinutesAgo = java.time.LocalDateTime.now().minusMinutes(5);
+
+            // Auto-escalate any pending visitors that have timed out but weren't marked yet
+            List<Visitor> toEscalate = visitorRepository.findAll().stream()
+                .filter(v -> "PENDING".equals(v.getStatus()))
+                .filter(v -> v.getNotificationSentAt() != null)
+                .filter(v -> v.getNotificationSentAt().isBefore(fiveMinutesAgo))
+                .filter(v -> v.getEscalatedToSecurity() == null || !v.getEscalatedToSecurity())
+                .collect(Collectors.toList());
+
+            for (Visitor v : toEscalate) {
+                v.setEscalatedToSecurity(true);
+                v.setEscalationTime(java.time.LocalDateTime.now());
+                visitorRepository.save(v);
+                System.out.println("✅ On-demand escalated visitor: " + v.getName());
+            }
+
+            // Now return all escalated PENDING visitors
             List<Visitor> escalatedVisitors = visitorRepository.findAll().stream()
                 .filter(v -> "PENDING".equals(v.getStatus()))
                 .filter(v -> Boolean.TRUE.equals(v.getEscalatedToSecurity()))
                 .collect(Collectors.toList());
-            
+
             System.out.println("Found " + escalatedVisitors.size() + " escalated visitor requests");
             return ResponseEntity.ok(escalatedVisitors);
         } catch (Exception e) {
@@ -2698,7 +2843,12 @@ public class SecurityController {
     @PostMapping("/escalated-visitors/{visitorId}/approve")
     public ResponseEntity<?> approveEscalatedVisitor(
             @PathVariable Long visitorId,
-            @RequestParam String securityId) {
+            @RequestBody(required = false) java.util.Map<String, String> body,
+            @RequestParam(required = false) String securityId) {
+        // Accept securityId from either request body or query param
+        String resolvedSecurityId = (body != null && body.get("securityId") != null)
+            ? body.get("securityId")
+            : (securityId != null ? securityId : "SECURITY");
         try {
             Optional<Visitor> visitorOpt = visitorRepository.findById(visitorId);
             if (visitorOpt.isEmpty()) {
@@ -2711,12 +2861,15 @@ public class SecurityController {
                 return ResponseEntity.badRequest().body("Visitor request is not pending");
             }
             
+            // Auto-escalate if not already marked (handles edge case)
             if (!Boolean.TRUE.equals(visitor.getEscalatedToSecurity())) {
-                return ResponseEntity.badRequest().body("Visitor request was not escalated to security");
+                visitor.setEscalatedToSecurity(true);
+                visitor.setEscalationTime(LocalDateTime.now());
             }
             
             // Generate QR code and manual code
-            String qrCode = "VG|null|" + generateRandomToken(8);
+            String token = generateRandomToken(8);
+            String qrCode = "VG|" + visitorId + "|" + token;
             String manualCode = generateManualCode();
             
             // Ensure manual code is unique
@@ -2724,20 +2877,18 @@ public class SecurityController {
                 manualCode = generateManualCode();
             }
             
-            // Extract token from QR code
-            String[] parts = qrCode.split("\\|");
-            String token = parts.length >= 3 ? parts[2] : generateRandomToken(8);
-            
             // Insert into qr_table
             QRTable qrTable = new QRTable();
             qrTable.setQrCode(token);
             qrTable.setUserType("VG");
             qrTable.setUserId(String.valueOf(visitorId));
+            qrTable.setPassRequestId(visitorId);
             qrTable.setEntry(token);
             qrTable.setExit(null);
             qrTable.setCreatedAt(LocalDateTime.now());
             qrTable.setQrString(qrCode);
-            qrTable.setRequestedByStaffCode(securityId);
+            qrTable.setManualEntryCode(manualCode);
+            qrTable.setRequestedByStaffCode(resolvedSecurityId);
             qrTable.setPassType("VISITOR");
             qrTable.setStudentCount(visitor.getNumberOfPeople());
             qrTable.setStatus("ACTIVE");
@@ -2749,7 +2900,7 @@ public class SecurityController {
             visitor.setQrCode(qrCode);
             visitor.setManualCode(manualCode);
             visitor.setApprovedAt(LocalDateTime.now());
-            visitor.setApprovedBy("SECURITY-" + securityId);
+            visitor.setApprovedBy("SECURITY-" + resolvedSecurityId);
             visitor.setEmailStatus("PENDING");
             visitor.setScanCount(0);
             
@@ -2784,10 +2935,6 @@ public class SecurityController {
                 return ResponseEntity.badRequest().body("Visitor request is not pending");
             }
             
-            if (!Boolean.TRUE.equals(visitor.getEscalatedToSecurity())) {
-                return ResponseEntity.badRequest().body("Visitor request was not escalated to security");
-            }
-            
             String rejectionReason = request.getOrDefault("reason", "Rejected by security");
             
             visitor.setStatus("REJECTED");
@@ -2814,6 +2961,7 @@ public class SecurityController {
     public ResponseEntity<?> registerVisitorForSecurity(@RequestBody java.util.Map<String, Object> request) {
         try {
             System.out.println("🔐 Security registering visitor on behalf");
+            System.out.println("📦 Request payload: " + request);
             
             String securityId = (String) request.get("securityId");
             String visitorName = (String) request.get("name");
@@ -2826,12 +2974,25 @@ public class SecurityController {
             Integer numberOfPeople = request.get("numberOfPeople") != null ? 
                 Integer.parseInt(request.get("numberOfPeople").toString()) : 1;
             
-            // Validate required fields
-            if (visitorName == null || visitorEmail == null || visitorPhone == null ||
-                departmentId == null || staffCode == null || purpose == null || securityId == null) {
+            System.out.println("  securityId=" + securityId + " name=" + visitorName + 
+                " email=" + visitorEmail + " phone=" + visitorPhone +
+                " dept=" + departmentId + " staff=" + staffCode + " purpose=" + purpose);
+            
+            // Validate required fields (null or blank)
+            if (isBlank(visitorName) || isBlank(visitorEmail) || isBlank(visitorPhone) ||
+                isBlank(departmentId) || isBlank(staffCode) || isBlank(purpose) || isBlank(securityId)) {
+                String missing = "";
+                if (isBlank(visitorName)) missing += "name ";
+                if (isBlank(visitorEmail)) missing += "email ";
+                if (isBlank(visitorPhone)) missing += "phone ";
+                if (isBlank(departmentId)) missing += "departmentId ";
+                if (isBlank(staffCode)) missing += "staffCode ";
+                if (isBlank(purpose)) missing += "purpose ";
+                if (isBlank(securityId)) missing += "securityId ";
+                System.out.println("❌ Missing fields: " + missing);
                 return ResponseEntity.badRequest().body(java.util.Map.of(
                     "success", false,
-                    "message", "Missing required fields"
+                    "message", "Missing required fields: " + missing.trim()
                 ));
             }
             
@@ -2845,21 +3006,14 @@ public class SecurityController {
             }
             
             Staff staff = staffOpt.get();
-            if (staff.getDepartment() != null && departmentId != null &&
-                !DepartmentMapper.isSameDepartment(staff.getDepartment(), departmentId)) {
-                return ResponseEntity.badRequest().body(java.util.Map.of(
-                    "success", false,
-                    "message", "Department mismatch for staff"
-                ));
-            }
 
             Visitor visitor = new Visitor();
             visitor.setName(visitorName);
             visitor.setEmail(visitorEmail);
             visitor.setPhone(visitorPhone);
-            visitor.setDepartment(departmentId);
+            visitor.setDepartment(staff.getDepartment() != null ? staff.getDepartment() : departmentId);
             visitor.setStaffCode(staffCode);
-            visitor.setPersonToMeet(staffCode);
+            visitor.setPersonToMeet(staff.getStaffName() != null ? staff.getStaffName() : staffCode);
             visitor.setPurpose(purpose);
             visitor.setNumberOfPeople(numberOfPeople);
             visitor.setVehicleNumber(vehicleNumber);
@@ -2868,6 +3022,30 @@ public class SecurityController {
 
             Visitor savedVisitor = visitorRepository.save(visitor);
             visitorRepository.flush();
+            
+            // Notify and email the assigned staff member
+            try {
+                notificationService.createUserNotification(
+                    staffCode,
+                    "New Visitor Request",
+                    "New visitor request from " + visitorName + " registered by security. Please review and approve.",
+                    "GATE_PASS",
+                    "HIGH"
+                );
+                emailService.sendApprovalRequestEmail(
+                    staff.getEmail(),
+                    staff.getStaffName(),
+                    visitorName,
+                    visitorEmail,
+                    visitorPhone,
+                    purpose,
+                    numberOfPeople,
+                    departmentId,
+                    savedVisitor.getId()
+                );
+            } catch (Exception notifError) {
+                System.err.println("⚠️ Staff notification failed (non-fatal): " + notifError.getMessage());
+            }
             
             System.out.println("✅ Visitor registered by security: " + savedVisitor.getName() + 
                              " (ID: " + savedVisitor.getId() + ", Registered by: " + securityId + ")");
@@ -2916,6 +3094,32 @@ public class SecurityController {
                     String manualCode = String.format("%06d", new java.util.Random().nextInt(999999));
                     v.setManualCode(manualCode);
                     visitorRepository.save(v);
+                    // Also backfill into QR table if a matching row exists
+                    if (v.getQrCode() != null) {
+                        qrTableRepository.findByQrString(v.getQrCode()).ifPresent(qr -> {
+                            qr.setManualEntryCode(manualCode);
+                            qrTableRepository.save(qr);
+                        });
+                    }
+                }
+                // Backfill QR table manual_entry_code if it's missing
+                if ("APPROVED".equals(v.getStatus()) && v.getManualCode() != null && v.getQrCode() != null) {
+                    qrTableRepository.findByQrString(v.getQrCode()).ifPresent(qr -> {
+                        if (qr.getManualEntryCode() == null || qr.getManualEntryCode().isEmpty()) {
+                            qr.setManualEntryCode(v.getManualCode());
+                            qrTableRepository.save(qr);
+                        }
+                        // Also fix legacy "VG|null|token" QR strings to use actual visitor ID
+                        if (qr.getQrString() != null && qr.getQrString().startsWith("VG|null|")) {
+                            String fixedQrString = "VG|" + v.getId() + "|" + qr.getQrString().substring(8);
+                            qr.setQrString(fixedQrString);
+                            qr.setUserId(String.valueOf(v.getId()));
+                            qr.setPassRequestId(v.getId());
+                            qrTableRepository.save(qr);
+                            v.setQrCode(fixedQrString);
+                            visitorRepository.save(v);
+                        }
+                    });
                 }
                 
                 java.util.Map<String, Object> data = new java.util.HashMap<>();
@@ -3027,5 +3231,9 @@ public class SecurityController {
             code.append(chars.charAt(random.nextInt(chars.length())));
         }
         return code.toString();
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }

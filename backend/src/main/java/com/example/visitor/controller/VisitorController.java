@@ -157,30 +157,29 @@ public class VisitorController {
         }
     }
     
-    // Approve visitor request
+    // Approve visitor request (via email link)
     @GetMapping("/{id}/approve")
     public ResponseEntity<String> approveVisitor(@PathVariable Long id) {
         try {
-            Optional<Visitor> visitorOpt = visitorRepository.findById(id);
-            if (!visitorOpt.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Visitor visitor = visitorOpt.get();
-            visitor.setApprovalStatus("APPROVED");
-            visitor.setApprovedAt(LocalDateTime.now());
-            visitorRepository.save(visitor);
+            Visitor visitor = visitorRequestService.approveVisitorRequest(id, "STAFF_EMAIL_LINK");
             
             // Send QR code email to visitor
-            emailService.sendQRCodeEmail(
-                visitor.getEmail(),
-                visitor.getName(),
-                visitor.getQrCode(),
-                visitor.getPersonToMeet(),
-                visitor.getDepartment()
-            );
+            try {
+                emailService.sendVisitorPassEmail(
+                    visitor.getEmail(),
+                    visitor.getName(),
+                    visitor.getQrCode(),
+                    visitor.getManualCode(),
+                    visitor.getPersonToMeet(),
+                    visitor.getDepartment(),
+                    visitor.getVisitDate() != null ? visitor.getVisitDate().toString() : "N/A",
+                    visitor.getVisitTime() != null ? visitor.getVisitTime().toString() : "N/A"
+                );
+            } catch (Exception emailError) {
+                System.err.println("⚠️ Email sending failed: " + emailError.getMessage());
+            }
             
-            System.out.println("Visitor approved: " + visitor.getName() + " - QR code sent via email");
+            System.out.println("Visitor approved via email link: " + visitor.getName());
             
             return ResponseEntity.ok(
                 "<html><body style='font-family: Arial; text-align: center; padding: 50px;'>" +
@@ -191,31 +190,28 @@ public class VisitorController {
             );
         } catch (Exception e) {
             System.err.println("Error approving visitor: " + e.getMessage());
-            return ResponseEntity.internalServerError().body("Error approving visitor");
+            return ResponseEntity.internalServerError().body("Error approving visitor: " + e.getMessage());
         }
     }
     
-    // Reject visitor request
+    // Reject visitor request (via email link)
     @GetMapping("/{id}/reject")
     public ResponseEntity<String> rejectVisitor(@PathVariable Long id) {
         try {
-            Optional<Visitor> visitorOpt = visitorRepository.findById(id);
-            if (!visitorOpt.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Visitor visitor = visitorOpt.get();
-            visitor.setApprovalStatus("REJECTED");
-            visitorRepository.save(visitor);
+            Visitor visitor = visitorRequestService.rejectVisitorRequest(id, "Rejected by staff");
             
             // Send rejection email to visitor
-            emailService.sendRejectionEmail(
-                visitor.getEmail(),
-                visitor.getName(),
-                visitor.getPersonToMeet()
-            );
+            try {
+                emailService.sendRejectionEmail(
+                    visitor.getEmail(),
+                    visitor.getName(),
+                    visitor.getPersonToMeet()
+                );
+            } catch (Exception emailError) {
+                System.err.println("⚠️ Rejection email failed: " + emailError.getMessage());
+            }
             
-            System.out.println("Visitor rejected: " + visitor.getName());
+            System.out.println("Visitor rejected via email link: " + visitor.getName());
             
             return ResponseEntity.ok(
                 "<html><body style='font-family: Arial; text-align: center; padding: 50px;'>" +
@@ -226,7 +222,7 @@ public class VisitorController {
             );
         } catch (Exception e) {
             System.err.println("Error rejecting visitor: " + e.getMessage());
-            return ResponseEntity.internalServerError().body("Error rejecting visitor");
+            return ResponseEntity.internalServerError().body("Error rejecting visitor: " + e.getMessage());
         }
     }
     
@@ -303,7 +299,7 @@ public class VisitorController {
     @PostMapping("/{id}/approve")
     public ResponseEntity<VisitorApprovalResponse> approveVisitorRequest(
             @PathVariable Long id,
-            @RequestParam String approvedBy) {
+            @RequestParam(required = false, defaultValue = "STAFF") String approvedBy) {
         try {
             Visitor visitor = visitorRequestService.approveVisitorRequest(id, approvedBy);
             

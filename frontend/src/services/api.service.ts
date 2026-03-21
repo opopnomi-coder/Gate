@@ -258,6 +258,16 @@ class ApiService {
     catch (e: any) { return { success: false, message: e.message || 'Failed to reject' }; }
   }
 
+  async approveVisitorRequest(visitorId: number, approvedBy: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/visitors/${visitorId}/approve?approvedBy=${encodeURIComponent(approvedBy)}`, { method: 'POST' }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed to approve visitor' }; }
+  }
+
+  async rejectVisitorRequest(visitorId: number, reason: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/visitors/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed to reject visitor' }; }
+  }
+
   async getStaffOwnGatePassRequests(staffCode: string): Promise<ApiResponse<GatePassRequest[]>> {
     try {
       const data = await this.makeRequest(`${this.baseURL}/gate-pass/staff/${staffCode}/own`, { method: 'GET' });
@@ -578,15 +588,6 @@ class ApiService {
   async clearManualIP(): Promise<boolean> { return true; }
 
   // ── Visitor approval ──────────────────────────────────────────────────────
-  async approveVisitorRequest(visitorId: string | number): Promise<ApiResponse> {
-    try { return await this.makeRequest(`${this.baseURL}/visitors/${visitorId}/approve`, { method: 'POST' }); }
-    catch (e: any) { return { success: false, message: e.message || 'Failed to approve visitor request' }; }
-  }
-
-  async rejectVisitorRequest(visitorId: string | number, reason: string): Promise<ApiResponse> {
-    try { return await this.makeRequest(`${this.baseURL}/visitors/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }); }
-    catch (e: any) { return { success: false, message: e.message || 'Failed to reject visitor request' }; }
-  }
 
   async getBulkGatePassDetails(requestId: number): Promise<any> {
     try { return await this.makeRequest(`${this.baseURL}/bulk-pass/details/${requestId}`, { method: 'GET' }); }

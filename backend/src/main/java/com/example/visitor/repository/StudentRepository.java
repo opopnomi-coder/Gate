@@ -20,12 +20,21 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     List<Student> findByDepartment(String department);
 
+    // Find students by department using LIKE — handles format mismatches
+    // e.g. staff has "AI & ML", students have "B.E. CSE (AI & ML)"
+    @Query("SELECT s FROM Student s WHERE s.department = :department OR s.department LIKE CONCAT('%', :keyword, '%')")
+    List<Student> findByDepartmentOrKeyword(@Param("department") String department, @Param("keyword") String keyword);
+
     // Students assigned to a specific class incharge (exact name match)
     List<Student> findByClassIncharge(String classIncharge);
 
-    // Case-insensitive contains match for class incharge name
-    @Query("SELECT s FROM Student s WHERE LOWER(s.classIncharge) LIKE LOWER(CONCAT('%', :name, '%')) AND s.department = :department")
-    List<Student> findByClassInchargeContainingAndDepartment(@Param("name") String name, @Param("department") String department);
+    // Case-insensitive contains match for class incharge name (no department filter — handles dept format mismatch)
+    @Query("SELECT s FROM Student s WHERE LOWER(s.classIncharge) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<Student> findByClassInchargeContaining(@Param("name") String name);
+
+    // Case-insensitive contains match for class incharge name within department (LIKE on both)
+    @Query("SELECT s FROM Student s WHERE LOWER(s.classIncharge) LIKE LOWER(CONCAT('%', :name, '%')) AND s.department LIKE CONCAT('%', :deptKeyword, '%')")
+    List<Student> findByClassInchargeContainingAndDepartment(@Param("name") String name, @Param("deptKeyword") String deptKeyword);
 
     // Fallback: students by department and section
     List<Student> findByDepartmentAndSection(String department, String section);
@@ -33,6 +42,10 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     // Get the HOD name for a department (hod column stores the HOD's name)
     @Query("SELECT DISTINCT s.hod FROM Student s WHERE s.department = :department AND s.hod IS NOT NULL")
     List<String> findHodNamesByDepartment(@Param("department") String department);
+
+    // HOD lookup via LIKE — handles format mismatch (e.g. staff dept "AI & ML" vs student dept "B.E. CSE (AI & ML)")
+    @Query("SELECT DISTINCT s.hod FROM Student s WHERE s.department LIKE CONCAT('%', :keyword, '%') AND s.hod IS NOT NULL")
+    List<String> findHodNamesByDepartmentKeyword(@Param("keyword") String keyword);
 
     // Get all distinct HOD names across all departments
     @Query("SELECT DISTINCT s.hod FROM Student s WHERE s.hod IS NOT NULL AND s.hod <> ''")

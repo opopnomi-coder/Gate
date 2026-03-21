@@ -3,6 +3,8 @@ package com.example.visitor.service;
 import com.example.visitor.repository.UserPushTokenRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -35,6 +37,7 @@ public class PushNotificationService {
      * @param body       notification body text
      * @param actionRoute optional screen route to navigate to when tapped (e.g. "/student/my-requests")
      */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendToUser(String userId, String title, String body, String actionRoute) {
         try {
             var tokens = pushTokenRepository.findByUserId(userId);
@@ -50,7 +53,7 @@ public class PushNotificationService {
         }
     }
 
-    /** Convenience overload without actionRoute */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendToUser(String userId, String title, String body) {
         sendToUser(userId, title, body, null);
     }

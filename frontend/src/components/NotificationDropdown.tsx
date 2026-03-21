@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { API_CONFIG } from '../config/api.config';
 import { useNotifications } from '../context/NotificationContext';
+import { getRelativeTime, formatDateShort } from '../utils/dateUtils';
 
 interface Notification {
   id: number;
@@ -122,15 +123,7 @@ export default function NotificationDropdown({
 
   const formatTime = (dateStr: string) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return getRelativeTime(dateStr);
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;

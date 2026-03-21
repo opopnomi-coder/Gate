@@ -10,12 +10,14 @@ import {
   StatusBar,
   Modal,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SecurityPersonnel, ScreenName } from '../../types';
 import { apiService } from '../../services/api';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
+import { formatDateTime } from '../../utils/dateUtils';
 
 interface ModernScanHistoryScreenProps {
   security: SecurityPersonnel;
@@ -166,13 +168,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   const formatTime = (timeString?: string) => {
     if (!timeString) return 'N/A';
     try {
-      const date = new Date(timeString);
-      return date.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      return formatDateTime(timeString);
     } catch (error) {
       return timeString;
     }
@@ -387,18 +383,15 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   <View style={styles.scanRight}>
                     <View style={[
                       styles.scanStatusBadge,
-                      vehicle.status === 'APPROVED' ? styles.scanStatusEntry : styles.scanStatusExit
+                      styles.scanStatusEntry
                     ]}>
                       <Ionicons
-                        name={vehicle.status === 'APPROVED' ? 'checkmark-circle' : 'time'}
+                        name="checkmark-circle"
                         size={12}
-                        color={vehicle.status === 'APPROVED' ? '#10B981' : '#F59E0B'}
+                        color="#10B981"
                       />
-                      <Text style={[
-                        styles.scanStatusText,
-                        vehicle.status === 'APPROVED' ? styles.scanStatusTextEntry : { color: '#F59E0B' }
-                      ]}>
-                        {vehicle.status || 'PENDING'}
+                      <Text style={[styles.scanStatusText, styles.scanStatusTextEntry]}>
+                        REGISTERED
                       </Text>
                     </View>
                     <Text style={styles.scanTime}>{formatTime(vehicle.createdAt)}</Text>
@@ -410,296 +403,290 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         </ScrollView>
       )}
 
-      {/* Detail Modal */}
+      {/* Scan Detail — full-screen modal */}
       <Modal
         visible={showDetailModal}
         animationType="slide"
-        transparent={true}
+        transparent={false}
+        statusBarTranslucent
         onRequestClose={() => setShowDetailModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Scan Details</Text>
-              <TouchableOpacity
-                onPress={() => setShowDetailModal(false)}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={24} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
+        <SafeAreaView style={styles.fsScreen} edges={['top', 'bottom']}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-            {selectedScan && (
-              <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalScrollContent}>
-                {selectedScan.isBulkPass ? (
-                  // Bulk Pass Details
-                  <>
-                    <View style={styles.modalSection}>
-                      <Text style={styles.sectionTitle}>Bulk Pass Information</Text>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Applied By</Text>
-                        <Text style={styles.modalValue}>{selectedScan.incharge}</Text>
-                      </View>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Type</Text>
-                        <Text style={styles.modalValue}>{selectedScan.subtype}</Text>
-                      </View>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Total Participants</Text>
-                        <Text style={styles.modalValue}>{selectedScan.participantCount}</Text>
-                      </View>
-                      {selectedScan.purpose && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Purpose</Text>
-                          <Text style={[styles.modalValue, { flex: 1, textAlign: 'right' }]}>
-                            {selectedScan.purpose}
+          {/* Header */}
+          {selectedScan && (() => {
+            const isExited = selectedScan.status === 'EXITED' || !!selectedScan.outTime;
+            const statusColor = isExited ? '#EF4444' : '#10B981';
+            const statusLabel = isExited ? 'EXITED' : 'ACTIVE';
+            return (
+              <>
+                <View style={styles.fsHeader}>
+                  <TouchableOpacity style={styles.fsBackBtn} onPress={() => setShowDetailModal(false)}>
+                    <Ionicons name="arrow-back" size={22} color="#1F2937" />
+                  </TouchableOpacity>
+                  <Text style={styles.fsHeaderTitle}>Scan Details</Text>
+                  <View style={[styles.fsStatusPill, { backgroundColor: statusColor + '22' }]}>
+                    <Text style={[styles.fsStatusPillText, { color: statusColor }]}>{statusLabel}</Text>
+                  </View>
+                </View>
+
+                <ScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
+                  {selectedScan.isBulkPass ? (
+                    <>
+                      {/* Bulk pass profile row */}
+                      <View style={styles.fsProfileRow}>
+                        <View style={[styles.fsAvatar, { backgroundColor: '#F59E0B' }]}>
+                          <Text style={styles.fsAvatarText}>GP</Text>
+                        </View>
+                        <View style={styles.fsProfileInfo}>
+                          <Text style={styles.fsProfileName}>Bulk Pass</Text>
+                          <Text style={styles.fsProfileSub}>
+                            {selectedScan.incharge} • {selectedScan.subtype}
                           </Text>
                         </View>
-                      )}
-                      {selectedScan.reason && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Reason</Text>
-                          <Text style={[styles.modalValue, { flex: 1, textAlign: 'right' }]}>
-                            {selectedScan.reason}
-                          </Text>
+                      </View>
+
+                      {/* Info grid */}
+                      <View style={styles.fsInfoGrid}>
+                        <View style={styles.fsInfoCell}>
+                          <Text style={styles.fsInfoLabel}>PURPOSE</Text>
+                          <Text style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.fsInfoDivider} />
+                        <View style={styles.fsInfoCell}>
+                          <Text style={styles.fsInfoLabel}>PARTICIPANTS</Text>
+                          <Text style={styles.fsInfoValue}>{selectedScan.participantCount || '—'}</Text>
+                        </View>
+                      </View>
+
+                      {/* Reason */}
+                      {!!selectedScan.reason && (
+                        <View style={styles.fsBlock}>
+                          <Text style={styles.fsBlockLabel}>REASON</Text>
+                          <Text style={styles.fsReasonText}>{selectedScan.reason}</Text>
                         </View>
                       )}
-                    </View>
 
-                    <View style={styles.modalSection}>
-                      <Text style={styles.sectionTitle}>Participants</Text>
-                      {selectedScan.participants && selectedScan.participants.length > 0 ? (
-                        selectedScan.participants.map((participant, index) => (
-                          <View key={index} style={styles.participantCard}>
-                            <View style={styles.participantAvatar}>
-                              <Text style={styles.participantAvatarText}>
-                                {getInitials(participant.name)}
-                              </Text>
+                      {/* Time info */}
+                      <View style={styles.fsBlock}>
+                        <Text style={styles.fsBlockLabel}>TIME INFORMATION</Text>
+                        <View style={styles.fsTlItem}>
+                          <View style={[styles.fsTlDot, { backgroundColor: '#EF4444' }]}>
+                            <Ionicons name="log-out" size={14} color="#FFF" />
+                          </View>
+                          <View style={styles.fsTlBody}>
+                            <Text style={styles.fsTlTitle}>Exit Time</Text>
+                            <Text style={styles.fsTlSub}>{formatTime(selectedScan.inTime || selectedScan.outTime)}</Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* Participants */}
+                      {selectedScan.participants && selectedScan.participants.length > 0 && (
+                        <View style={styles.fsBlock}>
+                          <Text style={styles.fsBlockLabel}>PARTICIPANTS</Text>
+                          {selectedScan.participants.map((p, i) => (
+                            <View key={i} style={styles.participantCard}>
+                              <View style={styles.participantAvatar}>
+                                <Text style={styles.participantAvatarText}>{getInitials(p.name)}</Text>
+                              </View>
+                              <View style={styles.participantInfo}>
+                                <Text style={styles.participantName}>{p.name}</Text>
+                                <Text style={styles.participantDetails}>{p.id} • {p.type}</Text>
+                                {p.department && <Text style={styles.participantDept}>{p.department}</Text>}
+                              </View>
                             </View>
-                            <View style={styles.participantInfo}>
-                              <Text style={styles.participantName}>{participant.name}</Text>
-                              <Text style={styles.participantDetails}>
-                                {participant.id} • {participant.type}
-                              </Text>
-                              {participant.department && (
-                                <Text style={styles.participantDept}>{participant.department}</Text>
-                              )}
+                          ))}
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Single pass profile row */}
+                      <View style={styles.fsProfileRow}>
+                        <View style={[styles.fsAvatar, { backgroundColor: statusColor }]}>
+                          <Text style={styles.fsAvatarText}>{getInitials(selectedScan.name)}</Text>
+                        </View>
+                        <View style={styles.fsProfileInfo}>
+                          <Text style={styles.fsProfileName}>{selectedScan.name}</Text>
+                          <Text style={styles.fsProfileSub}>
+                            {selectedScan.regNo ? `${selectedScan.regNo} • ` : ''}{selectedScan.type}
+                            {selectedScan.department ? ` • ${selectedScan.department}` : ''}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Info grid */}
+                      <View style={styles.fsInfoGrid}>
+                        <View style={styles.fsInfoCell}>
+                          <Text style={styles.fsInfoLabel}>PURPOSE</Text>
+                          <Text style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.fsInfoDivider} />
+                        <View style={styles.fsInfoCell}>
+                          <Text style={styles.fsInfoLabel}>TYPE</Text>
+                          <Text style={styles.fsInfoValue}>{selectedScan.type || 'N/A'}</Text>
+                        </View>
+                      </View>
+
+                      {/* Reason */}
+                      {!!selectedScan.reason && (
+                        <View style={styles.fsBlock}>
+                          <Text style={styles.fsBlockLabel}>REASON</Text>
+                          <Text style={styles.fsReasonText}>{selectedScan.reason}</Text>
+                        </View>
+                      )}
+
+                      {/* Timeline */}
+                      <View style={styles.fsBlock}>
+                        <Text style={styles.fsBlockLabel}>TIME INFORMATION</Text>
+                        {selectedScan.inTime && (
+                          <View style={styles.fsTlItem}>
+                            <View style={[styles.fsTlDot, { backgroundColor: '#10B981' }]}>
+                              <Ionicons name="log-in" size={14} color="#FFF" />
+                            </View>
+                            <View style={styles.fsTlBody}>
+                              <Text style={styles.fsTlTitle}>Entry Time</Text>
+                              <Text style={styles.fsTlSub}>{formatTime(selectedScan.inTime)}</Text>
                             </View>
                           </View>
-                        ))
-                      ) : (
-                        <Text style={styles.noDataText}>No participants listed</Text>
-                      )}
-                    </View>
+                        )}
+                        {selectedScan.inTime && selectedScan.outTime && (
+                          <View style={styles.fsTlConnector} />
+                        )}
+                        {selectedScan.outTime && (
+                          <View style={styles.fsTlItem}>
+                            <View style={[styles.fsTlDot, { backgroundColor: '#EF4444' }]}>
+                              <Ionicons name="log-out" size={14} color="#FFF" />
+                            </View>
+                            <View style={styles.fsTlBody}>
+                              <Text style={styles.fsTlTitle}>Exit Time</Text>
+                              <Text style={styles.fsTlSub}>{formatTime(selectedScan.outTime)}</Text>
+                            </View>
+                          </View>
+                        )}
+                        {!selectedScan.inTime && !selectedScan.outTime && (
+                          <Text style={styles.noDataText}>No time data available</Text>
+                        )}
+                      </View>
+                    </>
+                  )}
+                  <View style={{ height: 16 }} />
+                </ScrollView>
 
-                    <View style={styles.modalSection}>
-                      <Text style={styles.sectionTitle}>Time Information</Text>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Exit Time</Text>
-                        <Text style={styles.modalValue}>{formatTime(selectedScan.inTime)}</Text>
-                      </View>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Status</Text>
-                        <View style={[
-                          styles.scanStatusBadge,
-                          styles.scanStatusExit
-                        ]}>
-                          <Ionicons name="log-out" size={12} color="#EF4444" />
-                          <Text style={[styles.scanStatusText, styles.scanStatusTextExit]}>
-                            EXITED
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </>
-                ) : (
-                  // Single Pass Details
-                  <>
-                    <View style={styles.modalSection}>
-                      <Text style={styles.sectionTitle}>Person Information</Text>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Name</Text>
-                        <Text style={styles.modalValue}>{selectedScan.name}</Text>
-                      </View>
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Type</Text>
-                        <Text style={styles.modalValue}>{selectedScan.type}</Text>
-                      </View>
-                      {selectedScan.regNo && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Roll No</Text>
-                          <Text style={styles.modalValue}>{selectedScan.regNo}</Text>
-                        </View>
-                      )}
-                      {selectedScan.department && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Department</Text>
-                          <Text style={styles.modalValue}>{selectedScan.department}</Text>
-                        </View>
-                      )}
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Purpose</Text>
-                        <Text style={[styles.modalValue, { flex: 1, textAlign: 'right' }]}>
-                          {selectedScan.purpose}
-                        </Text>
-                      </View>
-                      {selectedScan.reason && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Reason</Text>
-                          <Text style={[styles.modalValue, { flex: 1, textAlign: 'right' }]}>
-                            {selectedScan.reason}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <View style={styles.modalSection}>
-                      <Text style={styles.sectionTitle}>Time Information</Text>
-                      {selectedScan.inTime && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Entry Time</Text>
-                          <Text style={styles.modalValue}>{formatTime(selectedScan.inTime)}</Text>
-                        </View>
-                      )}
-                      {selectedScan.outTime && (
-                        <View style={styles.modalRow}>
-                          <Text style={styles.modalLabel}>Exit Time</Text>
-                          <Text style={styles.modalValue}>{formatTime(selectedScan.outTime)}</Text>
-                        </View>
-                      )}
-                      <View style={styles.modalRow}>
-                        <Text style={styles.modalLabel}>Status</Text>
-                        <View style={[
-                          styles.scanStatusBadge,
-                          selectedScan.status === 'EXITED' || selectedScan.outTime ? styles.scanStatusExit : styles.scanStatusEntry
-                        ]}>
-                          <Ionicons
-                            name={selectedScan.status === 'EXITED' || selectedScan.outTime ? 'log-out' : 'log-in'}
-                            size={12}
-                            color={selectedScan.status === 'EXITED' || selectedScan.outTime ? '#EF4444' : '#10B981'}
-                          />
-                          <Text style={[
-                            styles.scanStatusText,
-                            selectedScan.status === 'EXITED' || selectedScan.outTime ? styles.scanStatusTextExit : styles.scanStatusTextEntry
-                          ]}>
-                            {selectedScan.status === 'EXITED' || selectedScan.outTime ? 'EXITED' : 'ACTIVE'}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </>
-                )}
-              </ScrollView>
-            )}
-          </View>
-        </View>
+                {/* Footer close button */}
+                <View style={styles.fsFooter}>
+                  <TouchableOpacity style={styles.fsCloseBtn} onPress={() => setShowDetailModal(false)}>
+                    <Text style={styles.fsCloseBtnText}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            );
+          })()}
+        </SafeAreaView>
       </Modal>
 
-      {/* Vehicle Detail Modal */}
+      {/* Vehicle Detail — full-screen modal */}
       <Modal
         visible={showVehicleModal}
         animationType="slide"
-        transparent={true}
+        transparent={false}
+        statusBarTranslucent
         onRequestClose={() => setShowVehicleModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Vehicle Details</Text>
-              <TouchableOpacity
-                onPress={() => setShowVehicleModal(false)}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={24} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
+        <SafeAreaView style={styles.fsScreen} edges={['top', 'bottom']}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-            {selectedVehicle && (
-              <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalScrollContent}>
-                <View style={styles.modalSection}>
-                  <Text style={styles.sectionTitle}>Vehicle Information</Text>
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>License Plate</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.licensePlate || 'N/A'}</Text>
+          {selectedVehicle && (() => {
+            const statusColor = '#10B981';
+            return (
+              <>
+                <View style={styles.fsHeader}>
+                  <TouchableOpacity style={styles.fsBackBtn} onPress={() => setShowVehicleModal(false)}>
+                    <Ionicons name="arrow-back" size={22} color="#1F2937" />
+                  </TouchableOpacity>
+                  <Text style={styles.fsHeaderTitle}>Vehicle Details</Text>
+                  <View style={[styles.fsStatusPill, { backgroundColor: statusColor + '22' }]}>
+                    <Text style={[styles.fsStatusPillText, { color: statusColor }]}>
+                      REGISTERED
+                    </Text>
                   </View>
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Vehicle Type</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.vehicleType || 'N/A'}</Text>
-                  </View>
-                  {(selectedVehicle.vehicleColor || selectedVehicle.color) && (
-                    <View style={styles.modalRow}>
-                      <Text style={styles.modalLabel}>Color</Text>
-                      <Text style={styles.modalValue}>{selectedVehicle.vehicleColor || selectedVehicle.color || 'N/A'}</Text>
-                    </View>
-                  )}
-                  {(selectedVehicle.vehicleModel || selectedVehicle.model) && (
-                    <View style={styles.modalRow}>
-                      <Text style={styles.modalLabel}>Model</Text>
-                      <Text style={styles.modalValue}>{selectedVehicle.vehicleModel || selectedVehicle.model || 'N/A'}</Text>
-                    </View>
-                  )}
                 </View>
 
-                <View style={styles.modalSection}>
-                  <Text style={styles.sectionTitle}>Owner Information</Text>
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Owner Name</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.ownerName || 'N/A'}</Text>
-                  </View>
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Owner Type</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.ownerType || 'N/A'}</Text>
-                  </View>
-                  {(selectedVehicle.ownerPhone || selectedVehicle.contactNumber) && (
-                    <View style={styles.modalRow}>
-                      <Text style={styles.modalLabel}>Contact</Text>
-                      <Text style={styles.modalValue}>{selectedVehicle.ownerPhone || selectedVehicle.contactNumber}</Text>
+                <ScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
+                  {/* Profile row */}
+                  <View style={styles.fsProfileRow}>
+                    <View style={[styles.fsAvatar, { backgroundColor: '#F59E0B' }]}>
+                      <Ionicons name="car" size={24} color="#FFF" />
                     </View>
-                  )}
-                  {selectedVehicle.registeredBy && (
-                    <View style={styles.modalRow}>
-                      <Text style={styles.modalLabel}>Registered By</Text>
-                      <Text style={styles.modalValue}>{selectedVehicle.registeredBy}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.modalSection}>
-                  <Text style={styles.sectionTitle}>Registration Details</Text>
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Status</Text>
-                    <View style={[
-                      styles.scanStatusBadge,
-                      selectedVehicle.status === 'APPROVED' ? styles.scanStatusEntry : styles.scanStatusExit
-                    ]}>
-                      <Ionicons
-                        name={selectedVehicle.status === 'APPROVED' ? 'checkmark-circle' : 'time'}
-                        size={12}
-                        color={selectedVehicle.status === 'APPROVED' ? '#10B981' : '#F59E0B'}
-                      />
-                      <Text style={[
-                        styles.scanStatusText,
-                        selectedVehicle.status === 'APPROVED' ? styles.scanStatusTextEntry : { color: '#F59E0B' }
-                      ]}>
-                        {selectedVehicle.status || 'PENDING'}
+                    <View style={styles.fsProfileInfo}>
+                      <Text style={styles.fsProfileName}>{selectedVehicle.licensePlate || 'N/A'}</Text>
+                      <Text style={styles.fsProfileSub}>
+                        {selectedVehicle.vehicleType || 'Unknown'} • {selectedVehicle.ownerName || 'N/A'}
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Registered On</Text>
-                    <Text style={styles.modalValue}>{formatTime(selectedVehicle.createdAt || selectedVehicle.registeredAt)}</Text>
-                  </View>
-                  {selectedVehicle.updatedAt && selectedVehicle.updatedAt !== selectedVehicle.createdAt && (
-                    <View style={styles.modalRow}>
-                      <Text style={styles.modalLabel}>Last Updated</Text>
-                      <Text style={styles.modalValue}>{formatTime(selectedVehicle.updatedAt)}</Text>
+
+                  {/* Info grid */}
+                  <View style={styles.fsInfoGrid}>
+                    <View style={styles.fsInfoCell}>
+                      <Text style={styles.fsInfoLabel}>OWNER TYPE</Text>
+                      <Text style={styles.fsInfoValue}>{selectedVehicle.ownerType || 'N/A'}</Text>
                     </View>
-                  )}
+                    <View style={styles.fsInfoDivider} />
+                    <View style={styles.fsInfoCell}>
+                      <Text style={styles.fsInfoLabel}>REGISTERED ON</Text>
+                      <Text style={styles.fsInfoValue} numberOfLines={2}>
+                        {formatTime(selectedVehicle.createdAt || selectedVehicle.registeredAt)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Vehicle info */}
+                  <View style={styles.fsBlock}>
+                    <Text style={styles.fsBlockLabel}>VEHICLE INFORMATION</Text>
+                    {[
+                      ['License Plate', selectedVehicle.licensePlate],
+                      ['Vehicle Type', selectedVehicle.vehicleType],
+                      ['Color', selectedVehicle.vehicleColor || selectedVehicle.color],
+                      ['Model', selectedVehicle.vehicleModel || selectedVehicle.model],
+                    ].filter(([, v]) => !!v).map(([label, value]) => (
+                      <View key={label as string} style={styles.fsRow}>
+                        <Text style={styles.fsRowLabel}>{label}</Text>
+                        <Text style={styles.fsRowValue}>{value}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Owner info */}
+                  <View style={styles.fsBlock}>
+                    <Text style={styles.fsBlockLabel}>OWNER INFORMATION</Text>
+                    {[
+                      ['Owner Name', selectedVehicle.ownerName],
+                      ['Owner Type', selectedVehicle.ownerType],
+                      ['Contact', selectedVehicle.ownerPhone || selectedVehicle.contactNumber],
+                      ['Registered By', selectedVehicle.registeredBy],
+                    ].filter(([, v]) => !!v).map(([label, value]) => (
+                      <View key={label as string} style={styles.fsRow}>
+                        <Text style={styles.fsRowLabel}>{label}</Text>
+                        <Text style={styles.fsRowValue}>{value}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={{ height: 16 }} />
+                </ScrollView>
+
+                <View style={styles.fsFooter}>
+                  <TouchableOpacity style={styles.fsCloseBtn} onPress={() => setShowVehicleModal(false)}>
+                    <Text style={styles.fsCloseBtnText}>Close</Text>
+                  </TouchableOpacity>
                 </View>
-              </ScrollView>
-            )}
-          </View>
-        </View>
+              </>
+            );
+          })()}
+        </SafeAreaView>
       </Modal>
 
       {/* Bottom Navigation */}
@@ -1040,6 +1027,129 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 12,
   },
+  // ── Full-screen detail styles ──────────────────────────────────────
+  fsScreen: { flex: 1, backgroundColor: '#F9FAFB' },
+  fsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    gap: 10,
+  },
+  fsBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fsHeaderTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: '#1F2937' },
+  fsStatusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  fsStatusPillText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  fsScroll: { flex: 1 },
+  fsScrollContent: { paddingBottom: 8 },
+  fsProfileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 14,
+    padding: 12,
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  fsAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  fsAvatarText: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  fsProfileInfo: { flex: 1 },
+  fsProfileName: { fontSize: 16, fontWeight: '700', color: '#1F2937' },
+  fsProfileSub: { fontSize: 12, marginTop: 2, color: '#6B7280' },
+  fsInfoGrid: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  fsInfoCell: { flex: 1, padding: 12 },
+  fsInfoDivider: { width: 1, backgroundColor: '#E5E7EB', marginVertical: 8 },
+  fsInfoLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginBottom: 4, color: '#9CA3AF' },
+  fsInfoValue: { fontSize: 13, fontWeight: '600', lineHeight: 18, color: '#1F2937' },
+  fsBlock: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  fsBlockLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginBottom: 8, color: '#9CA3AF' },
+  fsReasonText: { fontSize: 14, lineHeight: 20, fontWeight: '500', color: '#6B7280' },
+  fsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  fsRowLabel: { fontSize: 13, color: '#6B7280' },
+  fsRowValue: { fontSize: 13, fontWeight: '600', color: '#1F2937' },
+  // Timeline
+  fsTlItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  fsTlDot: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  fsTlBody: { flex: 1, paddingTop: 4, paddingBottom: 4 },
+  fsTlTitle: { fontSize: 14, fontWeight: '600', color: '#1F2937', marginBottom: 2 },
+  fsTlSub: { fontSize: 12, color: '#6B7280' },
+  fsTlConnector: { width: 2, height: 20, marginLeft: 15, marginVertical: 2, backgroundColor: '#E5E7EB' },
+  // Footer
+  fsFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 14,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  fsCloseBtn: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    backgroundColor: '#00BCD4',
+  },
+  fsCloseBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });
 
 export default ModernScanHistoryScreen;

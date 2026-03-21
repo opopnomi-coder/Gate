@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Student } from '../../types';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import { getRelativeTime, formatDateTimeShort } from '../../utils/dateUtils';
 import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import { useErrorModal } from '../../hooks/useErrorModal';
@@ -78,19 +79,9 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
     return { text: 'AWAITING STAFF', color: '#F59E0B', bg: '#FEF3C7' };
   };
 
-  const getTimeAgo = (dateString: string) => {
-    const diffMs = Date.now() - new Date(dateString).getTime();
-    const m = Math.floor(diffMs / 60000);
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
-  };
+  const getTimeAgo = (dateString: string) => getRelativeTime(dateString);
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
-    });
+  const formatDate = (dateString: string) => formatDateTimeShort(dateString);
 
   // derive initials from student name
   const name = student.fullName || `${student.firstName} ${student.lastName}`.trim() || student.regNo || 'S';

@@ -1,11 +1,10 @@
 package com.example.visitor.controller;
 
-import com.example.visitor.entity.Department;
-import com.example.visitor.repository.DepartmentRepository;
 import com.example.visitor.repository.StaffRepository;
 import com.example.visitor.util.DepartmentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,30 +16,31 @@ import java.util.HashMap;
 @RequestMapping("/api/departments")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DepartmentController {
-    
+
     @Autowired
-    private DepartmentRepository departmentRepository;
-    
+    private JdbcTemplate jdbcTemplate;
+
     @Autowired
     private StaffRepository staffRepository;
-    
-    // Get all departments
+
+    // Get all departments — uses native SQL to avoid JPA @Id null issue on department_summary
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllDepartments() {
         try {
-            List<Department> departments = departmentRepository.findAll();
-            List<Map<String, Object>> departmentList = departments.stream()
-                .filter(dept -> dept.getIsActive() == null || Boolean.TRUE.equals(dept.getIsActive())) // NULL treated as active
-                .map(dept -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", dept.getName()); // Use name as id for frontend compatibility
-                    map.put("name", dept.getName());
-                    map.put("code", dept.getName());
-                    return map;
-                })
-                .collect(Collectors.toList());
-            
-            System.out.println("Fetching " + departmentList.size() + " departments from database");
+            List<Map<String, Object>> departmentList = jdbcTemplate.queryForList(
+                "SELECT department_name, total_staff, total_student FROM department_summary WHERE department_name IS NOT NULL AND department_name != ''"
+            ).stream().map(row -> {
+                String name = (String) row.get("department_name");
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", name);
+                map.put("name", name);
+                map.put("code", name);
+                map.put("totalStaff", row.get("total_staff"));
+                map.put("totalStudents", row.get("total_student"));
+                return map;
+            }).collect(Collectors.toList());
+
+            System.out.println("Fetched " + departmentList.size() + " departments from department_summary");
             return ResponseEntity.ok(departmentList);
         } catch (Exception e) {
             System.err.println("Error fetching departments: " + e.getMessage());
@@ -48,21 +48,21 @@ public class DepartmentController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
-    // Get department by ID (code)
+
+    // Get department by code
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getDepartmentById(@PathVariable String id) {
         try {
-            return departmentRepository.findById(id)
-                .map(dept -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", dept.getName());
-                    map.put("name", dept.getName());
-                    map.put("code", dept.getName());
-                    return map;
-                })
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "SELECT department_name, total_staff, total_student FROM department_summary WHERE department_name = ?", id
+            );
+            if (rows.isEmpty()) return ResponseEntity.notFound().build();
+            String name = (String) rows.get(0).get("department_name");
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", name);
+            map.put("name", name);
+            map.put("code", name);
+            return ResponseEntity.ok(map);
         } catch (Exception e) {
             System.err.println("Error fetching department: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
@@ -76,9 +76,9 @@ public class DepartmentController {
         try {
             System.out.println("Fetching staff for department: " + departmentCode);
             
-            // Convert to short code if it's a full name (e.g. "Computer Science" -> "CSE")
-            String searchDept = DepartmentMapper.toShortCode(departmentCode);
-            System.out.println("Resolved search department to: " + searchDept);
+            // Convert to the exact format used in staff.department column
+            String searchDept = DepartmentMapper.toStaffDeptFormat(departmentCode);
+            System.out.println("Resolved search department to staff format: " + searchDept);
 
             // Get staff from the Staff repository only
             List<com.example.visitor.entity.Staff> staffList = staffRepository.findByDepartment(searchDept);

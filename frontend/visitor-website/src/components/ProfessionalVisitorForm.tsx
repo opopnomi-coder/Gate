@@ -54,11 +54,14 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
     const fetchDepartments = async () => {
       try {
         setLoadingDepartments(true);
-        const response = await fetch('http://10.10.26.255:8080/api/departments');
+        const apiBase = (import.meta as any).env.VITE_API_URL || 'https://ritgate-backend.onrender.com/api';
+        const response = await fetch(`${apiBase}/departments`);
         if (!response.ok) throw new Error('Failed to fetch departments');
-        const data: Department[] = await response.json();
-        setDepartments(data);
-        setFilteredDepartments(data);
+        const data = await response.json();
+        // Backend returns array or { departments: [...] }
+        const list: Department[] = Array.isArray(data) ? data : (data.departments || data.data || []);
+        setDepartments(list);
+        setFilteredDepartments(list);
       } catch (err) {
         console.error('Error fetching departments:', err);
         setError('Failed to load departments. Please refresh the page.');
@@ -96,7 +99,8 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
     if (dept.code) {
       setLoadingStaff(true);
       try {
-        const response = await fetch(`http://10.10.26.255:8080/api/staff/department/${dept.code}`);
+        const apiBase = (import.meta as any).env.VITE_API_URL || 'https://ritgate-backend.onrender.com/api';
+        const response = await fetch(`${apiBase}/staff/department/${dept.code}`);
         if (!response.ok) throw new Error('Failed to fetch staff');
         const staff: Staff[] = await response.json();
         setStaffMembers(staff);
@@ -184,7 +188,8 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
 
     try {
       // Use unified visitor endpoint that generates manual codes
-      const response = await fetch('http://10.10.26.255:8080/api/unified-visitors/register', {
+      const apiBase = (import.meta as any).env.VITE_API_URL || 'https://ritgate-backend.onrender.com/api';
+      const response = await fetch(`${apiBase}/unified-visitors/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

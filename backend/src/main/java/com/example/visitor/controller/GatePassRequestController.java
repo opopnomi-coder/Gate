@@ -1,16 +1,20 @@
 package com.example.visitor.controller;
 
 import com.example.visitor.entity.GatePassRequest;
+import com.example.visitor.entity.Visitor;
 import com.example.visitor.repository.GatePassRequestRepository;
+import com.example.visitor.repository.VisitorRepository;
 import com.example.visitor.service.GatePassRequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +29,9 @@ public class GatePassRequestController {
     
     private final GatePassRequestService gatePassRequestService;
     private final GatePassRequestRepository gatePassRequestRepository;
+
+    @Autowired
+    private VisitorRepository visitorRepository;
     
     // Submit student gate pass request
     @PostMapping("/student/submit")
@@ -210,8 +217,67 @@ public class GatePassRequestController {
     }
     
     // Get all requests for staff
-    @GetMapping("/staff/{staffCode}/all")
-    public ResponseEntity<Map<String, Object>> getAllStaffRequests(@PathVariable String staffCode) {
+    @GetMapping("/staff/{staffCode}/pending-all")
+    public ResponseEntity<Map<String, Object>> getStaffPendingAll(@PathVariable String staffCode) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Map<String, Object>> combined = new ArrayList<>();
+
+            // 1. Gate pass requests (student/staff single & bulk)
+            List<GatePassRequest> gpRequests = gatePassRequestService.getRequestsForStaffApproval(staffCode);
+            for (GatePassRequest gp : gpRequests) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", gp.getId());
+                item.put("passType", gp.getPassType() != null ? gp.getPassType() : "SINGLE");
+                item.put("regNo", gp.getRegNo());
+                item.put("department", gp.getDepartment());
+                item.put("purpose", gp.getPurpose());
+                item.put("exitDateTime", gp.getExitDateTime());
+                item.put("requestDate", gp.getRequestDate());
+                item.put("status", gp.getStatus());
+                item.put("requestedByStaffName", gp.getRequestedByStaffName());
+                item.put("userType", gp.getUserType());
+                item.put("includeStaff", gp.getIncludeStaff());
+                item.put("studentCount", gp.getStudentCount());
+                item.put("sourceType", "GATE_PASS");
+                combined.add(item);
+            }
+
+            // 2. Visitor requests assigned to this staff (PENDING only)
+            List<Visitor> visitors = visitorRepository.findByStaffCodeAndStatus(staffCode, "PENDING");
+            for (Visitor v : visitors) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", v.getId());
+                item.put("passType", "VISITOR");
+                item.put("regNo", null);
+                item.put("visitorName", v.getName());
+                item.put("visitorEmail", v.getEmail());
+                item.put("visitorPhone", v.getPhone());
+                item.put("department", v.getDepartment());
+                item.put("purpose", v.getPurpose());
+                item.put("numberOfPeople", v.getNumberOfPeople());
+                item.put("vehicleNumber", v.getVehicleNumber());
+                item.put("requestDate", v.getCreatedAt());
+                item.put("status", v.getStatus());
+                item.put("registeredBy", v.getRegisteredBy());
+                item.put("sourceType", "VISITOR");
+                combined.add(item);
+            }
+
+            response.put("success", true);
+            response.put("requests", combined);
+            response.put("count", combined.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error fetching staff pending-all requests", e);
+            response.put("success", false);
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    // Get all requests for staff
+    @GetMapping("/staff/{staffCode}/all")    public ResponseEntity<Map<String, Object>> getAllStaffRequests(@PathVariable String staffCode) {
         Map<String, Object> response = new HashMap<>();
         
         try {

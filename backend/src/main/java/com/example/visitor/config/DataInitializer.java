@@ -138,7 +138,6 @@ public class DataInitializer implements CommandLineRunner {
         vehicle1.setVehicleType("Bike");
         vehicle1.setVehicleModel("Honda Activa");
         vehicle1.setVehicleColor("Black");
-        vehicle1.setStatus(ApprovalStatus.APPROVED);
         vehicle1.setRegisteredBy("Security Guard 1");
         vehicleRegistrationRepository.save(vehicle1);
         
@@ -146,7 +145,6 @@ public class DataInitializer implements CommandLineRunner {
         vehicle2.setVehicleType("Car");
         vehicle2.setVehicleModel("Maruti Swift");
         vehicle2.setVehicleColor("White");
-        vehicle2.setStatus(ApprovalStatus.APPROVED);
         vehicle2.setRegisteredBy("Security Guard 1");
         vehicleRegistrationRepository.save(vehicle2);
         
@@ -154,7 +152,6 @@ public class DataInitializer implements CommandLineRunner {
         vehicle3.setVehicleType("Car");
         vehicle3.setVehicleModel("Toyota Innova");
         vehicle3.setVehicleColor("Silver");
-        vehicle3.setStatus(ApprovalStatus.PENDING);
         vehicle3.setRegisteredBy("Security Guard 2");
         vehicleRegistrationRepository.save(vehicle3);
         

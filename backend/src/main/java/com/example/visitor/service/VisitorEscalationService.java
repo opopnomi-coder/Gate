@@ -21,18 +21,18 @@ public class VisitorEscalationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    // Run every 2 minutes to check for expired visitor requests
-    @Scheduled(fixedRate = 120000) // 2 minutes in milliseconds
+    // Run every minute to check for expired visitor requests
+    @Scheduled(fixedRate = 60000) // 1 minute in milliseconds
     @Transactional
     public void checkAndEscalateExpiredRequests() {
-        LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
         
-        // Find all PENDING visitors where notification was sent more than 10 minutes ago
+        // Find all PENDING visitors where notification was sent more than 5 minutes ago
         // and not yet escalated to security
         List<Visitor> expiredRequests = visitorRepository.findAll().stream()
             .filter(v -> "PENDING".equals(v.getStatus()))
             .filter(v -> v.getNotificationSentAt() != null)
-            .filter(v -> v.getNotificationSentAt().isBefore(tenMinutesAgo))
+            .filter(v -> v.getNotificationSentAt().isBefore(fiveMinutesAgo))
             .filter(v -> v.getEscalatedToSecurity() == null || !v.getEscalatedToSecurity())
             .toList();
 

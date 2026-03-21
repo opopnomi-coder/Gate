@@ -32,10 +32,6 @@ public class VehicleRegistration {
     @Column(name = "vehicle_color")
     private String vehicleColor;
     
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ApprovalStatus status; // APPROVED, REJECTED, PENDING
-    
     @Column(name = "registered_by")
     private String registeredBy; // Security personnel who registered
     
@@ -49,7 +45,6 @@ public class VehicleRegistration {
     public VehicleRegistration() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.status = ApprovalStatus.PENDING;
     }
     
     public VehicleRegistration(String licensePlate, String ownerName, String ownerPhone, PersonType ownerType) {
@@ -84,9 +79,6 @@ public class VehicleRegistration {
     
     public String getVehicleColor() { return vehicleColor; }
     public void setVehicleColor(String vehicleColor) { this.vehicleColor = vehicleColor; }
-    
-    public ApprovalStatus getStatus() { return status; }
-    public void setStatus(ApprovalStatus status) { this.status = status; }
     
     public String getRegisteredBy() { return registeredBy; }
     public void setRegisteredBy(String registeredBy) { this.registeredBy = registeredBy; }

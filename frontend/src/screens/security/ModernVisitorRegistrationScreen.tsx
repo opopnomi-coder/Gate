@@ -8,6 +8,8 @@ import {
   TextInput,
   StatusBar,
   Alert,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,6 +40,9 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedStaff, setSelectedStaff] = useState('');
   const [purpose, setPurpose] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredVisitorName, setRegisteredVisitorName] = useState('');
 
   useEffect(() => {
     loadDepartments();
@@ -92,53 +97,60 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validation
     if (visitorNames.some(name => !name.trim())) {
       Alert.alert('Error', 'Please enter names for all visitors');
       return;
     }
-
     if (!visitorEmail.trim() || !visitorEmail.includes('@')) {
       Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
-
     if (!visitorPhone.trim() || visitorPhone.length < 10) {
       Alert.alert('Error', 'Please enter a valid phone number (minimum 10 digits)');
       return;
     }
-
     if (!selectedDepartment) {
       Alert.alert('Error', 'Please select a department');
       return;
     }
-
     if (!selectedStaff) {
       Alert.alert('Error', 'Please select a staff member to meet');
       return;
     }
-
     if (!purpose.trim()) {
       Alert.alert('Error', 'Please enter the purpose of visit');
       return;
     }
 
-    // Navigate away immediately, fire API in background
-    resetForm();
-    onNavigate('VISITOR_QR');
+    setIsSubmitting(true);
+    try {
+      const resolvedSecurityId = security.securityId || (security as any).userId || (security as any).id?.toString() || '';
+      const response = await apiService.registerVisitorForSecurity({
+        name: visitorNames[0],
+        phone: visitorPhone,
+        email: visitorEmail,
+        numberOfPeople: parseInt(numberOfVisitors) || 1,
+        departmentId: selectedDepartment,
+        staffCode: selectedStaff,
+        purpose,
+        vehicleNumber: vehicleNumber || undefined,
+        securityId: resolvedSecurityId,
+      });
 
-    apiService.registerVisitorForSecurity({
-      name: visitorNames[0],
-      phone: visitorPhone,
-      email: visitorEmail,
-      numberOfPeople: parseInt(numberOfVisitors) || 1,
-      departmentId: selectedDepartment,
-      staffCode: selectedStaff,
-      purpose,
-      vehicleNumber: vehicleNumber || undefined,
-      securityId: security.securityId,
-    }).catch(err => console.error('Visitor registration error:', err));
+      if (response.success) {
+        setRegisteredVisitorName(visitorNames[0]);
+        resetForm();
+        setShowSuccessModal(true);
+      } else {
+        Alert.alert('Registration Failed', response.message || 'Could not register visitor. Please try again.');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to register visitor. Please check your connection.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -315,13 +327,57 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
 
         {/* Submit Button */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
           onPress={handleSubmit}
+          disabled={isSubmitting}
         >
-          <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-          <Text style={styles.submitButtonText}>Register Visitor</Text>
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <>
+              <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+              <Text style={styles.submitButtonText}>Register Visitor</Text>
+            </>
+          )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Success Modal */}
+      <Modal visible={showSuccessModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.successModal}>
+            <View style={styles.successIcon}>
+              <Ionicons name="checkmark-circle" size={56} color="#10B981" />
+            </View>
+            <Text style={styles.successTitle}>Visitor Registered!</Text>
+            <Text style={styles.successMessage}>
+              <Text style={styles.successName}>{registeredVisitorName}</Text>
+              {' '}has been registered successfully.{'\n'}The staff member has been notified for approval.
+            </Text>
+            <View style={styles.successActions}>
+              <TouchableOpacity
+                style={styles.actionButtonSecondary}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                }}
+              >
+                <Ionicons name="person-add-outline" size={18} color="#00BCD4" />
+                <Text style={styles.actionButtonSecondaryText}>Register Another</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButtonPrimary}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  onNavigate('VISITOR_QR');
+                }}
+              >
+                <Ionicons name="qr-code-outline" size={18} color="#FFF" />
+                <Text style={styles.actionButtonPrimaryText}>View QR Codes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Bottom Navigation */}
       <SecurityBottomNav activeTab="visitor" onNavigate={onNavigate} />
@@ -455,6 +511,76 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  successModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 32,
+    width: '100%',
+    alignItems: 'center',
+  },
+  successIcon: {
+    marginBottom: 16,
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  successMessage: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  successName: {
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  successActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  actionButtonSecondary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#00BCD4',
+    gap: 6,
+  },
+  actionButtonSecondaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#00BCD4',
+  },
+  actionButtonPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#00BCD4',
+    gap: 6,
+  },
+  actionButtonPrimaryText: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFF',
   },

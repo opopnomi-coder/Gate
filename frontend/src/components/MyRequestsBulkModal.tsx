@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { formatDateTime, formatDateShort } from '../utils/dateUtils';
 import ParticipantsScreen from '../screens/shared/ParticipantsScreen';
 import GatePassQRModal from './GatePassQRModal';
 
@@ -66,10 +67,7 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
 
   const formatDate = (d: string) => {
     if (!d) return 'N/A';
-    return new Date(d).toLocaleString('en-US', {
-      day: '2-digit', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', hour12: true,
-    });
+    return formatDateTime(d);
   };
 
   const getInitials = (name: string) =>

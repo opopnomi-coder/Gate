@@ -140,11 +140,29 @@ public class StaffController {
             
             Staff staff = staffOpt.get();
             String department = staff.getDepartment();
-            System.out.println("📚 Staff department: " + department);
+            String staffName = staff.getStaffName();
+            System.out.println("📚 Staff: " + staffName + ", department: " + department);
             
-            // Get all students from the same department
-            List<com.example.visitor.entity.Student> students = studentRepository.findByDepartment(department);
-            System.out.println("✅ Found " + students.size() + " students in department: " + department);
+            // Strategy 1: exact match on class_incharge
+            List<com.example.visitor.entity.Student> students = studentRepository.findByClassIncharge(staffName);
+            System.out.println("Strategy 1 (exact class_incharge='" + staffName + "') → " + students.size() + " students");
+
+            // Strategy 2: LIKE match — class_incharge has suffix like "/AP", also LIKE on dept
+            if (students.isEmpty()) {
+                String deptKeyword = com.example.visitor.util.DepartmentMapper.toStudentDeptKeyword(department);
+                students = studentRepository.findByClassInchargeContainingAndDepartment(staffName, deptKeyword);
+                System.out.println("Strategy 2 (LIKE class_incharge='" + staffName + "', deptKeyword='" + deptKeyword + "') → " + students.size() + " students");
+            }
+
+            // Strategy 2b: LIKE on class_incharge only
+            if (students.isEmpty()) {
+                students = studentRepository.findByClassInchargeContaining(staffName);
+                System.out.println("Strategy 2b (LIKE class_incharge='" + staffName + "', no dept) → " + students.size() + " students");
+            }
+
+            if (students.isEmpty()) {
+                System.out.println("⚠️ No students found with class_incharge='" + staffName + "'");
+            }
             
             // Convert to DTOs
             List<Map<String, Object>> studentDTOs = students.stream()
@@ -154,12 +172,14 @@ public class StaffController {
                     map.put("id", student.getId());
                     map.put("regNo", student.getRegNo());
                     map.put("name", student.getFullName());
+                    map.put("fullName", student.getFullName());
                     map.put("firstName", student.getFirstName());
                     map.put("lastName", student.getLastName());
                     map.put("email", student.getEmail());
                     map.put("phone", student.getPhone());
                     map.put("department", student.getDepartment());
-                    map.put("year", student.getYear());
+                    map.put("section", student.getSection() != null ? student.getSection() : "");
+                    map.put("year", student.getYear() != null ? student.getYear() : "");
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -168,6 +188,7 @@ public class StaffController {
             response.put("success", true);
             response.put("students", studentDTOs);
             response.put("department", department);
+            response.put("staffName", staffName);
             response.put("count", studentDTOs.size());
             
             return ResponseEntity.ok(response);

@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
   TextInput,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +23,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
 import NotificationDropdown from '../../components/NotificationDropdown';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { formatTime as fmtTime, getRelativeTimeShort } from '../../utils/dateUtils';
 
 interface NewSecurityDashboardProps {
   user: SecurityPersonnel;
@@ -75,6 +77,13 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
     loadDashboardData();
     loadEscalatedVisitors();
     loadNotifications(user.securityId, 'security');
+
+    // Poll for new escalated visitors every 30 seconds
+    const pollInterval = setInterval(() => {
+      loadEscalatedVisitors();
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
   }, []);
 
   const loadDashboardData = async () => {
@@ -134,13 +143,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
   const formatTime = (timeString: string) => {
     try {
-      const date = new Date(timeString);
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12;
-      const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-      return `${formattedHours}:${formattedMinutes} ${ampm}`;
+      return fmtTime(timeString);
     } catch (error) {
       return timeString;
     }
@@ -215,6 +218,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
     try {
       const response = await apiService.rejectEscalatedVisitor(
         selectedVisitor.id,
+        user.securityId || user.id?.toString() || 'SEC001',
         rejectionReason || 'Rejected by security'
       );
       if (response.success) {
@@ -287,48 +291,92 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
         </View>
       </View>
 
-      {/* Visitor Requests Section */}
+      {/* Visitor Requests Section — escalated after 5 min of no staff response */}
       {escalatedVisitors.length > 0 && (
         <>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Visitor Requests</Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="alert-circle" size={18} color={theme.error} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Pending Visitor Requests</Text>
+            </View>
             <View style={[styles.badge, { backgroundColor: theme.error + '22' }]}>
               <Text style={[styles.badgeText, { color: theme.error }]}>{escalatedVisitors.length}</Text>
             </View>
           </View>
+          <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+            Staff did not respond within 5 min — your action required
+          </Text>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.visitorRequestsContainer} contentContainerStyle={styles.visitorRequestsContent}>
-            {escalatedVisitors.map((visitor) => (
-              <TouchableOpacity key={visitor.id} style={[styles.visitorRequestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]} onPress={() => { setSelectedVisitor(visitor); setShowVisitorModal(true); }}>
-                <View style={styles.visitorCardHeader}>
-                  <View style={[styles.visitorAvatar, { backgroundColor: theme.surfaceHighlight }]}>
-                    <Ionicons name="person" size={20} color={theme.warning} />
-                  </View>
-                  <View style={[styles.urgentBadge, { backgroundColor: theme.error + '22' }]}>
-                    <Ionicons name="time" size={12} color={theme.error} />
-                    <Text style={[styles.urgentText, { color: theme.error }]}>URGENT</Text>
-                  </View>
+          {escalatedVisitors.map((visitor) => (
+            <TouchableOpacity
+              key={visitor.id}
+              style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+              onPress={() => { setSelectedVisitor(visitor); setShowVisitorModal(true); }}
+            >
+              <View style={styles.cardTopRow}>
+                <View style={[styles.avatarContainer, { backgroundColor: theme.error + '22' }]}>
+                  <Text style={[styles.requestAvatarText, { color: theme.error }]}>
+                    {getInitials(visitor.name)}
+                  </Text>
                 </View>
-                <Text style={[styles.visitorName, { color: theme.text }]} numberOfLines={1}>{visitor.name}</Text>
-                <Text style={[styles.visitorMeet, { color: theme.textSecondary }]} numberOfLines={1}>To meet: {visitor.personToMeet}</Text>
-                <Text style={[styles.visitorDept, { color: theme.textTertiary }]} numberOfLines={1}>{visitor.department}</Text>
-                <View style={styles.visitorActions}>
-                  <TouchableOpacity style={[styles.approveBtn, { backgroundColor: theme.success }]} onPress={(e) => { e.stopPropagation(); handleApproveVisitor(visitor); }}>
-                    <Ionicons name="checkmark" size={16} color="#FFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.rejectBtn, { backgroundColor: theme.error }]} onPress={(e) => { e.stopPropagation(); handleRejectVisitor(visitor); }}>
-                    <Ionicons name="close" size={16} color="#FFF" />
-                  </TouchableOpacity>
+                <View style={styles.headerMainInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                      {visitor.name}
+                    </Text>
+                    <View style={[styles.passTypePill, { backgroundColor: theme.error + '15', borderColor: theme.error + '44' }]}>
+                      <Text style={[styles.passTypePillText, { color: theme.error }]}>Visitor</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                    To meet: {visitor.personToMeet} • {visitor.department}
+                  </Text>
                 </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                <View style={styles.timeAgoContainer}>
+                  <Ionicons name="time-outline" size={12} color={theme.error} />
+                  <Text style={[styles.timeAgoText, { color: theme.error }]}>
+                    {getRelativeTimeShort(visitor.escalationTime || visitor.createdAt)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
+                <View style={styles.detailItem}>
+                  <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
+                  <Text style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{visitor.purpose}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
+                  <Text style={[styles.detailText, { color: theme.text }]}>{visitor.numberOfPeople} {visitor.numberOfPeople === 1 ? 'person' : 'people'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.cardFooter}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: theme.success }]}
+                  onPress={(e) => { e.stopPropagation(); handleApproveVisitor(visitor); }}
+                >
+                  <Ionicons name="checkmark" size={14} color="#FFF" />
+                  <Text style={styles.actionBtnText}>Approve</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: theme.error }]}
+                  onPress={(e) => { e.stopPropagation(); handleRejectVisitor(visitor); }}
+                >
+                  <Ionicons name="close" size={14} color="#FFF" />
+                  <Text style={styles.actionBtnText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
         </>
       )}
 
       {/* Active Persons List */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Active Persons</Text>
+      <View style={[styles.sectionHeader, { paddingBottom: 12 }]}>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Active Persons</Text>
+        </View>
         <Text style={[styles.sectionCount, { color: theme.textSecondary }]}>{stats.active} active</Text>
       </View>
 
@@ -368,40 +416,125 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       {/* Bottom Navigation */}
       <SecurityBottomNav activeTab="home" onNavigate={onNavigate} />
 
-      {/* Person Detail Modal */}
-      <Modal visible={showDetailModal} animationType="slide" transparent={true} onRequestClose={() => setShowDetailModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Person Details</Text>
-              <TouchableOpacity onPress={() => setShowDetailModal(false)} style={[styles.closeButton, { backgroundColor: theme.surfaceHighlight }]}>
-                <Ionicons name="close" size={24} color={theme.textSecondary} />
-              </TouchableOpacity>
-            </View>
+      {/* Person Detail — Full Screen */}
+      <Modal visible={showDetailModal} animationType="slide" transparent={false} statusBarTranslucent onRequestClose={() => setShowDetailModal(false)}>
+        <SafeAreaView style={[detailStyles.screen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+          <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.surface} />
+
+          {/* Header */}
+          <View style={[detailStyles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <TouchableOpacity onPress={() => setShowDetailModal(false)} style={[detailStyles.backBtn, { backgroundColor: theme.inputBackground }]}>
+              <Ionicons name="arrow-back" size={22} color={theme.text} />
+            </TouchableOpacity>
+            <Text style={[detailStyles.headerTitle, { color: theme.text }]}>Person Details</Text>
             {selectedPerson && (
-              <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalScrollContent} showsVerticalScrollIndicator={true}>
-                <View style={styles.modalSection}>
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>Person Information</Text>
-                  <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Name</Text><Text style={[styles.modalValue, { color: theme.text }]}>{selectedPerson.name}</Text></View>
-                  <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Type</Text><Text style={[styles.modalValue, { color: theme.text }]}>{selectedPerson.type}</Text></View>
-                  <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Purpose</Text><Text style={[styles.modalValue, { color: theme.text, flex: 1, textAlign: 'right' }]}>{selectedPerson.purpose}</Text></View>
-                </View>
-                <View style={styles.modalSection}>
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Information</Text>
-                  <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Entry Time</Text><Text style={[styles.modalValue, { color: theme.text }]}>{formatTime(selectedPerson.inTime)}</Text></View>
-                  {selectedPerson.outTime && <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Exit Time</Text><Text style={[styles.modalValue, { color: theme.text }]}>{formatTime(selectedPerson.outTime)}</Text></View>}
-                  <View style={styles.modalRow}>
-                    <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Status</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: theme.success + '22' }]}>
-                      <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
-                      <Text style={[styles.statusText, { color: theme.success }]}>{selectedPerson.status}</Text>
-                    </View>
-                  </View>
-                </View>
-              </ScrollView>
+              <View style={[detailStyles.statusPill, { backgroundColor: (selectedPerson.status === 'PENDING' ? theme.success : theme.error) + '22' }]}>
+                <Text style={[detailStyles.statusPillText, { color: selectedPerson.status === 'PENDING' ? theme.success : theme.error }]}>
+                  {selectedPerson.status === 'PENDING' ? 'ON CAMPUS' : 'EXITED'}
+                </Text>
+              </View>
             )}
           </View>
-        </View>
+
+          {selectedPerson && (
+            <ScrollView style={detailStyles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={detailStyles.scrollContent}>
+              {/* Profile Row */}
+              <View style={[detailStyles.profileRow, { backgroundColor: theme.surface }]}>
+                <View style={[detailStyles.avatar, { backgroundColor: theme.primary }]}>
+                  <Text style={detailStyles.avatarText}>{getInitials(selectedPerson.name)}</Text>
+                </View>
+                <View style={detailStyles.profileInfo}>
+                  <View style={[detailStyles.typePill, { backgroundColor: theme.primary + '22' }]}>
+                    <Text style={[detailStyles.typePillText, { color: theme.primary }]}>{selectedPerson.type}</Text>
+                  </View>
+                  <Text style={[detailStyles.profileName, { color: theme.text }]} numberOfLines={1}>{selectedPerson.name}</Text>
+                </View>
+              </View>
+
+              {/* Info Grid */}
+              <View style={[detailStyles.infoGrid, { backgroundColor: theme.surface }]}>
+                <View style={detailStyles.infoCell}>
+                  <Text style={[detailStyles.infoLabel, { color: theme.textTertiary }]}>PURPOSE</Text>
+                  <Text style={[detailStyles.infoValue, { color: theme.text }]} numberOfLines={2}>{selectedPerson.purpose || 'N/A'}</Text>
+                </View>
+                <View style={[detailStyles.infoDivider, { backgroundColor: theme.border }]} />
+                <View style={detailStyles.infoCell}>
+                  <Text style={[detailStyles.infoLabel, { color: theme.textTertiary }]}>ENTRY TIME</Text>
+                  <Text style={[detailStyles.infoValue, { color: theme.text }]}>{formatTime(selectedPerson.inTime)}</Text>
+                </View>
+              </View>
+
+              {/* Time Block */}
+              <View style={[detailStyles.block, { backgroundColor: theme.surface }]}>
+                <Text style={[detailStyles.blockLabel, { color: theme.textTertiary }]}>TIME DETAILS</Text>
+                <View style={detailStyles.timeRow}>
+                  <View style={[detailStyles.timeBox, { backgroundColor: theme.success + '15' }]}>
+                    <Ionicons name="enter-outline" size={18} color={theme.success} />
+                    <Text style={[detailStyles.timeBoxLabel, { color: theme.textSecondary }]}>Entry</Text>
+                    <Text style={[detailStyles.timeBoxValue, { color: theme.text }]}>{formatTime(selectedPerson.inTime)}</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={18} color={theme.textTertiary} />
+                  <View style={[detailStyles.timeBox, { backgroundColor: (selectedPerson.outTime ? theme.error : theme.inputBackground) + '33' }]}>
+                    <Ionicons name="exit-outline" size={18} color={selectedPerson.outTime ? theme.error : theme.textTertiary} />
+                    <Text style={[detailStyles.timeBoxLabel, { color: theme.textSecondary }]}>Exit</Text>
+                    <Text style={[detailStyles.timeBoxValue, { color: theme.text }]}>{selectedPerson.outTime ? formatTime(selectedPerson.outTime) : '—'}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Status Timeline */}
+              <View style={[detailStyles.block, { backgroundColor: theme.surface }]}>
+                <Text style={[detailStyles.blockLabel, { color: theme.textTertiary }]}>STATUS TIMELINE</Text>
+                {/* Step 1: Entry */}
+                <View style={detailStyles.tlItem}>
+                  <View style={[detailStyles.tlDot, { backgroundColor: theme.success }]}>
+                    <Ionicons name="checkmark" size={14} color="#FFF" />
+                  </View>
+                  <View style={detailStyles.tlBody}>
+                    <Text style={[detailStyles.tlTitle, { color: theme.text }]}>Entry Recorded</Text>
+                    <Text style={[detailStyles.tlStatus, { color: theme.success }]}>✓ Completed — {formatTime(selectedPerson.inTime)}</Text>
+                  </View>
+                </View>
+                <View style={[detailStyles.tlConnector, { backgroundColor: selectedPerson.status === 'EXITED' ? theme.success : theme.border }]} />
+                {/* Step 2: Exit */}
+                <View style={detailStyles.tlItem}>
+                  <View style={[detailStyles.tlDot, {
+                    backgroundColor: selectedPerson.status === 'EXITED' ? theme.error : theme.inputBackground,
+                    borderWidth: selectedPerson.status !== 'EXITED' ? 2 : 0,
+                    borderColor: theme.border,
+                  }]}>
+                    {selectedPerson.status === 'EXITED'
+                      ? <Ionicons name="checkmark" size={14} color="#FFF" />
+                      : <View style={[detailStyles.tlDotInner, { backgroundColor: theme.textTertiary }]} />}
+                  </View>
+                  <View style={detailStyles.tlBody}>
+                    <Text style={[detailStyles.tlTitle, { color: theme.text }]}>Exit</Text>
+                    <Text style={[detailStyles.tlStatus, { color: selectedPerson.status === 'EXITED' ? theme.error : theme.textSecondary }]}>
+                      {selectedPerson.status === 'EXITED'
+                        ? `✓ Exited — ${selectedPerson.outTime ? formatTime(selectedPerson.outTime) : ''}`
+                        : 'Still on campus'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={{ height: 16 }} />
+            </ScrollView>
+          )}
+
+          {/* Footer */}
+          {selectedPerson && selectedPerson.status === 'PENDING' && (
+            <View style={[detailStyles.footer, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+              <TouchableOpacity
+                style={[detailStyles.exitBtn, { backgroundColor: theme.error }]}
+                onPress={() => { setShowDetailModal(false); handleManualExit(selectedPerson); }}
+              >
+                <Ionicons name="log-out-outline" size={20} color="#FFF" />
+                <Text style={detailStyles.exitBtnText}>Mark as Exited</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </SafeAreaView>
       </Modal>
 
       {/* Visitor Detail Modal */}
@@ -522,13 +655,34 @@ const styles = StyleSheet.create({
   statIcon: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
   statValue: { fontSize: 24, fontWeight: '700', marginBottom: 2 },
   statLabel: { fontSize: 14, fontWeight: '600' },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 12 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 4 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
+  sectionSubtitle: { fontSize: 12, paddingHorizontal: 20, marginBottom: 12 },
   sectionCount: { fontSize: 14 },
   content: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
   emptyState: { paddingVertical: 80, alignItems: 'center' },
   emptyText: { fontSize: 16, fontWeight: '600', marginTop: 16 },
+  /* Visitor request cards — same style as staff dashboard */
+  requestCard: { borderRadius: 16, padding: 16, marginHorizontal: 20, marginBottom: 12, borderWidth: 1, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  cardTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  avatarContainer: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 12, flexShrink: 0 },
+  requestAvatarText: { fontSize: 16, fontWeight: '700' },
+  headerMainInfo: { flex: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  requestStudentName: { fontSize: 15, fontWeight: '700', flexShrink: 1 },
+  passTypePill: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1 },
+  passTypePillText: { fontSize: 10, fontWeight: '700' },
+  studentIdSub: { fontSize: 12, marginTop: 2 },
+  timeAgoContainer: { flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 0 },
+  timeAgoText: { fontSize: 12 },
+  detailsBlock: { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10, gap: 5 },
+  detailItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  detailText: { fontSize: 13, flex: 1 },
+  cardFooter: { flexDirection: 'row', gap: 10 },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, gap: 6 },
+  actionBtnText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
   personCard: { borderRadius: 12, padding: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
   personAvatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   personAvatarText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
@@ -556,19 +710,6 @@ const styles = StyleSheet.create({
   modalValue: { fontSize: 14, fontWeight: '600' },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { fontSize: 12, fontWeight: '700' },
-  visitorRequestsContainer: { marginTop: 8, marginBottom: 16 },
-  visitorRequestsContent: { paddingHorizontal: 20, gap: 12 },
-  visitorRequestCard: { width: 200, borderRadius: 12, padding: 16, borderWidth: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  visitorCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  visitorAvatar: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  urgentBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, gap: 4 },
-  urgentText: { fontSize: 10, fontWeight: '700' },
-  visitorName: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
-  visitorMeet: { fontSize: 13, marginBottom: 2 },
-  visitorDept: { fontSize: 12, marginBottom: 12 },
-  visitorActions: { flexDirection: 'row', gap: 8 },
-  approveBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  rejectBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   urgentBanner: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8, marginBottom: 16, gap: 8 },
   urgentBannerText: { flex: 1, fontSize: 13, fontWeight: '600' },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
@@ -585,6 +726,46 @@ const styles = StyleSheet.create({
   rejectModalCancelText: { fontSize: 16, fontWeight: '600' },
   rejectModalConfirmBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12, gap: 8 },
   rejectModalConfirmText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
+});
+
+const detailStyles = StyleSheet.create({
+  screen: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, gap: 10 },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { flex: 1, fontSize: 17, fontWeight: '800' },
+  statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  statusPillText: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  scroll: { flex: 1 },
+  scrollContent: { paddingBottom: 8 },
+  profileRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 12, gap: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
+  avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  avatarText: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  profileInfo: { flex: 1 },
+  typePill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, alignSelf: 'flex-start', marginBottom: 4 },
+  typePillText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
+  profileName: { fontSize: 16, fontWeight: '700' },
+  profileSub: { fontSize: 12, marginTop: 2 },
+  infoGrid: { flexDirection: 'row', marginHorizontal: 16, marginTop: 10, borderRadius: 14, overflow: 'hidden', elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
+  infoCell: { flex: 1, padding: 12 },
+  infoDivider: { width: 1, marginVertical: 8 },
+  infoLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginBottom: 4 },
+  infoValue: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  block: { marginHorizontal: 16, marginTop: 10, borderRadius: 14, padding: 12, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
+  blockLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8, marginBottom: 10 },
+  timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  timeBox: { flex: 1, alignItems: 'center', padding: 12, borderRadius: 10, gap: 4 },
+  timeBoxLabel: { fontSize: 11, fontWeight: '600' },
+  timeBoxValue: { fontSize: 14, fontWeight: '700' },
+  tlItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  tlDot: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  tlDotInner: { width: 10, height: 10, borderRadius: 5 },
+  tlBody: { flex: 1, paddingTop: 4, paddingBottom: 4 },
+  tlTitle: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
+  tlStatus: { fontSize: 12 },
+  tlConnector: { width: 2, height: 20, marginLeft: 15, marginVertical: 2 },
+  footer: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: Platform.OS === 'ios' ? 8 : 14, borderTopWidth: 1 },
+  exitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 14, gap: 8 },
+  exitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });
 
 export default NewSecurityDashboard;
