@@ -267,29 +267,34 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       </View>
 
       {/* Stats Cards */}
-      <View style={styles.statsContainer}>
-        <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
-          <View style={[styles.statIcon, { backgroundColor: theme.success + '22' }]}>
-            <Ionicons name="enter-outline" size={20} color={theme.success} />
+      <ScrollView
+        style={styles.outerScroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        contentContainerStyle={styles.outerScrollContent}
+      >
+        <View style={styles.statsContainer}>
+          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+            <View style={[styles.statIcon, { backgroundColor: theme.success + '22' }]}>
+              <Ionicons name="enter-outline" size={20} color={theme.success} />
+            </View>
+            <Text style={[styles.statValue, { color: theme.text }]}>{stats.active}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Active</Text>
           </View>
-          <Text style={[styles.statValue, { color: theme.text }]}>{stats.active}</Text>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Active</Text>
-        </View>
-        <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
-          <View style={[styles.statIcon, { backgroundColor: theme.error + '22' }]}>
-            <Ionicons name="exit-outline" size={20} color={theme.error} />
+          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+            <View style={[styles.statIcon, { backgroundColor: theme.error + '22' }]}>
+              <Ionicons name="exit-outline" size={20} color={theme.error} />
+            </View>
+            <Text style={[styles.statValue, { color: theme.text }]}>{stats.exited}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Exited</Text>
           </View>
-          <Text style={[styles.statValue, { color: theme.text }]}>{stats.exited}</Text>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Exited</Text>
-        </View>
-        <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
-          <View style={[styles.statIcon, { backgroundColor: theme.info + '22' }]}>
-            <Ionicons name="people-outline" size={20} color={theme.info} />
+          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+            <View style={[styles.statIcon, { backgroundColor: theme.info + '22' }]}>
+              <Ionicons name="people-outline" size={20} color={theme.info} />
+            </View>
+            <Text style={[styles.statValue, { color: theme.text }]}>{stats.total}</Text>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Total</Text>
           </View>
-          <Text style={[styles.statValue, { color: theme.text }]}>{stats.total}</Text>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Total</Text>
         </View>
-      </View>
 
       {/* Visitor Requests Section — escalated after 5 min of no staff response */}
       {escalatedVisitors.length > 0 && (
@@ -349,6 +354,10 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                   <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
                   <Text style={[styles.detailText, { color: theme.text }]}>{visitor.numberOfPeople} {visitor.numberOfPeople === 1 ? 'person' : 'people'}</Text>
                 </View>
+                <View style={styles.detailItem}>
+                  <Ionicons name="call-outline" size={14} color={theme.textSecondary} />
+                  <Text style={[styles.detailText, { color: theme.text }]}>{visitor.phone}</Text>
+                </View>
               </View>
 
               <View style={styles.cardFooter}>
@@ -372,15 +381,14 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
         </>
       )}
 
-      {/* Active Persons List */}
-      <View style={[styles.sectionHeader, { paddingBottom: 12 }]}>
-        <View style={styles.sectionTitleRow}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Active Persons</Text>
+        {/* Active Persons List */}
+        <View style={[styles.sectionHeader, { paddingBottom: 12 }]}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Active Persons</Text>
+          </View>
+          <Text style={[styles.sectionCount, { color: theme.textSecondary }]}>{stats.active} active</Text>
         </View>
-        <Text style={[styles.sectionCount, { color: theme.textSecondary }]}>{stats.active} active</Text>
-      </View>
 
-      <ScrollView style={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={styles.scrollContent}>
         {activePersons.filter(p => p.status === 'PENDING').length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={64} color={theme.border} />
@@ -411,6 +419,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
             </TouchableOpacity>
           ))
         )}
+        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Bottom Navigation */}
@@ -564,7 +573,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                   <Text style={[styles.sectionTitle, { color: theme.text }]}>Visit Details</Text>
                   <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Person to Meet</Text><Text style={[styles.modalValue, { color: theme.text }]}>{selectedVisitor.personToMeet}</Text></View>
                   <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Department</Text><Text style={[styles.modalValue, { color: theme.text }]}>{selectedVisitor.department}</Text></View>
-                  <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Purpose</Text><Text style={[styles.modalValue, { color: theme.text, flex: 1, textAlign: 'right' }]}>{selectedVisitor.purpose}</Text></View>
+                  <View style={styles.modalRow}><Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Purpose of Visit</Text><Text style={[styles.modalValue, { color: theme.text, flex: 1, textAlign: 'right' }]}>{selectedVisitor.purpose}</Text></View>
                 </View>
                 <View style={styles.modalActions}>
                   <TouchableOpacity style={[styles.modalApproveBtn, { backgroundColor: theme.success }]} onPress={() => handleApproveVisitor(selectedVisitor)}>
@@ -583,8 +592,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       </Modal>
 
       {/* Rejection Reason Modal */}
-      <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
-        <View style={styles.modalOverlay}>
+      <Modal visible={showRejectModal} transparent animationType="fade" onRequestClose={() => setShowRejectModal(false)}>
+        <View style={styles.rejectModalOverlay}>
           <View style={[styles.rejectModalContent, { backgroundColor: theme.surface }]}>
             <View style={[styles.rejectModalHeader, { borderBottomColor: theme.border }]}>
               <Text style={[styles.rejectModalTitle, { color: theme.text }]}>Reject Visitor</Text>
@@ -639,6 +648,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  outerScroll: { flex: 1 },
+  outerScrollContent: { paddingBottom: 20 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
@@ -662,7 +673,7 @@ const styles = StyleSheet.create({
   sectionCount: { fontSize: 14 },
   content: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
-  emptyState: { paddingVertical: 80, alignItems: 'center' },
+  emptyState: { paddingVertical: 80, alignItems: 'center', paddingHorizontal: 20 },
   emptyText: { fontSize: 16, fontWeight: '600', marginTop: 16 },
   /* Visitor request cards — same style as staff dashboard */
   requestCard: { borderRadius: 16, padding: 16, marginHorizontal: 20, marginBottom: 12, borderWidth: 1, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
@@ -683,7 +694,7 @@ const styles = StyleSheet.create({
   cardFooter: { flexDirection: 'row', gap: 10 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, gap: 6 },
   actionBtnText: { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  personCard: { borderRadius: 12, padding: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
+  personCard: { borderRadius: 12, padding: 16, marginBottom: 12, marginHorizontal: 20, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
   personAvatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   personAvatarText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   personInfo: { flex: 1 },
@@ -716,7 +727,8 @@ const styles = StyleSheet.create({
   modalApproveBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12, gap: 8 },
   modalRejectBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12, gap: 8 },
   modalBtnText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
-  rejectModalContent: { borderRadius: 20, padding: 24, width: '90%', maxWidth: 400 },
+  rejectModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  rejectModalContent: { borderRadius: 20, padding: 24, width: '100%', maxWidth: 400 },
   rejectModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, borderBottomWidth: 0 },
   rejectModalTitle: { fontSize: 20, fontWeight: '700' },
   rejectModalSubtitle: { fontSize: 14, marginBottom: 16 },

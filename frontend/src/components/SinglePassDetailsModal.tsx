@@ -111,7 +111,9 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
           {/* Info Grid */}
           <View style={[styles.infoGrid, { backgroundColor: theme.surface }]}>
             <View style={styles.infoCell}>
-              <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>PURPOSE</Text>
+              <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>
+                {request.requestType === 'VISITOR' ? 'PURPOSE OF VISIT' : 'PURPOSE'}
+              </Text>
               <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>{request.purpose || 'General'}</Text>
             </View>
             <View style={[styles.infoDivider, { backgroundColor: theme.border }]} />
@@ -125,13 +127,15 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
             </View>
           </View>
 
-          {/* Reason */}
-          <View style={[styles.block, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>REASON</Text>
-            <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
-              {request.reason || 'No reason provided.'}
-            </Text>
-          </View>
+          {/* Reason — hidden for visitor requests */}
+          {request.requestType !== 'VISITOR' && (
+            <View style={[styles.block, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>REASON</Text>
+              <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
+                {request.reason || 'No reason provided.'}
+              </Text>
+            </View>
+          )}
 
           {/* Attachment — only shown when present */}
           {!!request.attachmentUri && (

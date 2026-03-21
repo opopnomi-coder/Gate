@@ -225,8 +225,10 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
 
               <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
                 <View style={styles.detailItem}>
-                  <Ionicons name="medical" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</Text>
+                  <Ionicons name={request.passType === 'VISITOR' ? 'document-text-outline' : 'medical'} size={16} color={theme.textSecondary} />
+                  <Text style={[styles.detailText, { color: theme.text }]}>
+                    {request.passType === 'VISITOR' ? `Purpose of Visit: ${request.purpose || 'General'}` : (request.purpose || 'General')}
+                  </Text>
                 </View>
                 {request.passType === 'VISITOR' ? (
                   <View style={styles.detailItem}>

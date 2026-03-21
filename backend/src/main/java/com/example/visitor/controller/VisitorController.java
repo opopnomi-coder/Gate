@@ -330,6 +330,18 @@ public class VisitorController {
             response.setManualCode(visitor.getManualCode());
             response.setMessage("Visitor request approved successfully");
             
+            // Notify the security personnel who registered this visitor (if any)
+            try {
+                String registeredBy = visitor.getRegisteredBy();
+                if (registeredBy != null && !registeredBy.isBlank() && !"WEBSITE".equals(registeredBy)) {
+                    visitorRequestService.notifyRegisteredBy(registeredBy,
+                        "Visitor Approved",
+                        "Visitor " + visitor.getName() + " has been approved by staff.");
+                }
+            } catch (Exception notifEx) {
+                System.err.println("⚠️ Notification to security failed (non-fatal): " + notifEx.getMessage());
+            }
+            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Error approving visitor request: " + e.getMessage());

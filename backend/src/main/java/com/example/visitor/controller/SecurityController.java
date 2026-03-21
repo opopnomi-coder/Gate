@@ -1840,6 +1840,22 @@ public class SecurityController {
                 scanHistory.add(rec);
             }
 
+            // ── Deduplicate: for visitors with an exit record, remove the separate entry record ──
+            // Build a set of visitor IDs that have an exit record
+            java.util.Set<String> exitedVisitorIds = new java.util.HashSet<>();
+            for (java.util.Map<String, Object> rec : scanHistory) {
+                if ("EXITED".equals(rec.get("status")) && "VISITOR".equals(rec.get("type"))) {
+                    String vid = (String) rec.get("id");
+                    if (vid != null && !vid.isBlank()) exitedVisitorIds.add(vid);
+                }
+            }
+            // Remove entry-only records for those visitor IDs (they are merged into the exit record)
+            scanHistory.removeIf(rec ->
+                "ENTERED".equals(rec.get("status")) &&
+                "VISITOR".equals(rec.get("type")) &&
+                exitedVisitorIds.contains(rec.get("id"))
+            );
+
             // ── Sort newest first ─────────────────────────────────────────────────────
             scanHistory.sort((a, b) -> {
                 String ta = (String) a.get("entryTime");
@@ -2802,6 +2818,19 @@ public class SecurityController {
      * Also auto-escalates any PENDING visitors that have been waiting 5+ minutes
      * (in case the scheduler hasn't fired yet).
      */
+    // ── Dev helper: force-escalate specific visitors immediately ─────────────
+    @PostMapping("/dev/force-escalate/{visitorId}")
+    public ResponseEntity<?> forceEscalate(@PathVariable Long visitorId) {
+        try {
+            Optional<Visitor> opt = visitorRepository.findById(visitorId);
+            if (opt.isEmpty()) return ResponseEntity.badRequest().body("Visitor not found");
+            Visitor v = opt.get();
+            v.setNotificationSentAt(java.time.LocalDateTime.now().minusMinutes(10));
+            visitorRepository.save(v);
+            return ResponseEntity.ok("Force-escalated visitor: " + v.getName());
+        } catch (Exception e) { return ResponseEntity.internalServerError().body(e.getMessage()); }
+    }
+
     @GetMapping("/escalated-visitors")
     @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> getEscalatedVisitors() {
@@ -2809,10 +2838,15 @@ public class SecurityController {
             java.time.LocalDateTime fiveMinutesAgo = java.time.LocalDateTime.now().minusMinutes(5);
 
             // Auto-escalate any pending visitors that have timed out but weren't marked yet
+            // Use notificationSentAt if set, otherwise fall back to createdAt
             List<Visitor> toEscalate = visitorRepository.findAll().stream()
                 .filter(v -> "PENDING".equals(v.getStatus()))
-                .filter(v -> v.getNotificationSentAt() != null)
-                .filter(v -> v.getNotificationSentAt().isBefore(fiveMinutesAgo))
+                .filter(v -> {
+                    java.time.LocalDateTime ref = v.getNotificationSentAt() != null
+                        ? v.getNotificationSentAt()
+                        : v.getCreatedAt();
+                    return ref != null && ref.isBefore(fiveMinutesAgo);
+                })
                 .filter(v -> v.getEscalatedToSecurity() == null || !v.getEscalatedToSecurity())
                 .collect(Collectors.toList());
 
@@ -2821,6 +2855,21 @@ public class SecurityController {
                 v.setEscalationTime(java.time.LocalDateTime.now());
                 visitorRepository.save(v);
                 System.out.println("✅ On-demand escalated visitor: " + v.getName());
+                // Notify the security who registered this visitor that it has been escalated
+                try {
+                    String registeredBy = v.getRegisteredBy();
+                    if (registeredBy != null && !registeredBy.isBlank()) {
+                        notificationService.createUserNotification(
+                            registeredBy,
+                            "Visitor Request Escalated",
+                            "Visitor " + v.getName() + " was not approved by staff. Please review and take action.",
+                            "GATE_PASS",
+                            "HIGH"
+                        );
+                    }
+                } catch (Exception notifEx) {
+                    System.err.println("⚠️ Escalation notification failed (non-fatal): " + notifEx.getMessage());
+                }
             }
 
             // Now return all escalated PENDING visitors
@@ -3043,8 +3092,14 @@ public class SecurityController {
                     departmentId,
                     savedVisitor.getId()
                 );
+                // Mark notification sent — required for 5-min escalation timer
+                savedVisitor.setNotificationSentAt(java.time.LocalDateTime.now());
+                visitorRepository.save(savedVisitor);
             } catch (Exception notifError) {
                 System.err.println("⚠️ Staff notification failed (non-fatal): " + notifError.getMessage());
+                // Still set notificationSentAt so escalation timer starts
+                savedVisitor.setNotificationSentAt(java.time.LocalDateTime.now());
+                visitorRepository.save(savedVisitor);
             }
             
             System.out.println("✅ Visitor registered by security: " + savedVisitor.getName() + 

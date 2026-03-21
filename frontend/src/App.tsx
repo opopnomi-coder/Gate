@@ -31,13 +31,7 @@ import StaffDashboardContainer from './screens/staff/StaffDashboardContainer';
 import HODDashboardContainer from './screens/hod/HODDashboardContainer';
 import HRDashboardContainer from './screens/hr/HRDashboardContainer';
 import HRApprovalScreen from './screens/hr/HRApprovalScreen';
-import NewSecurityDashboard from './screens/security/NewSecurityDashboard';
-import ModernQRScannerScreen from './screens/security/ModernQRScannerScreen';
-import ModernScanHistoryScreen from './screens/security/ModernScanHistoryScreen';
-import ModernVisitorRegistrationScreen from './screens/security/ModernVisitorRegistrationScreen';
-import SecurityVisitorQRScreen from './screens/security/SecurityVisitorQRScreen';
-import ModernVehicleRegistrationScreen from './screens/security/ModernVehicleRegistrationScreen';
-import ModernHODContactsScreen from './screens/security/ModernHODContactsScreen';
+import SecurityDashboardContainer from './screens/security/SecurityDashboardContainer';
 import ProfileScreen from './screens/shared/ProfileScreen';
 import EntryExitHistoryScreen from './screens/student/EntryExitHistoryScreen';
 import GatePassRequestScreen from './screens/student/GatePassRequestScreen';
@@ -725,89 +719,13 @@ const App: React.FC = () => {
 
       // Handle authenticated Security screens
       if (userType === 'SECURITY' && security) {
-        switch (currentScreen) {
-          case 'SECURITY_DASHBOARD':
-            console.log('🛡️ Rendering NewSecurityDashboard for:', security.securityId);
-            return (
-              <NewSecurityDashboard
-                user={security}
-                onLogout={handleLogout}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'QR_SCANNER':
-            return (
-              <ModernQRScannerScreen
-                security={security}
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'VISITOR_REGISTRATION':
-            return (
-              <ModernVisitorRegistrationScreen
-                security={security}
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'VISITOR_QR':
-            return (
-              <SecurityVisitorQRScreen
-                security={security}
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'VEHICLE_REGISTRATION':
-            return (
-              <ModernVehicleRegistrationScreen
-                security={security}
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'SCAN_HISTORY':
-            return (
-              <ModernScanHistoryScreen
-                security={security}
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'HOD_CONTACTS':
-            return (
-              <ModernHODContactsScreen
-                security={security}
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onNavigate={navigateToScreen}
-              />
-            );
-          case 'PROFILE':
-            return (
-              <ProfileScreen
-                user={security}
-                userType="SECURITY"
-                onBack={() => setCurrentScreen('SECURITY_DASHBOARD')}
-                onLogout={handleLogout}
-              />
-            );
-          case 'NOTIFICATIONS':
-            return (
-              <NotificationsScreen
-                userId={security.securityId}
-                userType="security"
-              />
-            );
-          default:
-            return (
-              <NewSecurityDashboard
-                user={security}
-                onLogout={handleLogout}
-                onNavigate={navigateToScreen}
-              />
-            );
-        }
+        return (
+          <SecurityDashboardContainer
+            security={security}
+            onLogout={handleLogout}
+            onNavigate={navigateToScreen}
+          />
+        );
       }
 
       // Handle unauthenticated Security - redirect to unified login

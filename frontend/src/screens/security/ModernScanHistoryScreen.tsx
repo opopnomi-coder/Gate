@@ -520,7 +520,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       {/* Info grid */}
                       <View style={styles.fsInfoGrid}>
                         <View style={styles.fsInfoCell}>
-                          <Text style={styles.fsInfoLabel}>PURPOSE</Text>
+                          <Text style={styles.fsInfoLabel}>{selectedScan.type === 'VISITOR' ? 'PURPOSE OF VISIT' : 'PURPOSE'}</Text>
                           <Text style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</Text>
                         </View>
                         <View style={styles.fsInfoDivider} />
@@ -530,8 +530,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                         </View>
                       </View>
 
-                      {/* Reason */}
-                      {!!selectedScan.reason && (
+                      {/* Reason — only for non-visitor types */}
+                      {!!selectedScan.reason && selectedScan.type !== 'VISITOR' && (
                         <View style={styles.fsBlock}>
                           <Text style={styles.fsBlockLabel}>REASON</Text>
                           <Text style={styles.fsReasonText}>{selectedScan.reason}</Text>

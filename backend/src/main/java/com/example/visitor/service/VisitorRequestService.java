@@ -20,6 +20,9 @@ public class VisitorRequestService {
     @Autowired
     private QRTableRepository qrTableRepository;
     
+    @Autowired
+    private NotificationService notificationService;
+    
     private static final String MANUAL_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom random = new SecureRandom();
     
@@ -137,5 +140,16 @@ public class VisitorRequestService {
         visitor.setRejectionReason(rejectionReason);
         
         return visitorRepository.save(visitor);
+    }
+    
+    /**
+     * Notify the security personnel who registered a visitor
+     */
+    public void notifyRegisteredBy(String registeredBy, String title, String message) {
+        try {
+            notificationService.createUserNotification(registeredBy, title, message, "GATE_PASS", "HIGH");
+        } catch (Exception e) {
+            System.err.println("⚠️ notifyRegisteredBy failed: " + e.getMessage());
+        }
     }
 }

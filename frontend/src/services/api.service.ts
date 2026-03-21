@@ -556,12 +556,27 @@ class ApiService {
 
   // ── Escalated visitor approve/reject ──────────────────────────────────────
   async approveEscalatedVisitor(visitorId: string | number, securityId: string): Promise<ApiResponse> {
-    try { return await this.makeRequest(`${this.baseURL}/security/escalated-visitors/${visitorId}/approve`, { method: 'POST', body: JSON.stringify({ securityId }) }); }
+    try {
+      const data = await this.makeRequest(`${this.baseURL}/security/escalated-visitors/${visitorId}/approve`, { method: 'POST', body: JSON.stringify({ securityId }) });
+      // Backend returns the Visitor object directly on success
+      if (data && (data.success === true || data.id != null || data.status === 'APPROVED')) {
+        return { success: true, data, message: 'Visitor approved successfully' };
+      }
+      return { success: false, message: data?.message || data || 'Failed to approve visitor' };
+    }
     catch (e: any) { return { success: false, message: e.message || 'Failed to approve visitor' }; }
   }
 
   async rejectEscalatedVisitor(visitorId: string | number, securityId: string, reason: string): Promise<ApiResponse> {
-    try { return await this.makeRequest(`${this.baseURL}/security/escalated-visitors/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ securityId, reason }) }); }
+    try {
+      const data = await this.makeRequest(`${this.baseURL}/security/escalated-visitors/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ securityId, reason }) });
+      // Backend returns a string or object on success
+      if (data !== null && data !== undefined) {
+        const isError = typeof data === 'object' && data.success === false;
+        if (!isError) return { success: true, data, message: 'Visitor rejected' };
+      }
+      return { success: false, message: (typeof data === 'object' ? data?.message : data) || 'Failed to reject visitor' };
+    }
     catch (e: any) { return { success: false, message: e.message || 'Failed to reject visitor' }; }
   }
 

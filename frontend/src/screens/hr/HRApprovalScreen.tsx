@@ -277,7 +277,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
       {/* Reject Modal */}
       <Modal
         visible={rejectModalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setRejectModalVisible(false)}
       >
@@ -474,12 +474,15 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
   },
   modalContent: {
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 400,
   },
   modalHeader: {
     flexDirection: 'row',
