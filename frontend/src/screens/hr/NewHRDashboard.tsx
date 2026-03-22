@@ -69,14 +69,15 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
   const loadRequests = async () => {
     try {
       const hrCode = hr.hrCode;
-      
-      // Fetch HOD bulk pass requests pending HR approval
-      const bulkResult = await apiService.getHRPendingBulkPasses();
-      // Fetch HOD single gate pass requests pending HR approval
-      const singleResult = await apiService.getHRPendingRequests(hrCode);
-      
+
+      const [bulkResult, singleResult, visitorRequests] = await Promise.all([
+        apiService.getHRPendingBulkPasses(),
+        apiService.getHRPendingRequests(hrCode),
+        apiService.getHRVisitorRequests(hrCode),
+      ]);
+
       let allRequests: any[] = [];
-      
+
       if (bulkResult.success && bulkResult.requests) {
         allRequests = bulkResult.requests.map((req: any) => ({
           ...req,
@@ -92,15 +93,21 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
         }));
         allRequests = [...allRequests, ...singleRequests];
       }
-      
+
+      allRequests = [...allRequests, ...visitorRequests];
+
       setRequests(allRequests);
-      
+
       const pending = allRequests.filter((r: any) =>
-        r.hrApproval === 'PENDING_HR' || r.hrApproval === 'PENDING' || !r.hrApproval
+        r.requestType === 'VISITOR' ? r.status === 'PENDING' : (r.hrApproval === 'PENDING_HR' || r.hrApproval === 'PENDING' || !r.hrApproval)
       ).length;
-      const approved = allRequests.filter((r: any) => r.hrApproval === 'APPROVED').length;
-      const rejected = allRequests.filter((r: any) => r.hrApproval === 'REJECTED').length;
-      
+      const approved = allRequests.filter((r: any) =>
+        r.requestType === 'VISITOR' ? r.status === 'APPROVED' : r.hrApproval === 'APPROVED'
+      ).length;
+      const rejected = allRequests.filter((r: any) =>
+        r.requestType === 'VISITOR' ? r.status === 'REJECTED' : r.hrApproval === 'REJECTED'
+      ).length;
+
       setStats({ pending, approved, rejected });
     } catch (error) {
       console.error('Error loading requests:', error);
@@ -124,11 +131,17 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
 
     let matchesTab = false;
     if (activeTab === 'PENDING') {
-      matchesTab = request.hrApproval === 'PENDING_HR' || request.hrApproval === 'PENDING' || !request.hrApproval;
+      matchesTab = request.requestType === 'VISITOR'
+        ? request.status === 'PENDING'
+        : (request.hrApproval === 'PENDING_HR' || request.hrApproval === 'PENDING' || !request.hrApproval);
     } else if (activeTab === 'APPROVED') {
-      matchesTab = request.hrApproval === 'APPROVED';
+      matchesTab = request.requestType === 'VISITOR'
+        ? request.status === 'APPROVED'
+        : request.hrApproval === 'APPROVED';
     } else if (activeTab === 'REJECTED') {
-      matchesTab = request.hrApproval === 'REJECTED';
+      matchesTab = request.requestType === 'VISITOR'
+        ? request.status === 'REJECTED'
+        : request.hrApproval === 'REJECTED';
     }
 
     return matchesSearch && matchesTab;
@@ -151,7 +164,9 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
     setProcessing(true);
 
     try {
-      if (req && req.requestType === 'SINGLE') {
+      if (req && req.requestType === 'VISITOR') {
+        await apiService.approveVisitorRequestByHR(targetId, hr.hrCode);
+      } else if (req && req.requestType === 'SINGLE') {
         await apiService.approveRequestAsHR(targetId, hr.hrCode);
       } else {
         await apiService.approveHODBulkPass(targetId, hr.hrCode);
@@ -181,7 +196,9 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
     setProcessing(true);
 
     try {
-      if (req && req.requestType === 'SINGLE') {
+      if (req && req.requestType === 'VISITOR') {
+        await apiService.rejectVisitorRequestByHR(targetId, targetRemark);
+      } else if (req && req.requestType === 'SINGLE') {
         await apiService.rejectRequestAsHR(targetId, hr.hrCode, targetRemark);
       } else {
         await apiService.rejectHODBulkPass(targetId, hr.hrCode, targetRemark);
@@ -277,7 +294,11 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
               key={`${request.requestType}-${request.id}`}
               style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
               onPress={() => {
-                setSelectedRequest(request);
+                const normalized = request.requestType === 'VISITOR' ? {
+                  ...request,
+                  studentName: request.visitorName || request.studentName,
+                } : request;
+                setSelectedRequest(normalized);
                 setSelectedBulkId(request.id);
                 if (request.requestType === 'BULK') {
                   setSelectedBulkRequester({ name: request.requestedByStaffName || request.hodCode || 'HOD', role: request.userType || 'HOD', department: request.department || 'Department' });
@@ -290,20 +311,28 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
                   <Text style={[styles.cardAvatarText, { color: theme.textSecondary }]}>
-                    {getInitials(request.requestType === 'BULK' ? (request.hodCode || 'HOD') : (request.requestedByStaffName || request.studentName || 'ST'))}
+                    {getInitials(request.requestType === 'BULK' ? (request.hodCode || 'HOD') : request.requestType === 'VISITOR' ? (request.visitorName || 'VR') : (request.requestedByStaffName || request.studentName || 'ST'))}
                   </Text>
                 </View>
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
                     <Text style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                      {request.requestType === 'SINGLE' ? (request.requestedByStaffName || request.studentName || request.regNo || `Request #${request.id}`) : `${request.requestedByStaffName || request.hodCode || 'Staff'}`}
+                      {request.requestType === 'VISITOR'
+                        ? (request.visitorName || request.studentName || 'Visitor')
+                        : request.requestType === 'SINGLE'
+                        ? (request.requestedByStaffName || request.studentName || request.regNo || `Request #${request.id}`)
+                        : `${request.requestedByStaffName || request.hodCode || 'Staff'}`}
                     </Text>
                     <Text style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
-                      {request.requestType === 'BULK' ? '(Bulk Gatepass)' : '(Single Gatepass)'}
+                      {request.requestType === 'BULK' ? '(Bulk Gatepass)' : request.requestType === 'VISITOR' ? '(Visitor Request)' : '(Single Gatepass)'}
                     </Text>
                   </View>
                   <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                    {request.requestType === 'SINGLE' ? `${request.requestedByStaffCode || request.regNo || 'N/A'} • ${request.department || 'Department'}` : `${request.userType || 'HOD'} • ${request.department || 'N/A'}`}
+                    {request.requestType === 'VISITOR'
+                      ? `${request.visitorPhone || ''} • ${request.department || 'Department'}`
+                      : request.requestType === 'SINGLE'
+                      ? `${request.requestedByStaffCode || request.regNo || 'N/A'} • ${request.department || 'Department'}`
+                      : `${request.userType || 'HOD'} • ${request.department || 'N/A'}`}
                   </Text>
                 </View>
                 <View style={styles.timeAgoContainer}>
@@ -343,17 +372,26 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
               <View style={styles.cardFooter}>
                 <View style={[
                   styles.statusBadge,
-                  (request.hrApproval === 'PENDING_HR' || request.hrApproval === 'PENDING' || !request.hrApproval) && { backgroundColor: theme.warning + '22' },
-                  request.hrApproval === 'APPROVED' && { backgroundColor: theme.success + '22' },
-                  request.hrApproval === 'REJECTED' && { backgroundColor: theme.error + '22' },
+                  (() => {
+                    const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
+                    if (s === 'APPROVED') return { backgroundColor: theme.success + '22' };
+                    if (s === 'REJECTED') return { backgroundColor: theme.error + '22' };
+                    return { backgroundColor: theme.warning + '22' };
+                  })(),
                 ]}>
                   <Text style={[
                     styles.statusText,
-                    (request.hrApproval === 'PENDING_HR' || request.hrApproval === 'PENDING' || !request.hrApproval) && { color: theme.warning },
-                    request.hrApproval === 'APPROVED' && { color: theme.success },
-                    request.hrApproval === 'REJECTED' && { color: theme.error },
+                    (() => {
+                      const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
+                      if (s === 'APPROVED') return { color: theme.success };
+                      if (s === 'REJECTED') return { color: theme.error };
+                      return { color: theme.warning };
+                    })(),
                   ]}>
-                    {request.hrApproval === 'PENDING_HR' || request.hrApproval === 'PENDING' || !request.hrApproval ? 'PENDING' : request.hrApproval}
+                    {(() => {
+                      const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
+                      return (s === 'PENDING_HR' || s === 'PENDING' || !s) ? 'PENDING' : s;
+                    })()}
                   </Text>
                 </View>
                 {request.requestType === 'BULK' && (
@@ -411,8 +449,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
         request={selectedRequest}
         onApprove={(id, remark) => handleApprove(id, remark)}
         onReject={(id, remark) => handleReject(id, remark)}
-        showActions={selectedRequest && (selectedRequest.hrApproval === 'PENDING_HR' || selectedRequest.hrApproval === 'PENDING' || !selectedRequest.hrApproval)}
-        viewerRole="hr"
+        showActions={selectedRequest && (selectedRequest.hrApproval === 'PENDING_HR' || selectedRequest.hrApproval === 'PENDING' || !selectedRequest.hrApproval || (selectedRequest.requestType === 'VISITOR' && selectedRequest.status === 'PENDING'))}
         processing={processing}
       />
 

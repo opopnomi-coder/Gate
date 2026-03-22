@@ -289,6 +289,39 @@ class ApiService {
     } catch (e: any) { return { success: false, message: e.message || 'Failed', data: [], requests: [] } as any; }
   }
 
+  async getHODVisitorRequests(hodCode: string): Promise<any[]> {
+    try {
+      const data = await this.makeRequest(`${this.baseURL}/hod/visitor-requests?hodCode=${encodeURIComponent(hodCode)}`, { method: 'GET' });
+      return data.requests || [];
+    } catch (e: any) { return []; }
+  }
+
+  async approveVisitorRequestByHOD(visitorId: number, hodCode: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/hod/visitor-requests/${visitorId}/approve`, { method: 'POST', body: JSON.stringify({ hodCode }) }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed' }; }
+  }
+
+  async rejectVisitorRequestByHOD(visitorId: number, reason: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/hod/visitor-requests/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed' }; }
+  }
+
+  async getHRVisitorRequests(hrCode: string): Promise<any[]> {
+    try {
+      const data = await this.makeRequest(`${this.baseURL}/hr/visitor-requests?hrCode=${encodeURIComponent(hrCode)}`, { method: 'GET' });
+      return data.requests || [];
+    } catch (e: any) { return []; }
+  }
+
+  async approveVisitorRequestByHR(visitorId: number, hrCode: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/hr/visitor-requests/${visitorId}/approve`, { method: 'POST', body: JSON.stringify({ hrCode }) }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed' }; }
+  }
+
+  async rejectVisitorRequestByHR(visitorId: number, reason: string): Promise<ApiResponse> {
+    try { return await this.makeRequest(`${this.baseURL}/hr/visitor-requests/${visitorId}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }); }
+    catch (e: any) { return { success: false, message: e.message || 'Failed' }; }
+  }
   async getHODPendingRequests(hodCode: string): Promise<ApiResponse<GatePassRequest[]>> {
     try {
       const data = await this.makeRequest(`${this.baseURL}/gate-pass/hod/${hodCode}/pending`, { method: 'GET' });

@@ -5,11 +5,14 @@ import com.example.visitor.entity.Student;
 import com.example.visitor.entity.Staff;
 import com.example.visitor.entity.HOD;
 import com.example.visitor.entity.HODBulkGatePassRequest;
+import com.example.visitor.entity.Visitor;
 import com.example.visitor.repository.StudentRepository;
 import com.example.visitor.repository.StaffRepository;
 import com.example.visitor.repository.HODRepository;
 import com.example.visitor.repository.GatePassRequestRepository;
+import com.example.visitor.repository.VisitorRepository;
 import com.example.visitor.service.GatePassRequestService;
+import com.example.visitor.service.VisitorRequestService;
 import com.example.visitor.service.HODBulkGatePassService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +43,8 @@ public class HODController {
     private final StaffRepository staffRepository;
     private final HODRepository hodRepository;
     private final GatePassRequestRepository gatePassRequestRepository;
+    private final VisitorRepository visitorRepository;
+    private final VisitorRequestService visitorRequestService;
     
     // ==================== HOD GATE PASS REQUESTS ====================
     
@@ -195,6 +200,61 @@ public class HODController {
                 "status", "ERROR",
                 "message", "Failed to fetch requests: " + e.getMessage()
             ));
+        }
+    }
+
+    // Get visitor requests for HOD (where staffCode = hodCode)
+    @GetMapping("/visitor-requests")
+    public ResponseEntity<?> getVisitorRequestsForHOD(@RequestParam String hodCode) {
+        try {
+            List<Visitor> visitors = visitorRepository.findByStaffCode(hodCode);
+            List<Map<String, Object>> result = visitors.stream().map(v -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", v.getId());
+                map.put("passType", "VISITOR");
+                map.put("sourceType", "VISITOR");
+                map.put("visitorName", v.getName());
+                map.put("studentName", v.getName());
+                map.put("visitorPhone", v.getPhone());
+                map.put("visitorEmail", v.getEmail());
+                map.put("department", v.getDepartment());
+                map.put("purpose", v.getPurpose());
+                map.put("numberOfPeople", v.getNumberOfPeople());
+                map.put("vehicleNumber", v.getVehicleNumber());
+                map.put("status", v.getStatus());
+                map.put("requestDate", v.getCreatedAt());
+                map.put("staffCode", v.getStaffCode());
+                return map;
+            }).collect(Collectors.toList());
+            log.info("Fetched {} visitor requests for HOD {}", result.size(), hodCode);
+            return ResponseEntity.ok(Map.of("success", true, "requests", result));
+        } catch (Exception e) {
+            log.error("Error fetching visitor requests for HOD", e);
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    // Approve visitor request as HOD
+    @PostMapping("/visitor-requests/{id}/approve")
+    public ResponseEntity<?> approveVisitorRequest(@PathVariable Long id, @RequestBody Map<String, String> data) {
+        try {
+            String hodCode = data.get("hodCode");
+            Visitor approved = visitorRequestService.approveVisitorRequest(id, hodCode);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Visitor request approved"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    // Reject visitor request as HOD
+    @PostMapping("/visitor-requests/{id}/reject")
+    public ResponseEntity<?> rejectVisitorRequest(@PathVariable Long id, @RequestBody Map<String, String> data) {
+        try {
+            String reason = data.get("reason");
+            visitorRequestService.rejectVisitorRequest(id, reason != null ? reason : "Rejected by HOD");
+            return ResponseEntity.ok(Map.of("success", true, "message", "Visitor request rejected"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
     

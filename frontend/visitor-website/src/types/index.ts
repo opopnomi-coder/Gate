@@ -6,6 +6,7 @@ export interface Department {
 export interface Staff {
   id: string;
   staffId: string;
+  staffCode: string;
   name: string;
   role: string;
   phone: string;

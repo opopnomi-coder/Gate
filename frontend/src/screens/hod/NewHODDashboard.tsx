@@ -76,32 +76,34 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
 
   const loadRequests = async () => {
     try {
-      const response = await apiService.getAllHODRequests(hod.hodCode);
+      const [gatePassResponse, visitorRequests] = await Promise.all([
+        apiService.getAllHODRequests(hod.hodCode),
+        apiService.getHODVisitorRequests(hod.hodCode),
+      ]);
 
-      if (response.success && response.requests) {
-        setRequests(response.requests);
+      const gatePassList = gatePassResponse.success && gatePassResponse.requests ? gatePassResponse.requests : [];
+      const combined = [...gatePassList, ...visitorRequests];
+      setRequests(combined);
 
-        // Only count requests from staff/students — exclude HOD's own submissions
-        const incomingOnly = response.requests.filter((r: any) =>
-          r.userType !== 'HOD' &&
-          r.requestedByStaffCode !== hod.hodCode &&
-          r.regNo !== hod.hodCode
-        );
+      // Only count requests from staff/students — exclude HOD's own submissions
+      const incomingOnly = combined.filter((r: any) =>
+        r.userType !== 'HOD' &&
+        r.requestedByStaffCode !== hod.hodCode &&
+        r.regNo !== hod.hodCode
+      );
 
-        const pending = incomingOnly.filter((r: any) =>
-          r.status === 'PENDING_HOD'
-        ).length;
+      const pending = incomingOnly.filter((r: any) =>
+        r.status === 'PENDING_HOD' || (r.passType === 'VISITOR' && r.status === 'PENDING')
+      ).length;
 
-        const approved = incomingOnly.filter((r: any) =>
-          r.status === 'APPROVED'
-        ).length;
+      const approved = incomingOnly.filter((r: any) =>
+        r.status === 'APPROVED'
+      ).length;
 
-        const rejected = incomingOnly.filter((r: any) =>
-          r.status === 'REJECTED'
-        ).length;
-
-        setStats({ pending, approved, rejected });
-      }
+      const rejected = incomingOnly.filter((r: any) =>
+        r.status === 'REJECTED'
+      ).length;
+      setStats({ pending, approved, rejected });
     } catch (error) {
       console.error('Error loading requests:', error);
     } finally {
@@ -129,14 +131,14 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
 
     let matchesTab = false;
     if (activeTab === 'PENDING') {
-      // Only show requests that have passed staff approval and are waiting for HOD
-      matchesTab = request.status === 'PENDING_HOD';
+      // Show gate pass requests waiting for HOD, AND pending visitor requests
+      matchesTab = request.status === 'PENDING_HOD' ||
+        (request.passType === 'VISITOR' && request.status === 'PENDING');
     } else if (activeTab === 'APPROVED') {
       matchesTab = request.status === 'APPROVED';
     } else if (activeTab === 'REJECTED') {
       matchesTab = request.status === 'REJECTED';
     }
-
     return matchesSearch && matchesTab;
   });
 
@@ -157,7 +159,12 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
     setProcessing(true);
 
     try {
-      await apiService.approveGatePassByHOD(hod.hodCode, targetId, targetRemark);
+      const isVisitor = selectedRequest?.passType === 'VISITOR' || selectedRequest?.sourceType === 'VISITOR';
+      if (isVisitor) {
+        await apiService.approveVisitorRequestByHOD(targetId, hod.hodCode);
+      } else {
+        await apiService.approveGatePassByHOD(hod.hodCode, targetId, targetRemark);
+      }
       setShowDetailModal(false);
       setShowBulkModal(false);
       setSelectedRequest(null);
@@ -189,7 +196,12 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
     setProcessing(true);
 
     try {
-      await apiService.rejectGatePassByHOD(hod.hodCode, targetId, targetRemark.trim());
+      const isVisitor = selectedRequest?.passType === 'VISITOR' || selectedRequest?.sourceType === 'VISITOR';
+      if (isVisitor) {
+        await apiService.rejectVisitorRequestByHOD(targetId, targetRemark.trim());
+      } else {
+        await apiService.rejectGatePassByHOD(hod.hodCode, targetId, targetRemark.trim());
+      }
       setShowDetailModal(false);
       setShowBulkModal(false);
       setSelectedRequest(null);
@@ -286,7 +298,13 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
               key={request.id}
               style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
               onPress={() => {
-                setSelectedRequest(request);
+                // Normalize visitor request fields to match gate pass shape
+                const normalized = request.passType === 'VISITOR' ? {
+                  ...request,
+                  studentName: request.visitorName || request.studentName,
+                  requestType: 'VISITOR',
+                } : request;
+                setSelectedRequest(normalized);
                 setHodRemark('');
                 if (request.passType === 'BULK') {
                   setSelectedBulkId(request.id);
@@ -295,25 +313,24 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                 } else {
                   setShowDetailModal(true);
                 }
-              }}
-            >
+              }}            >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
                   <Text style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
-                    {getInitials(request.passType === 'BULK' ? (request.requestedByStaffName || 'BR') : (request.studentName || 'ST'))}
+                    {getInitials(request.passType === 'BULK' ? (request.requestedByStaffName || 'BR') : request.passType === 'VISITOR' ? (request.visitorName || request.studentName || 'VR') : (request.studentName || 'ST'))}
                   </Text>
                 </View>
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
                     <Text style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                      {request.passType === 'BULK' ? (request.requestedByStaffName || `Staff: ${request.requestedByStaffCode}`) : request.studentName || 'Unknown'}
+                      {request.passType === 'BULK' ? (request.requestedByStaffName || `Staff: ${request.requestedByStaffCode}`) : request.passType === 'VISITOR' ? (request.visitorName || request.studentName || 'Visitor') : request.studentName || 'Unknown'}
                     </Text>
                     <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                      <Text style={[styles.passTypePillText, { color: theme.text }]}>{request.passType === 'BULK' ? 'Bulk Gatepass' : 'Single Gatepass'}</Text>
+                      <Text style={[styles.passTypePillText, { color: theme.text }]}>{request.passType === 'BULK' ? 'Bulk Gatepass' : request.passType === 'VISITOR' ? 'Visitor Request' : 'Single Gatepass'}</Text>
                     </View>
                   </View>
                   <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                    {request.passType === 'BULK' ? `${request.userType || 'Staff'} • ${request.department || 'Department'}` : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
+                    {request.passType === 'BULK' ? `${request.userType || 'Staff'} • ${request.department || 'Department'}` : request.passType === 'VISITOR' ? `${request.visitorPhone || ''} • ${request.department || 'Department'}` : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
                   </Text>
                 </View>
                 <View style={styles.timeAgoContainer}>
@@ -353,17 +370,26 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
               <View style={styles.cardFooter}>
                 <View style={[
                   styles.statusBadge,
-                  request.hodApproval === 'PENDING' && { backgroundColor: theme.warning + '22' },
-                  request.hodApproval === 'APPROVED' && { backgroundColor: theme.success + '22' },
-                  request.hodApproval === 'REJECTED' && { backgroundColor: theme.error + '22' },
+                  (() => {
+                    const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
+                    if (s === 'APPROVED') return { backgroundColor: theme.success + '22' };
+                    if (s === 'REJECTED') return { backgroundColor: theme.error + '22' };
+                    return { backgroundColor: theme.warning + '22' };
+                  })(),
                 ]}>
                   <Text style={[
                     styles.statusText,
-                    request.hodApproval === 'PENDING' && { color: theme.warning },
-                    request.hodApproval === 'APPROVED' && { color: theme.success },
-                    request.hodApproval === 'REJECTED' && { color: theme.error },
+                    (() => {
+                      const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
+                      if (s === 'APPROVED') return { color: theme.success };
+                      if (s === 'REJECTED') return { color: theme.error };
+                      return { color: theme.warning };
+                    })(),
                   ]}>
-                    {request.hodApproval || 'PENDING'}
+                    {(() => {
+                      const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
+                      return s === 'PENDING_HOD' ? 'PENDING' : s;
+                    })()}
                   </Text>
                 </View>
               </View>
@@ -464,7 +490,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         request={selectedRequest}
         onApprove={(id, remark) => handleApprove(id, remark)}
         onReject={(id, remark) => handleReject(id, remark)}
-        showActions={selectedRequest && selectedRequest.status === 'PENDING_HOD'}
+        showActions={selectedRequest && (selectedRequest.status === 'PENDING_HOD' || (selectedRequest.passType === 'VISITOR' && selectedRequest.status === 'PENDING'))}
         viewerRole="hod"
         processing={processing}
       />

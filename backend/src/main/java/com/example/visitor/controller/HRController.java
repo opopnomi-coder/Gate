@@ -2,8 +2,11 @@ package com.example.visitor.controller;
 
 import com.example.visitor.entity.GatePassRequest;
 import com.example.visitor.entity.HODBulkGatePassRequest;
+import com.example.visitor.entity.Visitor;
 import com.example.visitor.service.GatePassRequestService;
 import com.example.visitor.service.HODBulkGatePassService;
+import com.example.visitor.service.VisitorRequestService;
+import com.example.visitor.repository.VisitorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,8 @@ public class HRController {
     private final GatePassRequestService gatePassRequestService;
     private final HODBulkGatePassService hodBulkGatePassService;
     private final com.example.visitor.repository.HRRepository hrRepository;
+    private final VisitorRepository visitorRepository;
+    private final VisitorRequestService visitorRequestService;
     
     // ==================== HR APPROVAL ENDPOINTS ====================
     
@@ -308,6 +313,63 @@ public class HRController {
                 "success", false,
                 "message", "Failed to fetch count: " + e.getMessage()
             ));
+        }
+    }
+
+    // Get visitor requests for HR (where staffCode = hrCode)
+    @GetMapping("/visitor-requests")
+    public ResponseEntity<?> getVisitorRequestsForHR(@RequestParam String hrCode) {
+        try {
+            List<Visitor> visitors = visitorRepository.findByStaffCode(hrCode);
+            List<Map<String, Object>> result = visitors.stream().map(v -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", v.getId());
+                map.put("passType", "VISITOR");
+                map.put("requestType", "VISITOR");
+                map.put("sourceType", "VISITOR");
+                map.put("visitorName", v.getName());
+                map.put("studentName", v.getName());
+                map.put("visitorPhone", v.getPhone());
+                map.put("visitorEmail", v.getEmail());
+                map.put("department", v.getDepartment());
+                map.put("purpose", v.getPurpose());
+                map.put("numberOfPeople", v.getNumberOfPeople());
+                map.put("vehicleNumber", v.getVehicleNumber());
+                map.put("status", v.getStatus());
+                map.put("hrApproval", v.getStatus()); // map status → hrApproval for tab filtering
+                map.put("requestDate", v.getCreatedAt());
+                map.put("staffCode", v.getStaffCode());
+                return map;
+            }).collect(Collectors.toList());
+            log.info("Fetched {} visitor requests for HR {}", result.size(), hrCode);
+            return ResponseEntity.ok(Map.of("success", true, "requests", result));
+        } catch (Exception e) {
+            log.error("Error fetching visitor requests for HR", e);
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    // Approve visitor request as HR
+    @PostMapping("/visitor-requests/{id}/approve")
+    public ResponseEntity<?> approveVisitorRequest(@PathVariable Long id, @RequestBody Map<String, String> data) {
+        try {
+            String hrCode = data.get("hrCode");
+            visitorRequestService.approveVisitorRequest(id, hrCode);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Visitor request approved"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    // Reject visitor request as HR
+    @PostMapping("/visitor-requests/{id}/reject")
+    public ResponseEntity<?> rejectVisitorRequest(@PathVariable Long id, @RequestBody Map<String, String> data) {
+        try {
+            String reason = data.get("reason");
+            visitorRequestService.rejectVisitorRequest(id, reason != null ? reason : "Rejected by HR");
+            return ResponseEntity.ok(Map.of("success", true, "message", "Visitor request rejected"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 

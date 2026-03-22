@@ -1,6 +1,7 @@
 package com.example.visitor.controller;
 
 import com.example.visitor.repository.StaffRepository;
+import com.example.visitor.repository.StudentRepository;
 import com.example.visitor.util.DepartmentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,9 @@ public class DepartmentController {
 
     @Autowired
     private StaffRepository staffRepository;
+
+    @Autowired
+    private StudentRepository studentRepository;
 
     // Get all departments — uses native SQL to avoid JPA @Id null issue on department_summary
     @GetMapping
@@ -83,6 +87,9 @@ public class DepartmentController {
             // Get staff from the Staff repository only
             List<com.example.visitor.entity.Staff> staffList = staffRepository.findByDepartment(searchDept);
 
+            // Build a set of HOD names from the students table
+            java.util.Set<String> hodNames = new java.util.HashSet<>(studentRepository.findAllDistinctHodNames());
+
             List<Map<String, Object>> staffData = staffList.stream()
                 .map(staff -> {
                     Map<String, Object> map = new HashMap<>();
@@ -92,6 +99,16 @@ public class DepartmentController {
                     map.put("email", staff.getEmail());
                     map.put("phone", staff.getPhone());
                     map.put("department", staff.getDepartment());
+                    // Determine role: HOD if name matches students.hod, else HR if role contains HR, else Faculty
+                    String role;
+                    if (staff.getStaffName() != null && hodNames.contains(staff.getStaffName().trim())) {
+                        role = "HOD";
+                    } else if (staff.getRole() != null && staff.getRole().toUpperCase().contains("HR")) {
+                        role = "HR";
+                    } else {
+                        role = staff.getRole() != null && !staff.getRole().isBlank() ? staff.getRole() : "Faculty";
+                    }
+                    map.put("role", role);
                     return map;
                 })
                 .collect(Collectors.toList());

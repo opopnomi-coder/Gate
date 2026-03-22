@@ -54,7 +54,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
     const fetchDepartments = async () => {
       try {
         setLoadingDepartments(true);
-        const apiBase = (import.meta as any).env.VITE_API_URL || 'https://ritgate-backend.onrender.com/api';
+        const apiBase = process.env.REACT_APP_API_URL || 'https://ritgate-backend.onrender.com/api';
         const response = await fetch(`${apiBase}/departments`);
         if (!response.ok) throw new Error('Failed to fetch departments');
         const data = await response.json();
@@ -99,8 +99,8 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
     if (dept.code) {
       setLoadingStaff(true);
       try {
-        const apiBase = (import.meta as any).env.VITE_API_URL || 'https://ritgate-backend.onrender.com/api';
-        const response = await fetch(`${apiBase}/staff/department/${dept.code}`);
+        const apiBase = process.env.REACT_APP_API_URL || 'https://ritgate-backend.onrender.com/api';
+        const response = await fetch(`${apiBase}/departments/${encodeURIComponent(dept.code)}/staff-list`);
         if (!response.ok) throw new Error('Failed to fetch staff');
         const staff: Staff[] = await response.json();
         setStaffMembers(staff);
@@ -138,7 +138,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
   
   const selectStaff = (staff: Staff) => {
     setSelectedStaff(staff.name);
-    setSelectedStaffId(staff.staffId);
+    setSelectedStaffId(staff.staffCode || staff.id);
     setShowStaffDropdown(false);
   };
 
@@ -188,7 +188,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
 
     try {
       // Use unified visitor endpoint that generates manual codes
-      const apiBase = (import.meta as any).env.VITE_API_URL || 'https://ritgate-backend.onrender.com/api';
+      const apiBase = process.env.REACT_APP_API_URL || 'https://ritgate-backend.onrender.com/api';
       const response = await fetch(`${apiBase}/unified-visitors/register`, {
         method: 'POST',
         headers: {
@@ -810,14 +810,8 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
                                   padding: '2px 8px',
                                   borderRadius: '4px',
                                 }}>
-                                  {staff.staffId}
+                                  {staff.role || 'Faculty'}
                                 </span>
-                              </div>
-                              <div style={{
-                                ...styles.staffRole,
-                                color: hoveredCard === `staff-${staff.id}` || selectedStaff === staff.name ? 'rgba(255,255,255,0.8)' : '#6b7280'
-                              }}>
-                                {staff.role}
                               </div>
                             </div>
                           </div>
