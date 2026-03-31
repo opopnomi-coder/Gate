@@ -640,8 +640,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                     <Ionicons name="arrow-back" size={22} color="#1F2937" />
                   </TouchableOpacity>
                   <ThemedText style={styles.fsHeaderTitle}>Scan Details</ThemedText>
-                  <View style={[styles.fsStatusPill, { backgroundColor: statusColor + '22' }]}>
-                    <ThemedText style={[styles.fsStatusPillText, { color: statusColor }]}>{statusLabel}</ThemedText>
+                  <View style={[styles.fsStatusPill, { backgroundColor: statusColor }]}>
+                    <ThemedText ignoreGradient style={[styles.fsStatusPillText, { color: '#FFFFFF' }]}>{statusLabel}</ThemedText>
                   </View>
                 </View>
 

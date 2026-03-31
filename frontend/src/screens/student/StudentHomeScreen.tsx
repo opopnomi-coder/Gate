@@ -117,8 +117,11 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'APPROVED': return '#10B981';
+      case 'APPROVED_BY_HOD': return '#10B981';
+      case 'USED': return '#64748B';
       case 'REJECTED': return '#EF4444';
-      case 'PENDING_HOD': return '#3B82F6';
+      case 'PENDING_HOD': return theme.primary;
+      case 'PENDING_STAFF': return theme.warning;
       default: return '#F59E0B';
     }
   };
@@ -128,6 +131,8 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       case 'PENDING_STAFF': return 'AWAITING STAFF';
       case 'PENDING_HOD': return 'AWAITING HOD';
       case 'APPROVED': return 'APPROVED';
+      case 'APPROVED_BY_HOD': return 'APPROVED';
+      case 'USED': return 'USED';
       case 'REJECTED': return 'REJECTED';
       default: return status || 'PENDING';
     }
@@ -264,13 +269,13 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                    <ThemedText style={[styles.requestReason, { color: theme.textSecondary }]}>{formatDate(request.requestDate)}</ThemedText>
                  </View>
                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
-                    <ThemedText style={styles.statusText}>{getStatusLabel(request.status)}</ThemedText>
+                    <ThemedText ignoreGradient style={styles.statusText}>{getStatusLabel(request.status)}</ThemedText>
                  </View>
                </View>
                {request.status === 'APPROVED' && (
                  <TouchableOpacity style={[styles.viewQRButton, { backgroundColor: theme.primary }]} onPress={() => handleViewQR(request)}>
                    <Ionicons name="qr-code-outline" size={16} color="#FFFFFF" />
-                   <ThemedText style={styles.viewQRButtonText}>View QR</ThemedText>
+                   <ThemedText ignoreGradient style={styles.viewQRButtonText}>View QR</ThemedText>
                  </TouchableOpacity>
                )}
             </TouchableOpacity>
@@ -376,7 +381,7 @@ const styles = StyleSheet.create({
   requestId: { fontSize: 16, fontWeight: '700' },
   requestReason: { fontSize: 13, marginTop: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  statusText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
   bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 8, borderTopWidth: 1, elevation: 8 },
   navItem: { flex: 1, alignItems: 'center', paddingVertical: 8, position: 'relative' },
   navLabelActive: { fontSize: 12, marginTop: 4, fontWeight: '700' },

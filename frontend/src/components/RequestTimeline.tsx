@@ -112,7 +112,7 @@ const RequestTimeline: React.FC<RequestTimelineProps> = ({
             </View>
             <View style={styles.stepContent}>
               <ThemedText style={[styles.stepLabel, { color: theme.text }]}>{item.label}</ThemedText>
-              <ThemedText style={[styles.stepStatus, { color }]}>
+              <ThemedText ignoreGradient style={[styles.stepStatus, { color }]}>
                 {stepStatus === 'completed' ? '✓ Completed' :
                  stepStatus === 'rejected' ? '✗ Rejected' :
                  stepStatus === 'active' ? '⏳ In Progress' : '○ Pending'}

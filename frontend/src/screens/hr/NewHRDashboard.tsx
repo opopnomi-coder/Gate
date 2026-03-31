@@ -474,23 +474,15 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 <View style={[
                   styles.statusBadge,
                   (() => {
-                    const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
-                    if (s === 'APPROVED') return { backgroundColor: theme.success + '22' };
-                    if (s === 'REJECTED') return { backgroundColor: theme.error + '22' };
-                    return { backgroundColor: theme.warning + '22' };
+                    const s = (request.requestType === 'VISITOR' ? request.status : (request.hrApproval || request.status)) || 'PENDING';
+                    if (s === 'APPROVED') return { backgroundColor: theme.success };
+                    if (s === 'REJECTED') return { backgroundColor: theme.error };
+                    return { backgroundColor: theme.warning };
                   })(),
                 ]}>
-                  <ThemedText style={[
-                    styles.statusText,
-                    (() => {
-                      const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
-                      if (s === 'APPROVED') return { color: theme.success };
-                      if (s === 'REJECTED') return { color: theme.error };
-                      return { color: theme.warning };
-                    })(),
-                  ]}>
+                  <ThemedText ignoreGradient style={[styles.statusText, { color: '#FFFFFF' }]}>
                     {(() => {
-                      const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
+                      const s = (request.requestType === 'VISITOR' ? request.status : (request.hrApproval || request.status)) || 'PENDING';
                       return (s === 'PENDING_HR' || s === 'PENDING' || !s) ? 'PENDING' : s;
                     })()}
                   </ThemedText>

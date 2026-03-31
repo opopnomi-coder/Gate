@@ -492,15 +492,13 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               <View style={styles.cardFooter}>
                 <View style={[
                   styles.statusBadge,
-                  request.staffApproval === 'PENDING' && { backgroundColor: theme.warning + '22' },
-                  request.staffApproval === 'APPROVED' && { backgroundColor: theme.success + '22' },
-                  request.staffApproval === 'REJECTED' && { backgroundColor: theme.error + '22' },
+                  (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF') && { backgroundColor: theme.warning },
+                  request.staffApproval === 'APPROVED' && { backgroundColor: theme.success },
+                  request.staffApproval === 'REJECTED' && { backgroundColor: theme.error },
                 ]}>
-                  <ThemedText style={[
+                  <ThemedText ignoreGradient style={[
                     styles.statusText,
-                    request.staffApproval === 'PENDING' && { color: theme.warning },
-                    request.staffApproval === 'APPROVED' && { color: theme.success },
-                    request.staffApproval === 'REJECTED' && { color: theme.error },
+                    { color: '#FFFFFF' }
                   ]}>
                     {request.staffApproval}
                   </ThemedText>

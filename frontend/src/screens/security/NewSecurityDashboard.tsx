@@ -418,9 +418,9 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                 <ThemedText style={[styles.personPurpose, { color: theme.textSecondary }]} numberOfLines={1}>{person.purpose}</ThemedText>
               </View>
               <View style={styles.personRight}>
-                <View style={[styles.statusBadge, { backgroundColor: theme.success + '22' }]}>
-                  <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
-                  <ThemedText style={[styles.statusText, { color: theme.success }]}>ACTIVE</ThemedText>
+                <View style={[styles.statusBadge, { backgroundColor: theme.success }]}>
+                  <View style={[styles.statusDot, { backgroundColor: '#FFFFFF' }]} />
+                  <ThemedText ignoreGradient style={[styles.statusText, { color: '#FFFFFF' }]}>ACTIVE</ThemedText>
                 </View>
                 <ThemedText style={[styles.personTime, { color: theme.textTertiary }]}>{formatTime(person.inTime)}</ThemedText>
                 <TouchableOpacity style={[styles.exitButton, { backgroundColor: theme.error }]} onPress={(e) => { e.stopPropagation(); handleManualExit(person); }}>
@@ -570,17 +570,17 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
               <Ionicons name="arrow-back" size={22} color={theme.text} />
             </TouchableOpacity>
             <ThemedText style={[detailStyles.headerTitle, { color: theme.text }]}>Visitor Request</ThemedText>
-            <View style={[detailStyles.statusPill, { backgroundColor: theme.warning + '22' }]}>
-              <ThemedText style={[detailStyles.statusPillText, { color: theme.warning }]}>ESCALATED</ThemedText>
+            <View style={[detailStyles.statusPill, { backgroundColor: theme.warning }]}>
+              <ThemedText ignoreGradient style={[detailStyles.statusPillText, { color: '#FFFFFF' }]}>ESCALATED</ThemedText>
             </View>
           </View>
 
           {selectedVisitor && (
             <VerticalScrollView style={detailStyles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={detailStyles.scrollContent}>
               {/* Escalation Warning Banner */}
-              <View style={[visitorDetailStyles.urgentBanner, { backgroundColor: theme.error + '15' }]}>
-                <Ionicons name="alert-circle" size={20} color={theme.error} />
-                <ThemedText style={[visitorDetailStyles.urgentBannerText, { color: theme.error }]}>
+              <View style={[visitorDetailStyles.urgentBanner, { backgroundColor: theme.error }]}>
+                <Ionicons name="alert-circle" size={20} color="#FFFFFF" />
+                <ThemedText ignoreGradient style={[visitorDetailStyles.urgentBannerText, { color: '#FFFFFF' }]}>
                   Request escalated — No response from {selectedVisitor.personToMeet}
                 </ThemedText>
               </View>
@@ -591,8 +591,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                   <ThemedText style={detailStyles.avatarText}>{getInitials(selectedVisitor.name)}</ThemedText>
                 </View>
                 <View style={detailStyles.profileInfo}>
-                  <View style={[visitorDetailStyles.visitorBadge, { backgroundColor: theme.error + '22' }]}>
-                    <ThemedText style={[visitorDetailStyles.visitorBadgeText, { color: theme.error }]}>VISITOR</ThemedText>
+                  <View style={[visitorDetailStyles.visitorBadge, { backgroundColor: theme.error }]}>
+                    <ThemedText ignoreGradient style={[visitorDetailStyles.visitorBadgeText, { color: '#FFFFFF' }]}>VISITOR</ThemedText>
                   </View>
                   <ThemedText style={[detailStyles.profileName, { color: theme.text }]} numberOfLines={1}>{selectedVisitor.name}</ThemedText>
                   <ThemedText style={[visitorDetailStyles.profileSub, { color: theme.textSecondary }]} numberOfLines={1}>

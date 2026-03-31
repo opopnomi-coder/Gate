@@ -84,9 +84,9 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
   const onRefresh = useCallback(() => { setRefreshing(true); fetchRequests(); }, []);
 
   const getStatusBadge = (status: string) => {
-    if (status === 'APPROVED') return { text: 'ACTIVE', color: theme.success, bgColor: theme.success + '22' };
-    if (status === 'REJECTED') return { text: 'REJECTED', color: theme.error, bgColor: theme.error + '22' };
-    return { text: 'PENDING', color: theme.warning, bgColor: theme.warning + '22' };
+    if (status === 'APPROVED') return { text: 'ACTIVE', color: '#FFFFFF', bgColor: theme.success };
+    if (status === 'REJECTED') return { text: 'REJECTED', color: '#FFFFFF', bgColor: theme.error };
+    return { text: 'PENDING', color: '#FFFFFF', bgColor: theme.warning };
   };
 
   const formatDate = (dateString: string) => {
@@ -136,8 +136,8 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
     return (
       <TouchableOpacity style={[styles.requestCard, { backgroundColor: theme.surface }]} onPress={() => handleReviewRequest(request)} activeOpacity={0.85}>
         <View style={styles.cardTopRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: theme.warning + '22' }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.warning }]}>{initials}</ThemedText>
+          <View style={[styles.avatarCircle, { backgroundColor: theme.warning }]}>
+            <ThemedText ignoreGradient style={[styles.avatarText, { color: '#FFFFFF' }]}>{initials}</ThemedText>
           </View>
           <View style={styles.cardNameBlock}>
             <View style={styles.cardNameRow}>
@@ -179,9 +179,8 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         </View>
 
         <View style={styles.cardBottomRow}>
-          <View style={[styles.statusPill, { backgroundColor: badge.bgColor }]}>
-            <View style={[styles.statusDot, { backgroundColor: badge.color }]} />
-            <ThemedText style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</ThemedText>
+          <View style={[styles.statusTag, { backgroundColor: badge.bgColor }]}>
+            <ThemedText ignoreGradient style={[styles.statusTagText, { color: badge.color }]}>{badge.text}</ThemedText>
           </View>
         </View>
       </TouchableOpacity>
@@ -321,6 +320,8 @@ const styles = StyleSheet.create({
   statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, gap: 5 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusPillText: { fontSize: 12, fontWeight: '700' },
+  statusTag: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  statusTagText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 20, paddingHorizontal: 20, paddingBottom: 40, maxHeight: '85%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },

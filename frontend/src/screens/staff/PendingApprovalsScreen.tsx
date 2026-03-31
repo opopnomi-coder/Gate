@@ -273,8 +273,8 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
               </View>
 
               <View style={styles.cardFooter}>
-                <View style={[styles.statusBadge, { backgroundColor: '#FEF3C7' }]}>
-                  <ThemedText style={[styles.statusText, { color: theme.warning }]}>PENDING</ThemedText>
+                <View style={[styles.statusBadge, { backgroundColor: theme.warning }]}>
+                  <ThemedText ignoreGradient style={[styles.statusText, { color: '#FFFFFF' }]}>PENDING</ThemedText>
                 </View>
                 <View style={styles.footerActions}>
                   {request.passType === 'BULK' && (

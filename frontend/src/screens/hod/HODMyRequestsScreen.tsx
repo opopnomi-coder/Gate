@@ -91,11 +91,11 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
 
   const getStatusBadge = (status: string) => {
     if (status === 'APPROVED') {
-      return { text: 'ACTIVE', color: '#10B981', bgColor: '#D1FAE5' };
+      return { text: 'ACTIVE', color: '#FFFFFF', bgColor: theme.success };
     } else if (status === 'REJECTED') {
-      return { text: 'REJECTED', color: '#EF4444', bgColor: '#FEE2E2' };
+      return { text: 'REJECTED', color: '#FFFFFF', bgColor: theme.error };
     } else {
-      return { text: 'PENDING', color: '#F59E0B', bgColor: '#FEF3C7' };
+      return { text: 'PENDING', color: '#FFFFFF', bgColor: theme.warning };
     }
   };
 
@@ -171,8 +171,8 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
       >
         {/* Top row: avatar + name + badge + time */}
         <View style={styles.cardTopRow}>
-          <View style={styles.avatarCircle}>
-            <ThemedText style={styles.avatarText}>{initials}</ThemedText>
+          <View style={[styles.avatarCircle, { backgroundColor: theme.primary }]}>
+            <ThemedText ignoreGradient style={[styles.avatarText, { color: '#FFFFFF' }]}>{initials}</ThemedText>
           </View>
           <View style={styles.cardNameBlock}>
             <View style={styles.cardNameRow}>
@@ -220,8 +220,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
         {/* Bottom row: status pill */}
         <View style={styles.cardBottomRow}>
           <View style={[styles.statusPill, { backgroundColor: badge.bgColor }]}>
-            <View style={[styles.statusDot, { backgroundColor: badge.color }]} />
-            <ThemedText style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</ThemedText>
+            <ThemedText ignoreGradient style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</ThemedText>
           </View>
         </View>
       </TouchableOpacity>

@@ -145,8 +145,8 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
           </TouchableOpacity>
           <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Bulk Pass Details</ThemedText>
           {!loading && !error && (
-            <View style={[styles.statusPill, { backgroundColor: statusColor + '22' }]}>
-              <ThemedText style={[styles.statusPillText, { color: statusColor }]}>{statusLabel}</ThemedText>
+            <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
+              <ThemedText ignoreGradient style={[styles.statusPillText, { color: '#FFFFFF' }]}>{statusLabel}</ThemedText>
             </View>
           )}
         </View>
@@ -183,9 +183,9 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
                 </ThemedText>
               </View>
               {participants.length > 0 && (
-                <View style={[styles.countChip, { backgroundColor: theme.primary + '22' }]}>
-                  <Ionicons name="people" size={13} color={theme.primary} />
-                  <ThemedText style={[styles.countChipText, { color: theme.primary }]}>{participants.length}</ThemedText>
+                <View style={[styles.countChip, { backgroundColor: theme.primary }]}>
+                  <Ionicons name="people" size={13} color="#FFFFFF" />
+                  <ThemedText ignoreGradient style={[styles.countChipText, { color: '#FFFFFF' }]}>{participants.length}</ThemedText>
                 </View>
               )}
             </View>
@@ -195,8 +195,8 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
               <View style={[styles.block, { backgroundColor: theme.surface }]}>
                 <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>APPLIED BY</ThemedText>
                 <View style={styles.appliedByRow}>
-                  <View style={[styles.appliedByAvatar, { backgroundColor: theme.primary + '22' }]}>
-                    <ThemedText style={[styles.appliedByAvatarText, { color: theme.primary }]}>
+                  <View style={[styles.appliedByAvatar, { backgroundColor: theme.primary }]}>
+                    <ThemedText ignoreGradient style={[styles.appliedByAvatarText, { color: '#FFFFFF' }]}>
                       {(appliedByName || 'U').split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)}
                     </ThemedText>
                   </View>
@@ -206,9 +206,9 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
                       {details?.requestedByRole || (viewerRole === 'STUDENT' ? 'Class Incharge' : 'HOD')}
                     </ThemedText>
                   </View>
-                  <View style={[styles.appliedByBadge, { backgroundColor: theme.primary + '15' }]}>
-                    <Ionicons name="person-circle-outline" size={14} color={theme.primary} />
-                    <ThemedText style={[styles.appliedByBadgeText, { color: theme.primary }]}>Organiser</ThemedText>
+                  <View style={[styles.appliedByBadge, { backgroundColor: theme.primary }]}>
+                    <Ionicons name="person-circle-outline" size={14} color="#FFFFFF" />
+                    <ThemedText ignoreGradient style={[styles.appliedByBadgeText, { color: '#FFFFFF' }]}>Organiser</ThemedText>
                   </View>
                 </View>
               </View>

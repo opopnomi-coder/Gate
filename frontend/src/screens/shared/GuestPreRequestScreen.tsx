@@ -279,8 +279,8 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               )}
             </TouchableOpacity>
           ) : (
-            <View style={[styles.resultCard, { backgroundColor: theme.success + '22', borderColor: theme.success + '44' }]}>
-              <ThemedText style={[styles.resultTitle, { color: theme.success }]}>Pass generated</ThemedText>
+            <View style={[styles.resultCard, { backgroundColor: theme.success, borderColor: theme.success }]}>
+              <ThemedText ignoreGradient style={[styles.resultTitle, { color: '#FFFFFF' }]}>Pass generated</ThemedText>
               <View style={[styles.qrWrap, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <QRCode
                   value={qrCode}
@@ -292,7 +292,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
                   }}
                 />
               </View>
-              <ThemedText style={[styles.manualBig, { color: theme.success }]}>Manual: {manualCode}</ThemedText>
+              <ThemedText ignoreGradient style={[styles.manualBig, { color: '#FFFFFF' }]}>Manual: {manualCode}</ThemedText>
               <View style={styles.resultActions}>
                 <TouchableOpacity style={[styles.waBtn, { backgroundColor: theme.success }]} onPress={shareWhatsApp}>
                   <Ionicons name="logo-whatsapp" size={22} color={theme.textInverse} />

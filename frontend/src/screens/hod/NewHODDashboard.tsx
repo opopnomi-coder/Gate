@@ -393,24 +393,16 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                 <View style={[
                   styles.statusBadge,
                   (() => {
-                    const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
-                    if (s === 'APPROVED') return { backgroundColor: theme.success + '22' };
-                    if (s === 'REJECTED') return { backgroundColor: theme.error + '22' };
-                    return { backgroundColor: theme.warning + '22' };
+                    const s = (request.passType === 'VISITOR' ? request.status : (request.hodApproval || request.status)) || 'PENDING';
+                    if (s === 'APPROVED') return { backgroundColor: theme.success };
+                    if (s === 'REJECTED') return { backgroundColor: theme.error };
+                    return { backgroundColor: theme.warning };
                   })(),
                 ]}>
-                  <ThemedText style={[
-                    styles.statusText,
-                    (() => {
-                      const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
-                      if (s === 'APPROVED') return { color: theme.success };
-                      if (s === 'REJECTED') return { color: theme.error };
-                      return { color: theme.warning };
-                    })(),
-                  ]}>
+                  <ThemedText ignoreGradient style={[styles.statusText, { color: '#FFFFFF' }]}>
                     {(() => {
-                      const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
-                      return s === 'PENDING_HOD' ? 'PENDING' : s;
+                      const s = (request.passType === 'VISITOR' ? request.status : (request.hodApproval || request.status)) || 'PENDING';
+                      return (s === 'PENDING_HOD' || s === 'PENDING') ? 'PENDING' : s;
                     })()}
                   </ThemedText>
                 </View>

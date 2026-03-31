@@ -179,10 +179,17 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
         <View>
           <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
             <View style={styles.avatarContainer}>
-              <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}><ThemedText style={[styles.avatarText, { color: theme.primary }]}>{userInfo.firstLetter}</ThemedText></View>
-              <View><ThemedText style={[styles.userName, { color: theme.text }]}>{userInfo.fullName}</ThemedText><ThemedText style={[styles.userDetail, { color: theme.textSecondary }]}>Dept: {user?.department || 'AIDS'}</ThemedText></View>
+              <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                <ThemedText ignoreGradient style={[styles.avatarText, { color: '#FFFFFF' }]}>{userInfo.firstLetter}</ThemedText>
+              </View>
+              <View>
+                <ThemedText style={[styles.userName, { color: theme.text }]}>{userInfo.fullName}</ThemedText>
+                <ThemedText style={[styles.userDetail, { color: theme.textSecondary }]}>Dept: {user?.department || 'AIDS'}</ThemedText>
+              </View>
             </View>
-            <View style={[styles.activeBadge, { backgroundColor: theme.success + '15' }]}><ThemedText style={[styles.activeText, { color: theme.success }]}>ACTIVE</ThemedText></View>
+            <View style={[styles.activeBadge, { backgroundColor: theme.success }]}>
+              <ThemedText ignoreGradient style={[styles.activeText, { color: '#FFFFFF' }]}>ACTIVE</ThemedText>
+            </View>
           </View>
           <View style={styles.formSection}>
             <ThemedText style={[styles.label, { color: theme.textSecondary }]}>DATE & TIME</ThemedText>

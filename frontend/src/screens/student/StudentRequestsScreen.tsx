@@ -128,8 +128,8 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
       >
         {/* Top row */}
         <View style={styles.cardTopRow}>
-          <View style={[styles.avatar, { backgroundColor: theme.primary + '22' }]}>
-            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>{initials}</ThemedText>
+          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+            <ThemedText ignoreGradient style={[styles.avatarText, { color: '#FFFFFF' }]}>{initials}</ThemedText>
           </View>
           <View style={styles.nameBlock}>
             <View style={styles.nameRow}>

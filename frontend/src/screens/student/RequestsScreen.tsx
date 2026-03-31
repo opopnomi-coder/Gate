@@ -310,18 +310,16 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
                       style={[
                         styles.statusBadge,
                         { 
-                          backgroundColor: (request.status === 'APPROVED_BY_HOD' || request.status === 'USED') ? '#D1FAE5' : 
-                                         request.status === 'REJECTED' ? '#FEE2E2' : '#FEF3C7'
+                          backgroundColor: (request.status === 'APPROVED_BY_HOD' || request.status === 'USED') ? theme.success : 
+                                         request.status === 'REJECTED' ? theme.error : theme.warning
                         }
                       ]}
                     >
                       <ThemedText
+                        ignoreGradient
                         style={[
                           styles.statusText,
-                          { 
-                            color: (request.status === 'APPROVED_BY_HOD' || request.status === 'USED') ? '#065F46' : 
-                                   request.status === 'REJECTED' ? '#991B1B' : '#92400E'
-                          }
+                          { color: '#FFFFFF' }
                         ]}
                       >
                         {request.status || 'PENDING'}
@@ -342,7 +340,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
                     >
                       <View style={styles.cardFooter}>
                         <Ionicons name="qr-code-outline" size={16} color={theme.primary} />
-                        <ThemedText style={[styles.cardFooterText, { color: theme.primary }]}>
+                        <ThemedText ignoreGradient style={[styles.cardFooterText, { color: theme.primary }]}>
                           {request.passType === 'BULK' ? 'View Group Pass QR' : 'View QR Code'}
                         </ThemedText>
                       </View>
