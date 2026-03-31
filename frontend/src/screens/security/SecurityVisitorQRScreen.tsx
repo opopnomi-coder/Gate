@@ -4,7 +4,7 @@ import {
   Modal, RefreshControl, StatusBar, Clipboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
 import { SecurityPersonnel, ScreenName } from '../../types';
 import { API_CONFIG } from '../../config/api.config';

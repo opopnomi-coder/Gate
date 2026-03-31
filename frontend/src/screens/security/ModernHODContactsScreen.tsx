@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import { apiService } from '../../services/api';
 import { HODContact, SecurityPersonnel, ScreenName } from '../../types';
 import SecurityBottomNav from '../../components/SecurityBottomNav';

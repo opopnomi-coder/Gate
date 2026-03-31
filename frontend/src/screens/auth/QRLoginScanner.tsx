@@ -8,7 +8,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Ionicons from '@react-native-vector-icons/ionicons';
 import { Camera, CameraView } from '../../shims/expoCamera';
 import { THEME } from '../../config/api.config';
 import ErrorModal from '../../components/ErrorModal';

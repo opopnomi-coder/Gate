@@ -1,14 +1,22 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+  ext {
+    buildToolsVersion = "35.0.0"
+    minSdkVersion = 24
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    ndkVersion = "27.1.12297006"
+    kotlinVersion = "2.1.20"
+  }
   repositories {
     google()
     mavenCentral()
   }
   dependencies {
-    classpath('com.android.tools.build:gradle')
+    classpath('com.android.tools.build:gradle:8.11.0')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20')
   }
 }
 
@@ -18,10 +26,13 @@ allprojects {
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
   }
-  // Redirect subproject build dirs to short path to avoid Windows 260-char MAX_PATH limit
-  // Root project (MyGate) must keep default build dir - autolinking.json is written there by ReactSettingsPlugin
-  if (project != rootProject) {
-    layout.buildDirectory = file("C:/rb/MyGate/${project.name}")
+  // Force all subprojects to use google() + mavenCentral() for classpath resolution
+  // This fixes old libraries (e.g. react-native-vector-icons) that try plugins.gradle.org
+  buildscript {
+    repositories {
+      google()
+      mavenCentral()
+    }
   }
 }
 
