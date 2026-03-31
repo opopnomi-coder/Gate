@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface StaffRequestTimelineProps {
   request: any;
@@ -174,16 +175,16 @@ const StaffRequestTimeline: React.FC<StaffRequestTimelineProps> = ({
               )}
             </View>
             <View style={styles.stepContent}>
-              <Text style={[styles.stepLabel, { color: theme.text }]}>{item.label}</Text>
-              <Text style={[styles.stepStatus, { color }]}>
+              <ThemedText style={[styles.stepLabel, { color: theme.text }]}>{item.label}</ThemedText>
+              <ThemedText style={[styles.stepStatus, { color }]}>
                 {stepStatus === 'completed' ? '✓ Completed' :
                  stepStatus === 'rejected' ? '✗ Rejected' :
                  stepStatus === 'active' ? '⏳ In Progress' : '○ Pending'}
-              </Text>
+              </ThemedText>
               {item.step === 2 && request.hodRemark && (
                 <View style={[styles.remarkContainer, { backgroundColor: theme.inputBackground, borderLeftColor: theme.warning }]}>
-                  <Text style={[styles.remarkLabel, { color: theme.textSecondary }]}>HOD Remark:</Text>
-                  <Text style={[styles.remarkText, { color: theme.text }]}>{request.hodRemark}</Text>
+                  <ThemedText style={[styles.remarkLabel, { color: theme.textSecondary }]}>HOD Remark:</ThemedText>
+                  <ThemedText style={[styles.remarkText, { color: theme.text }]}>{request.hodRemark}</ThemedText>
                 </View>
               )}
             </View>

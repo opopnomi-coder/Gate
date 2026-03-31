@@ -1,15 +1,15 @@
 import React from 'react';
 import {
     TouchableOpacity,
-    Text,
-    StyleSheet,
-    ActivityIndicator,
-    ViewStyle,
-    TextStyle,
-    View,
+  StyleSheet,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+  View
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface CustomButtonProps {
     onPress: () => void;
@@ -54,14 +54,14 @@ const CustomButton = ({
                 <ActivityIndicator color={type === 'ghost' ? theme.primary : '#FFF'} size="small" />
             ) : (
                 <>
-                    {icon && <Text style={[styles.icon, { color: type === 'ghost' ? theme.primary : '#FFF' }]}>{icon}</Text>}
-                    <Text style={[
+                    {icon && <ThemedText style={[styles.icon, { color: type === 'ghost' ? theme.primary : '#FFF' }]}>{icon}</ThemedText>}
+                    <ThemedText style={[
                         styles.text,
                         { color: type === 'ghost' ? theme.primary : '#FFF' },
                         textStyle
                     ]}>
                         {title}
-                    </Text>
+                    </ThemedText>
                 </>
             )}
         </View>

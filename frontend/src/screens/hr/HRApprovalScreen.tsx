@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
   Modal,
-  Image,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -17,6 +16,7 @@ import { Staff } from '../../types';
 import { THEME } from '../../config/api.config';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface HRApprovalScreenProps {
   user: Staff;
@@ -101,12 +101,12 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={THEME.colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Request Details</Text>
+          <ThemedText style={styles.headerTitle}>Request Details</ThemedText>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={64} color="#EF4444" />
-          <Text style={styles.errorText}>Request not found</Text>
+          <ThemedText style={styles.errorText}>Request not found</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -118,7 +118,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={THEME.colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Request Details</Text>
+        <ThemedText style={styles.headerTitle}>Request Details</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -127,29 +127,29 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="document-text" size={24} color="#F59E0B" />
-            <Text style={styles.cardTitle}>Request Information</Text>
+            <ThemedText style={styles.cardTitle}>Request Information</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Request ID:</Text>
-            <Text style={styles.infoValue}>#{request.id}</Text>
+            <ThemedText style={styles.infoLabel}>Request ID:</ThemedText>
+            <ThemedText style={styles.infoValue}>#{request.id}</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Purpose:</Text>
-            <Text style={styles.infoValue}>{request.purpose}</Text>
+            <ThemedText style={styles.infoLabel}>Purpose:</ThemedText>
+            <ThemedText style={styles.infoValue}>{request.purpose}</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Reason:</Text>
-            <Text style={styles.infoValue}>{request.reason}</Text>
+            <ThemedText style={styles.infoLabel}>Reason:</ThemedText>
+            <ThemedText style={styles.infoValue}>{request.reason}</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Exit Schedule:</Text>
-            <Text style={styles.infoValue}>
+            <ThemedText style={styles.infoLabel}>Exit Schedule:</ThemedText>
+            <ThemedText style={styles.infoValue}>
               {new Date(request.requestDate).toLocaleString()}
-            </Text>
+            </ThemedText>
           </View>
         </View>
 
@@ -157,25 +157,25 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="person" size={24} color="#3B82F6" />
-            <Text style={styles.cardTitle}>HOD Information</Text>
+            <ThemedText style={styles.cardTitle}>HOD Information</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>HOD Code:</Text>
-            <Text style={styles.infoValue}>{request.regNo}</Text>
+            <ThemedText style={styles.infoLabel}>HOD Code:</ThemedText>
+            <ThemedText style={styles.infoValue}>{request.regNo}</ThemedText>
           </View>
 
           {request.studentName && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name:</Text>
-              <Text style={styles.infoValue}>{request.studentName}</Text>
+              <ThemedText style={styles.infoLabel}>Name:</ThemedText>
+              <ThemedText style={styles.infoValue}>{request.studentName}</ThemedText>
             </View>
           )}
 
           {request.department && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Department:</Text>
-              <Text style={styles.infoValue}>{request.department}</Text>
+              <ThemedText style={styles.infoLabel}>Department:</ThemedText>
+              <ThemedText style={styles.infoValue}>{request.department}</ThemedText>
             </View>
           )}
         </View>
@@ -185,7 +185,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="attach-outline" size={24} color="#6B7280" />
-              <Text style={styles.cardTitle}>Attachment</Text>
+              <ThemedText style={styles.cardTitle}>Attachment</ThemedText>
             </View>
             <TouchableOpacity 
               style={styles.vAttachmentCard}
@@ -201,7 +201,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
               />
               <View style={styles.vPreviewButton}>
                 <Ionicons name="expand-outline" size={20} color="#1F2937" />
-                <Text style={styles.vPreviewText}>Preview Attachment</Text>
+                <ThemedText style={styles.vPreviewText}>Preview Attachment</ThemedText>
               </View>
             </TouchableOpacity>
           </View>
@@ -220,7 +220,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
               ) : (
                 <>
                   <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                  <Text style={styles.actionButtonText}>Approve Request</Text>
+                  <ThemedText style={styles.actionButtonText}>Approve Request</ThemedText>
                 </>
               )}
             </TouchableOpacity>
@@ -231,7 +231,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
               disabled={loading}
             >
               <Ionicons name="close-circle" size={20} color="#FFF" />
-              <Text style={styles.actionButtonText}>Reject Request</Text>
+              <ThemedText style={styles.actionButtonText}>Reject Request</ThemedText>
             </TouchableOpacity>
           </View>
         )}
@@ -243,9 +243,9 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
               size={48}
               color={request.status === 'APPROVED' ? '#10B981' : '#EF4444'}
             />
-            <Text style={styles.statusText}>
+            <ThemedText style={styles.statusText}>
               This request has been {request.status.toLowerCase()}
-            </Text>
+            </ThemedText>
           </View>
         )}
       </ScrollView>
@@ -284,14 +284,14 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Reject Request</Text>
+              <ThemedText style={styles.modalTitle}>Reject Request</ThemedText>
               <TouchableOpacity onPress={() => setRejectModalVisible(false)}>
                 <Ionicons name="close" size={24} color={THEME.colors.text} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalBody}>
-              <Text style={styles.modalLabel}>Reason for Rejection *</Text>
+              <ThemedText style={styles.modalLabel}>Reason for Rejection *</ThemedText>
               <TextInput
                 style={styles.modalInput}
                 placeholder="Provide a detailed reason for rejection..."
@@ -302,7 +302,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
                 textAlignVertical="top"
                 maxLength={500}
               />
-              <Text style={styles.charCount}>{rejectReason.length}/500</Text>
+              <ThemedText style={styles.charCount}>{rejectReason.length}/500</ThemedText>
 
               <TouchableOpacity
                 style={styles.modalButton}
@@ -312,7 +312,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
                 {loading ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={styles.modalButtonText}>Confirm Rejection</Text>
+                  <ThemedText style={styles.modalButtonText}>Confirm Rejection</ThemedText>
                 )}
               </TouchableOpacity>
             </View>

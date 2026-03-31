@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TextInput,
@@ -9,7 +8,7 @@ import {
   ActivityIndicator,
   Image,
   Linking,
-  Platform,
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -20,6 +19,7 @@ import { apiService } from '../../services/api';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import { formatDateGB, formatTime } from '../../utils/dateUtils';
+import ThemedText from '../../components/ThemedText';
 
 interface ModernBulkGatePassScreenProps {
   user: Staff;
@@ -227,14 +227,14 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bulk Gate Pass</Text>
+        <ThemedText style={styles.headerTitle}>Bulk Gate Pass</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Info Banner */}
       <View style={styles.infoBanner}>
         <Ionicons name="information-circle" size={20} color="#3B82F6" />
-        <Text style={styles.infoBannerText}>Create a gate pass for multiple students at once</Text>
+        <ThemedText style={styles.infoBannerText}>Create a gate pass for multiple students at once</ThemedText>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -247,12 +247,12 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
           >
             <Ionicons name={includeStaff ? 'checkbox' : 'square-outline'} size={24} color="#8B5CF6" />
             <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxLabel}>Include Staff in this Pass</Text>
-              <Text style={styles.checkboxSubtext}>
+              <ThemedText style={styles.checkboxLabel}>Include Staff in this Pass</ThemedText>
+              <ThemedText style={styles.checkboxSubtext}>
                 {includeStaff
                   ? 'Staff will hold the QR code for the group'
                   : 'One student will be selected as receiver to hold the QR code'}
-              </Text>
+              </ThemedText>
             </View>
           </TouchableOpacity>
         </View>
@@ -260,13 +260,13 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         {/* Student Selection — grouped by section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
+            <ThemedText style={styles.sectionTitle}>
               Selected: {selectedStudents.size} / {availableStudents.length}
-            </Text>
+            </ThemedText>
             <TouchableOpacity onPress={selectAllStudents} style={styles.selectAllButton}>
-              <Text style={styles.selectAllText}>
+              <ThemedText style={styles.selectAllText}>
                 {selectedStudents.size === filteredCount && filteredCount > 0 ? 'Deselect All' : 'Select All'}
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -292,7 +292,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
               <ActivityIndicator size="large" color="#8B5CF6" />
             </View>
           ) : groups.length === 0 ? (
-            <Text style={styles.emptyText}>No students found</Text>
+            <ThemedText style={styles.emptyText}>No students found</ThemedText>
           ) : (
             groups.map(({ key, students }) => {
               const isCollapsed = collapsedSections.has(key);
@@ -320,11 +320,11 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                     {/* Section label — tap to collapse */}
                     <TouchableOpacity style={styles.sectionGroupLabelRow} onPress={() => toggleSection(key)}>
                       <View style={styles.sectionGroupLabelInner}>
-                        <Text style={styles.sectionGroupLabel}>Section {key}</Text>
+                        <ThemedText style={styles.sectionGroupLabel}>Section {key}</ThemedText>
                         <View style={styles.sectionCountBadge}>
-                          <Text style={styles.sectionCountText}>
+                          <ThemedText style={styles.sectionCountText}>
                             {sectionSelected}/{students.length}
-                          </Text>
+                          </ThemedText>
                         </View>
                       </View>
                       <Ionicons
@@ -353,10 +353,10 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                               color={isSelected ? '#8B5CF6' : '#9CA3AF'}
                             />
                             <View style={styles.studentInfo}>
-                              <Text style={[styles.studentName, isSelected && styles.studentNameSelected]}>
+                              <ThemedText style={[styles.studentName, isSelected && styles.studentNameSelected]}>
                                 {student.fullName}
-                              </Text>
-                              <Text style={styles.studentDetails}>{student.regNo}</Text>
+                              </ThemedText>
+                              <ThemedText style={styles.studentDetails}>{student.regNo}</ThemedText>
                             </View>
                           </TouchableOpacity>
                         );
@@ -372,12 +372,12 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         {/* Receiver Selection — only when staff NOT included */}
         {!includeStaff && selectedStudents.size > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Receiver (QR Code Holder)</Text>
+            <ThemedText style={styles.sectionTitle}>Select Receiver (QR Code Holder)</ThemedText>
             <View style={styles.receiverInfo}>
               <Ionicons name="information-circle" size={16} color="#8B5CF6" />
-              <Text style={styles.receiverInfoText}>
+              <ThemedText style={styles.receiverInfoText}>
                 The receiver will hold the QR code for the entire group
-              </Text>
+              </ThemedText>
             </View>
             <View style={styles.receiverList}>
               {Array.from(selectedStudents).map(regNo => {
@@ -398,19 +398,19 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                     />
                     <View style={styles.receiverStudentInfo}>
                       <View style={styles.receiverNameRow}>
-                        <Text style={[styles.receiverStudentName, isRcv && styles.receiverStudentNameActive]}>
+                        <ThemedText style={[styles.receiverStudentName, isRcv && styles.receiverStudentNameActive]}>
                           {student.fullName}
-                        </Text>
+                        </ThemedText>
                         {isRcv && (
                           <View style={styles.receiverActiveBadge}>
                             <Ionicons name="qr-code" size={12} color="#FFF" />
-                            <Text style={styles.receiverActiveBadgeText}>RECEIVER</Text>
+                            <ThemedText style={styles.receiverActiveBadgeText}>RECEIVER</ThemedText>
                           </View>
                         )}
                       </View>
-                      <Text style={styles.receiverStudentDetails}>
+                      <ThemedText style={styles.receiverStudentDetails}>
                         {student.regNo} • {getSectionKey(student)}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </TouchableOpacity>
                 );
@@ -421,28 +421,28 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
 
         {/* Gate Pass Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Gate Pass Details</Text>
+          <ThemedText style={styles.sectionTitle}>Gate Pass Details</ThemedText>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>REQUEST DATE & TIME</Text>
+            <ThemedText style={styles.label}>REQUEST DATE & TIME</ThemedText>
             <View style={styles.requestDateTimeRow}>
               <View style={styles.requestDateTimeBox}>
                 <Ionicons name="calendar-outline" size={18} color="#4B5563" />
-                <Text style={styles.requestDateTimeText}>
+                <ThemedText style={styles.requestDateTimeText}>
                   {formatDateGB(requestDateTime)}
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.requestDateTimeBox}>
                 <Ionicons name="time-outline" size={18} color="#4B5563" />
-                <Text style={styles.requestDateTimeText}>
+                <ThemedText style={styles.requestDateTimeText}>
                   {formatTime(requestDateTime)}
-                </Text>
+                </ThemedText>
               </View>
             </View>
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Purpose *</Text>
+            <ThemedText style={styles.label}>Purpose *</ThemedText>
             <TextInput
               style={styles.input}
               placeholder="Enter purpose for gate pass"
@@ -454,7 +454,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Reason *</Text>
+            <ThemedText style={styles.label}>Reason *</ThemedText>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Describe the reason for gate pass..."
@@ -469,12 +469,12 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Attachment (Optional)</Text>
+            <ThemedText style={styles.label}>Attachment (Optional)</ThemedText>
             <TouchableOpacity style={styles.uploadBtn} onPress={pickAttachment}>
               <Ionicons name="attach-outline" size={24} color="#9CA3AF" />
-              <Text style={styles.uploadText}>
+              <ThemedText style={styles.uploadText}>
                 {attachment ? attachment.name : 'Tap to upload (image/PDF)'}
-              </Text>
+              </ThemedText>
               {attachment && (
                 <TouchableOpacity onPress={() => setAttachment(null)}>
                   <Ionicons name="close-circle" size={20} color="#EF4444" />
@@ -493,9 +493,9 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                   }}
                 >
                   <Ionicons name="document-text-outline" size={20} color="#1D4ED8" />
-                  <Text style={styles.filePreviewText} numberOfLines={1}>
+                  <ThemedText style={styles.filePreviewText} numberOfLines={1}>
                     Tap to preview {attachment.name}
-                  </Text>
+                  </ThemedText>
                   <Ionicons name="open-outline" size={18} color="#6B7280" />
                 </TouchableOpacity>
               )
@@ -514,9 +514,9 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
           ) : (
             <>
               <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-              <Text style={styles.submitButtonText}>
+              <ThemedText style={styles.submitButtonText}>
                 Submit for {selectedStudents.size} Student{selectedStudents.size !== 1 ? 's' : ''}
-              </Text>
+              </ThemedText>
             </>
           )}
         </TouchableOpacity>

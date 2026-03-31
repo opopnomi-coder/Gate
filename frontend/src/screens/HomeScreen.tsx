@@ -1,19 +1,19 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   StatusBar,
   Animated,
   Dimensions,
   PanResponder,
   Image,
-  Platform,
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { UserType } from '../types';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import ThemedText from '../components/ThemedText';
 
 interface HomeScreenProps {
   onSelectUserType: (type: UserType) => void;
@@ -100,10 +100,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectUserType }) => {
               />
             </View>
             <View style={styles.titleContainer}>
-              <Text style={[styles.titleMain, { color: theme.text }]}>RIT</Text>
-              <Text style={[styles.titleAccent, { color: theme.primary }]}>GATE</Text>
+              <ThemedText style={[styles.titleMain, { color: theme.text }]}>RIT</ThemedText>
+              <ThemedText variant="primary" style={[styles.titleAccent, { color: theme.primary }]}>
+                GATE
+              </ThemedText>
             </View>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Secure Access Control System</Text>
+            <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>Secure Access Control System</ThemedText>
           </View>
 
           {/* Features Grid */}
@@ -120,24 +122,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectUserType }) => {
                 }]}>
                   <Ionicons name={item.icon as any} size={24} color={theme.primary} />
                 </View>
-                <Text style={[styles.featureText, { color: theme.text }]}>{item.label}</Text>
+                <ThemedText style={[styles.featureText, { color: theme.text }]}>{item.label}</ThemedText>
               </View>
             ))}
           </View>
 
           {/* Info Text */}
           <View style={styles.infoSection}>
-            <Text style={[styles.infoTitle, { color: theme.text }]}>Universal Access</Text>
-            <Text style={[styles.infoDescription, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.infoTitle, { color: theme.text }]}>Universal Access</ThemedText>
+            <ThemedText style={[styles.infoDescription, { color: theme.textSecondary }]}>
               One credential for all roles{'\n'}Auto-detection enabled
-            </Text>
+            </ThemedText>
           </View>
 
           {/* Swipe to Unlock */}
           <View style={styles.sliderSection}>
             <View style={[styles.sliderTrack, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
               <Animated.View style={[styles.sliderTextContainer, { opacity: textOpacity }]}>
-                <Text style={[styles.sliderText, { color: theme.primary }]}>Swipe to Access</Text>
+                <ThemedText variant="primary" style={[styles.sliderText, { color: theme.primary }]}>
+                  Swipe to Access
+                </ThemedText>
                 <Ionicons name="arrow-forward" size={20} color={theme.primary} />
               </Animated.View>
 
@@ -157,7 +161,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectUserType }) => {
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={[styles.footerText, { color: theme.textTertiary }]}>SECURE GATEWAY • RIT TECHNOLOGY © 2026</Text>
+            <ThemedText style={[styles.footerText, { color: theme.textTertiary }]}>SECURE GATEWAY • RIT TECHNOLOGY © 2026</ThemedText>
           </View>
         </Animated.View>
       </SafeAreaView>

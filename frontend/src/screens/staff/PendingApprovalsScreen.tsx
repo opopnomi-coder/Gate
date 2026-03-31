@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -9,7 +8,7 @@ import {
   RefreshControl,
   TextInput,
   Modal,
-  Image,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -20,6 +19,7 @@ import BulkDetailsModal from '../../components/BulkDetailsModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface PendingApprovalsScreenProps {
   user: Staff;
@@ -160,7 +160,7 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
         <TouchableOpacity onPress={handleGoBack} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Pending Approvals</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Pending Approvals</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -171,13 +171,13 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</Text>
+            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
           </View>
         ) : pendingRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-done" size={64} color={theme.textTertiary} />
-            <Text style={[styles.emptyStateText, { color: theme.text }]}>No pending requests</Text>
-            <Text style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>All gate pass requests have been processed</Text>
+            <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No pending requests</ThemedText>
+            <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>All gate pass requests have been processed</ThemedText>
           </View>
         ) : (
           pendingRequests.map((request) => (
@@ -200,83 +200,83 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
             >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.inputBackground }]}>
-                  <Text style={[styles.avatarText, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.avatarText, { color: theme.textSecondary }]}>
                     {getInitials(request.passType === 'BULK' ? (request.requestedByStaffName || 'BR') : request.passType === 'VISITOR' ? (request.visitorName || 'VR') : (request.regNo || 'ST'))}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
-                    <Text style={[styles.requestStudentName, { color: theme.text }]}>
+                    <ThemedText style={[styles.requestStudentName, { color: theme.text }]}>
                       {request.passType === 'BULK' ? (request.requestedByStaffName || 'Bulk Request') : request.passType === 'VISITOR' ? (request.visitorName || 'Visitor') : request.regNo}
-                    </Text>
-                    <Text style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
+                    </ThemedText>
+                    <ThemedText style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
                       {request.passType === 'BULK'
                         ? '(Bulk Gatepass)'
                         : request.passType === 'VISITOR'
                         ? `(${(request.role || 'VISITOR').toUpperCase()} Request)`
                         : '(Single Gatepass)'}
-                    </Text>
+                    </ThemedText>
                   </View>
-                  <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
                     {request.passType === 'BULK'
                       ? `${request.userType || 'Staff'} • ${request.department || 'Dept'}`
                       : request.passType === 'VISITOR'
                       ? `${request.visitorPhone || ''} • ${request.department || 'Department'}`
                       : `${request.regNo} • ${request.department || 'Department'}`}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.timeAgoContainer}>
-                  <Text style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</Text>
+                  <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</ThemedText>
                 </View>
               </View>
 
               <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
                 <View style={styles.detailItem}>
                   <Ionicons name={request.passType === 'VISITOR' ? 'document-text-outline' : 'medical'} size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>
                     {request.passType === 'VISITOR' ? `Purpose of Visit: ${request.purpose || 'General'}` : (request.purpose || 'General')}
-                  </Text>
+                  </ThemedText>
                 </View>
                 {request.passType === 'VISITOR' ? (
                   <View style={styles.detailItem}>
                     <Ionicons name="people" size={16} color={theme.textSecondary} />
-                    <Text style={[styles.detailText, { color: theme.text }]}>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
                       {request.numberOfPeople || 1} visitor{(request.numberOfPeople || 1) > 1 ? 's' : ''}
                       {request.vehicleNumber ? ` • ${request.vehicleNumber}` : ''}
-                    </Text>
+                    </ThemedText>
                   </View>
                 ) : (
                   <View style={styles.detailItem}>
                     <Ionicons name="calendar" size={16} color={theme.textSecondary} />
-                    <Text style={[styles.detailText, { color: theme.text }]}>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
                       Exit: {new Date(request.exitDateTime || request.requestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </Text>
+                    </ThemedText>
                   </View>
                 )}
                 {request.passType === 'BULK' && (
                   <View style={styles.detailItem}>
                     <Ionicons name="people" size={16} color={theme.textSecondary} />
-                    <Text style={[styles.detailText, { color: theme.text }]}>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
                       {(() => {
                         const parts: string[] = [];
                         if (request.includeStaff) parts.push('Staff - 1');
                         if (request.studentCount) parts.push(`Students - ${request.studentCount}`);
                         return parts.join(', ') || 'Bulk Pass';
                       })()}
-                    </Text>
+                    </ThemedText>
                   </View>
                 )}
               </View>
 
               <View style={styles.cardFooter}>
                 <View style={[styles.statusBadge, { backgroundColor: '#FEF3C7' }]}>
-                  <Text style={[styles.statusText, { color: theme.warning }]}>PENDING</Text>
+                  <ThemedText style={[styles.statusText, { color: theme.warning }]}>PENDING</ThemedText>
                 </View>
                 <View style={styles.footerActions}>
                   {request.passType === 'BULK' && (
                     <View style={[styles.viewBadge, { backgroundColor: theme.inputBackground }]}>
                       <Ionicons name="people" size={14} color={theme.textSecondary} />
-                      <Text style={[styles.viewBadgeText, { color: theme.textSecondary }]}>Bulk Pass</Text>
+                      <ThemedText style={[styles.viewBadgeText, { color: theme.textSecondary }]}>Bulk Pass</ThemedText>
                     </View>
                   )}
                   <TouchableOpacity
@@ -329,7 +329,7 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
         <View style={styles.processingOverlay} pointerEvents="box-only">
           <View style={styles.processingBox}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.processingText, { color: theme.text }]}>Processing...</Text>
+            <ThemedText style={[styles.processingText, { color: theme.text }]}>Processing...</ThemedText>
           </View>
         </View>
       )}

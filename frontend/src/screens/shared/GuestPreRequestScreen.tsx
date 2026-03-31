@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -10,7 +9,7 @@ import {
   StatusBar,
   Linking,
   Platform,
-  Share,
+  Share
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -18,6 +17,7 @@ import { apiService } from '../../services/api';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ErrorModal from '../../components/ErrorModal';
 import { useTheme } from '../../context/ThemeContext';
+import ThemedText from '../../components/ThemedText';
 
 export type GuestPreRequestRole = 'STAFF' | 'HOD' | 'HR';
 
@@ -179,7 +179,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={onBack}>
           <Ionicons name="arrow-back" size={22} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Pre-register guest</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Pre-register guest</ThemedText>
         <View style={{ width: 40 }} />
       </View>
       <ScreenContentContainer>
@@ -188,26 +188,26 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={[styles.hint, { color: theme.textSecondary }]}>
+          <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
             Creates an approved visitor pass with QR and manual code (no waiting). Share with your guest.
-          </Text>
+          </ThemedText>
           {creatorName ? (
-            <Text style={[styles.subHint, { color: theme.textTertiary }]}>Logged in as {creatorName} ({creatorRole})</Text>
+            <ThemedText style={[styles.subHint, { color: theme.textTertiary }]}>Logged in as {creatorName} ({creatorRole})</ThemedText>
           ) : null}
 
           {loadingCreator ? (
             <View style={styles.loadingWrap}>
               <ActivityIndicator size="large" color={theme.primary} />
-              <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading your profile…</Text>
+              <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading your profile…</ThemedText>
             </View>
           ) : (
             <>
               <View style={[styles.meetCard, { borderColor: theme.border, backgroundColor: theme.inputBackground }]}>
-                <Text style={[styles.meetLabel, { color: theme.textTertiary }]}>Person to meet</Text>
-                <Text style={[styles.meetValue, { color: theme.text }]}>{creatorDisplayName || creatorName || 'Creator'}</Text>
+                <ThemedText style={[styles.meetLabel, { color: theme.textTertiary }]}>Person to meet</ThemedText>
+                <ThemedText style={[styles.meetValue, { color: theme.text }]}>{creatorDisplayName || creatorName || 'Creator'}</ThemedText>
               </View>
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Number of people *</Text>
+              <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Number of people *</ThemedText>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={numberOfPeople}
@@ -217,7 +217,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
                 placeholderTextColor={theme.textTertiary}
               />
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Guest name *</Text>
+              <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Guest name *</ThemedText>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={visitorName}
@@ -227,7 +227,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
                 autoCapitalize="words"
               />
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Phone number *</Text>
+              <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Phone number *</ThemedText>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={phone}
@@ -248,28 +248,28 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               {submitting ? (
                 <ActivityIndicator color={theme.textInverse} />
               ) : (
-                <Text style={[styles.primaryBtnText, { color: theme.textInverse }]}>Register &amp; generate pass</Text>
+                <ThemedText style={[styles.primaryBtnText, { color: theme.textInverse }]}>Register &amp; generate pass</ThemedText>
               )}
             </TouchableOpacity>
           ) : (
             <View style={[styles.resultCard, { backgroundColor: theme.success + '22', borderColor: theme.success + '44' }]}>
-              <Text style={[styles.resultTitle, { color: theme.success }]}>Pass generated</Text>
-              <Text style={[styles.resultMono, { color: theme.textSecondary }]} selectable>
+              <ThemedText style={[styles.resultTitle, { color: theme.success }]}>Pass generated</ThemedText>
+              <ThemedText style={[styles.resultMono, { color: theme.textSecondary }]} selectable>
                 {qrCode}
-              </Text>
-              <Text style={[styles.manualBig, { color: theme.success }]}>Manual: {manualCode}</Text>
+              </ThemedText>
+              <ThemedText style={[styles.manualBig, { color: theme.success }]}>Manual: {manualCode}</ThemedText>
               <View style={styles.resultActions}>
                 <TouchableOpacity style={[styles.waBtn, { backgroundColor: theme.success }]} onPress={shareWhatsApp}>
                   <Ionicons name="logo-whatsapp" size={22} color={theme.textInverse} />
-                  <Text style={[styles.waBtnText, { color: theme.textInverse }]}>WhatsApp</Text>
+                  <ThemedText style={[styles.waBtnText, { color: theme.textInverse }]}>WhatsApp</ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.shareBtn, { borderColor: theme.primary, backgroundColor: theme.surface }]} onPress={shareGeneric}>
                   <Ionicons name="share-outline" size={20} color={theme.primary} />
-                  <Text style={[styles.shareBtnText, { color: theme.primary }]}>Share</Text>
+                  <ThemedText style={[styles.shareBtnText, { color: theme.primary }]}>Share</ThemedText>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity style={[styles.doneBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={onBack}>
-                <Text style={[styles.doneBtnText, { color: theme.textSecondary }]}>Done</Text>
+                <ThemedText style={[styles.doneBtnText, { color: theme.textSecondary }]}>Done</ThemedText>
               </TouchableOpacity>
             </View>
           )}

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   Modal,
-  Pressable,
+  Pressable
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { API_CONFIG } from '../config/api.config';
 import { useNotifications } from '../context/NotificationContext';
 import { getRelativeTime, formatDateShort } from '../utils/dateUtils';
+import ThemedText from './ThemedText';
 
 interface Notification {
   id: number;
@@ -154,15 +154,15 @@ export default function NotificationDropdown({
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Notifications</Text>
+            <ThemedText style={styles.headerTitle}>Notifications</ThemedText>
             <View style={styles.headerRight}>
               {unreadCount > 0 && (
                 <>
                   <View style={styles.countBadge}>
-                    <Text style={styles.countBadgeText}>{unreadCount}</Text>
+                    <ThemedText style={styles.countBadgeText}>{unreadCount}</ThemedText>
                   </View>
                   <TouchableOpacity onPress={markAllRead} style={styles.markAllButton}>
-                    <Text style={styles.markAllText}>Mark all read</Text>
+                    <ThemedText style={styles.markAllText}>Mark all read</ThemedText>
                   </TouchableOpacity>
                 </>
               )}
@@ -179,7 +179,7 @@ export default function NotificationDropdown({
           ) : notifications.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="notifications-off-outline" size={40} color="#d1d5db" />
-              <Text style={styles.emptyText}>No notifications</Text>
+              <ThemedText style={styles.emptyText}>No notifications</ThemedText>
             </View>
           ) : (
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -202,14 +202,14 @@ export default function NotificationDropdown({
 
                     <View style={styles.contentWrapper}>
                       {notif.title ? (
-                        <Text style={styles.notifTitle} numberOfLines={1}>{notif.title}</Text>
+                        <ThemedText style={styles.notifTitle} numberOfLines={1}>{notif.title}</ThemedText>
                       ) : null}
-                      <Text style={styles.message} numberOfLines={2}>
+                      <ThemedText style={styles.message} numberOfLines={2}>
                         {notif.message}
-                      </Text>
-                      <Text style={styles.timeText}>
+                      </ThemedText>
+                      <ThemedText style={styles.timeText}>
                         {formatTime(notif.createdAt || notif.timestamp)}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </TouchableOpacity>
                 );

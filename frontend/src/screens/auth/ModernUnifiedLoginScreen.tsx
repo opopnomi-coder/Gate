@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
-  Text,
   TextInput,
   StyleSheet,
   TouchableOpacity,
@@ -14,7 +13,7 @@ import {
   Image,
   Modal,
   NativeSyntheticEvent,
-  TextInputKeyPressEventData,
+  TextInputKeyPressEventData
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -28,6 +27,7 @@ import SuccessModal from '../../components/SuccessModal';
 import { useErrorModal } from '../../hooks/useErrorModal';
 import { useSuccessModal } from '../../hooks/useSuccessModal';
 import { AppError } from '../../utils/errorHandler';
+import ThemedText from '../../components/ThemedText';
 
 interface ModernUnifiedLoginScreenProps {
   onLoginSuccess: (user: any, role: UserRole) => void;
@@ -246,54 +246,54 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
           <Animated.View style={[styles.mainContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.hero}>
               <View style={styles.logoCont}><Image source={require('../../../assets/rit-logo.png')} style={styles.logo} /></View>
-              <Text style={styles.mainTitle}>RIT GATE</Text>
-              <Text style={styles.heroSubtitle}>Secure Access Control System</Text>
+              <ThemedText style={styles.mainTitle}>RIT GATE</ThemedText>
+              <ThemedText style={styles.heroSubtitle}>Secure Access Control System</ThemedText>
               <View style={styles.featureRow}>
                 <View style={styles.featurePill}>
                   <Ionicons name="finger-print-outline" size={14} color="#0F172A" />
-                  <Text style={styles.featureText}>Biometric</Text>
+                  <ThemedText style={styles.featureText}>Biometric</ThemedText>
                 </View>
                 <View style={styles.featurePill}>
                   <Ionicons name="qr-code-outline" size={14} color="#0F172A" />
-                  <Text style={styles.featureText}>Badge Scan</Text>
+                  <ThemedText style={styles.featureText}>Badge Scan</ThemedText>
                 </View>
                 <View style={styles.featurePill}>
                   <Ionicons name="flash-outline" size={14} color="#0F172A" />
-                  <Text style={styles.featureText}>Instant</Text>
+                  <ThemedText style={styles.featureText}>Instant</ThemedText>
                 </View>
               </View>
             </View>
             <View style={styles.loginCard}>
-              <Text style={styles.cardTitle}>{otpSent ? 'Verify Identity' : 'Welcome Back'}</Text>
-              <Text style={styles.cardSubtitle}>
+              <ThemedText style={styles.cardTitle}>{otpSent ? 'Verify Identity' : 'Welcome Back'}</ThemedText>
+              <ThemedText style={styles.cardSubtitle}>
                 {otpSent ? 'Enter the one-time password sent to your email.' : 'Sign in with your institute credential.'}
-              </Text>
+              </ThemedText>
             
               {!otpSent ? (
                <View style={{ width: '100%', alignItems: 'center' }}>
                 <View style={styles.inputWrap}>
-                  <Text style={styles.label}>IDENTIFICATION</Text>
+                  <ThemedText style={styles.label}>IDENTIFICATION</ThemedText>
                   <TextInput style={styles.input} placeholder="Security ID / Staff ID / Roll No" placeholderTextColor="#94A3B8" value={userId} onChangeText={setUserId} autoCapitalize="none" editable={!loading} />
                 </View>
                 <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={() => handleSendOTP()} disabled={loading}>
                   {loading ? (
                     <View style={styles.loaderWrap}>
                        <ActivityIndicator color="#FFF" size="small" />
-                       <Text style={styles.loaderTxt}>{loadingMessage}</Text>
+                       <ThemedText style={styles.loaderTxt}>{loadingMessage}</ThemedText>
                     </View>
-                  ) : <Text style={styles.btnTxt}>Continue</Text>}
+                  ) : <ThemedText style={styles.btnTxt}>Continue</ThemedText>}
                 </TouchableOpacity>
-                <View style={styles.divider}><View style={styles.line} /><Text style={styles.divTxt}>OR</Text><View style={styles.line} /></View>
+                <View style={styles.divider}><View style={styles.line} /><ThemedText style={styles.divTxt}>OR</ThemedText><View style={styles.line} /></View>
                 <TouchableOpacity style={styles.qrBtn} onPress={() => setShowQRScanner(true)}>
                   <View style={styles.qrIcon}><Ionicons name="qr-code-outline" size={24} color="#1E293B" /></View>
-                  <Text style={styles.qrTxt}>Scan QR Code</Text>
+                  <ThemedText style={styles.qrTxt}>Scan QR Code</ThemedText>
                   <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
                 </TouchableOpacity>
               </View>
               ) : (
                 <View style={{ width: '100%', alignItems: 'center' }}>
                     <View style={styles.inputWrap}>
-                      <Text style={styles.label}>VERIFICATION CODE</Text>
+                      <ThemedText style={styles.label}>VERIFICATION CODE</ThemedText>
                       <View style={styles.otpBoxRow}>
                         {otpDigits.map((digit, i) => (
                           <TextInput
@@ -315,20 +315,20 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
                           />
                         ))}
                       </View>
-                      <Text style={styles.otpSubText}>Sent to {maskedEmail}</Text>
+                      <ThemedText style={styles.otpSubText}>Sent to {maskedEmail}</ThemedText>
                     </View>
 
                     <View style={styles.otpActions}>
                       {otpTimer > 0 ? (
-                        <Text style={styles.timerTxt}>Resend in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</Text>
+                        <ThemedText style={styles.timerTxt}>Resend in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</ThemedText>
                       ) : (
-                        <TouchableOpacity onPress={handleResendOTP}><Text style={styles.resendLink}>Resend OTP</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={handleResendOTP}><ThemedText style={styles.resendLink}>Resend OTP</ThemedText></TouchableOpacity>
                       )}
-                      <TouchableOpacity onPress={() => setOtpSent(false)}><Text style={styles.changeId}>Change ID</Text></TouchableOpacity>
+                      <TouchableOpacity onPress={() => setOtpSent(false)}><ThemedText style={styles.changeId}>Change ID</ThemedText></TouchableOpacity>
                     </View>
 
                     <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleVerifyOTP} disabled={loading}>
-                      {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnTxt}>Verify & Login</Text>}
+                      {loading ? <ActivityIndicator color="#FFF" /> : <ThemedText style={styles.btnTxt}>Verify & Login</ThemedText>}
                     </TouchableOpacity>
                 </View>
               )}
@@ -344,10 +344,10 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
               <View style={styles.modalIcon}><Ionicons name="shield-checkmark" size={32} color="#FFFFFF" /></View>
               <TouchableOpacity style={styles.modalClose} onPress={() => setShowOTPSuccessModal(false)}><Ionicons name="close" size={24} color="#64748B" /></TouchableOpacity>
             </View>
-            <Text style={styles.modalTitle}>OTP Sent</Text>
-            <Text style={styles.modalSub}>A 6-digit code has been sent to <Text style={styles.emailHighlight}>{maskedEmail}</Text></Text>
+            <ThemedText style={styles.modalTitle}>OTP Sent</ThemedText>
+            <ThemedText style={styles.modalSub}>A 6-digit code has been sent to <ThemedText style={styles.emailHighlight}>{maskedEmail}</ThemedText></ThemedText>
             <TouchableOpacity style={styles.verifyBtn} onPress={() => { setShowOTPSuccessModal(false); setOtpSent(true); }}>
-              <Text style={styles.verifyTxt}>Enter Code</Text>
+              <ThemedText style={styles.verifyTxt}>Enter Code</ThemedText>
             </TouchableOpacity>
           </Animated.View>
         </View>

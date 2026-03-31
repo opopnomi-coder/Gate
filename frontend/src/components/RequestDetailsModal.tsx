@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Modal,
   ScrollView,
   TouchableOpacity,
-  Image,
+  Image
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
 import RequestTimeline from './RequestTimeline';
+import ThemedText from './ThemedText';
 
 interface RequestDetailsModalProps {
   visible: boolean;
@@ -70,7 +70,7 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Request Details</Text>
+            <ThemedText style={styles.modalTitle}>Request Details</ThemedText>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
@@ -79,73 +79,73 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
           <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
             {/* Status Badge */}
             <View style={styles.statusContainer}>
-              <Text style={styles.statusLabel}>Status</Text>
+              <ThemedText style={styles.statusLabel}>Status</ThemedText>
               <View
                 style={[
                   styles.statusBadge,
                   { backgroundColor: getStatusColor(request.status) },
                 ]}
               >
-                <Text style={styles.statusText}>{request.status || 'PENDING'}</Text>
+                <ThemedText style={styles.statusText}>{request.status || 'PENDING'}</ThemedText>
               </View>
             </View>
 
             {/* Student Information */}
             <View style={styles.section}>
               <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>Student Information</Text>
+                <ThemedText style={styles.sectionTitle}>Student Information</ThemedText>
                 {request.requestType === 'VISITOR' && (
                   <View style={styles.visitorBadge}>
                     <Ionicons name="person-outline" size={12} color="#7C3AED" />
-                    <Text style={styles.visitorBadgeText}>VISITOR</Text>
+                    <ThemedText style={styles.visitorBadgeText}>VISITOR</ThemedText>
                   </View>
                 )}
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Reg No</Text>
-                <Text style={styles.infoValue}>{student.regNo || 'N/A'}</Text>
+                <ThemedText style={styles.infoLabel}>Reg No</ThemedText>
+                <ThemedText style={styles.infoValue}>{student.regNo || 'N/A'}</ThemedText>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Name</Text>
-                <Text style={styles.infoValue}>
+                <ThemedText style={styles.infoLabel}>Name</ThemedText>
+                <ThemedText style={styles.infoValue}>
                   {student.firstName} {student.lastName || ''}
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Department</Text>
-                <Text style={styles.infoValue}>{student.department || 'N/A'}</Text>
+                <ThemedText style={styles.infoLabel}>Department</ThemedText>
+                <ThemedText style={styles.infoValue}>{student.department || 'N/A'}</ThemedText>
               </View>
             </View>
 
             {/* Pass Details */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Pass Details</Text>
+              <ThemedText style={styles.sectionTitle}>Pass Details</ThemedText>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Purpose</Text>
-                <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
+                <ThemedText style={styles.infoLabel}>Purpose</ThemedText>
+                <ThemedText style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
                   {request.purpose || request.reason || 'N/A'}
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Reason</Text>
-                <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
+                <ThemedText style={styles.infoLabel}>Reason</ThemedText>
+                <ThemedText style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
                   {request.reason || request.purpose || 'N/A'}
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Requested On</Text>
-                <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
+                <ThemedText style={styles.infoLabel}>Requested On</ThemedText>
+                <ThemedText style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
                   {formatDate(request.requestDate)}
-                </Text>
+                </ThemedText>
               </View>
               {(request.exitDateTime || (request.requestType === 'VISITOR' && request.visitDate)) && (
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>
+                  <ThemedText style={styles.infoLabel}>
                     {request.requestType === 'VISITOR' ? 'Entry Schedule' : 'Exit Schedule'}
-                  </Text>
-                  <Text style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
+                  </ThemedText>
+                  <ThemedText style={[styles.infoValue, { flex: 1, textAlign: 'right' }]}>
                     {formatDate(request.requestType === 'VISITOR' ? (request.visitDate || request.requestDate) : (request.exitDateTime || request.requestDate))}
-                  </Text>
+                  </ThemedText>
                 </View>
               )}
             </View>
@@ -153,7 +153,7 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
             {/* Attachment - Show in My Requests */}
             {!showQR && request.attachmentUri && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Attachment</Text>
+                <ThemedText style={styles.sectionTitle}>Attachment</ThemedText>
                 <TouchableOpacity 
                   style={styles.attachmentContainer}
                   onPress={() => setIsFullScreen(true)}
@@ -173,7 +173,7 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
 
             {/* Timeline */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Timeline</Text>
+              <ThemedText style={styles.sectionTitle}>Timeline</ThemedText>
               <RequestTimeline
                 status={request.status}
                 staffApproval={request.staffApproval || request.classInchargeApproval || 'PENDING'}
@@ -187,7 +187,7 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
             {/* QR Code - Show ONLY in Recent Requests after HOD approval */}
             {showQR && request.status === 'APPROVED' && qrCode && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>QR Code</Text>
+                <ThemedText style={styles.sectionTitle}>QR Code</ThemedText>
                 <View style={styles.qrCodeContainer}>
                   <View style={styles.qrCodeWrapper}>
                     {(qrCode.startsWith('GP|') ||
@@ -208,14 +208,14 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
 
                 {manualCode && (
                   <View style={styles.manualCodeContainer}>
-                    <Text style={styles.manualCodeLabel}>Manual Entry Code</Text>
-                    <Text style={styles.manualCodeText}>{manualCode}</Text>
+                    <ThemedText style={styles.manualCodeLabel}>Manual Entry Code</ThemedText>
+                    <ThemedText style={styles.manualCodeText}>{manualCode}</ThemedText>
                   </View>
                 )}
 
-                <Text style={styles.qrInstructions}>
+                <ThemedText style={styles.qrInstructions}>
                   Scan this QR code at the Main Gate Exit
-                </Text>
+                </ThemedText>
               </View>
             )}
 

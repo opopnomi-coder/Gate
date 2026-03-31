@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Image,
   Modal,
   Animated,
   Easing,
-  Alert,
+  Alert
 } from 'react-native';
 import ImagePicker from '../utils/safeImagePicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { THEME } from '../config/api.config';
+import ThemedText from './ThemedText';
 
 interface ProfilePhotoManagerProps {
   userId: string;
@@ -199,8 +199,8 @@ const ProfilePhotoManager: React.FC<ProfilePhotoManagerProps> = ({
             ]}
           >
             <View style={styles.optionsHeader}>
-              <Text style={styles.optionsTitle}>Profile Photo</Text>
-              <Text style={styles.optionsSubtitle}>Choose an option</Text>
+              <ThemedText style={styles.optionsTitle}>Profile Photo</ThemedText>
+              <ThemedText style={styles.optionsSubtitle}>Choose an option</ThemedText>
             </View>
 
             <View style={styles.optionsBody}>
@@ -208,14 +208,14 @@ const ProfilePhotoManager: React.FC<ProfilePhotoManagerProps> = ({
                 <View style={styles.optionIcon}>
                   <Ionicons name="camera" size={24} color={THEME.colors.primary} />
                 </View>
-                <Text style={styles.optionText}>Take Photo</Text>
+                <ThemedText style={styles.optionText}>Take Photo</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.optionButton} onPress={pickImage} activeOpacity={0.7}>
                 <View style={styles.optionIcon}>
                   <Ionicons name="images" size={24} color={THEME.colors.primary} />
                 </View>
-                <Text style={styles.optionText}>Choose from Gallery</Text>
+                <ThemedText style={styles.optionText}>Choose from Gallery</ThemedText>
               </TouchableOpacity>
 
               {currentPhoto && (
@@ -227,13 +227,13 @@ const ProfilePhotoManager: React.FC<ProfilePhotoManagerProps> = ({
                   <View style={[styles.optionIcon, styles.dangerIcon]}>
                     <Ionicons name="trash" size={24} color={THEME.colors.error} />
                   </View>
-                  <Text style={[styles.optionText, styles.dangerText]}>Remove Photo</Text>
+                  <ThemedText style={[styles.optionText, styles.dangerText]}>Remove Photo</ThemedText>
                 </TouchableOpacity>
               )}
             </View>
 
             <TouchableOpacity style={styles.cancelButton} onPress={closeOptions} activeOpacity={0.7}>
-              <Text style={styles.cancelText}>Cancel</Text>
+              <ThemedText style={styles.cancelText}>Cancel</ThemedText>
             </TouchableOpacity>
           </Animated.View>
         </TouchableOpacity>
@@ -264,10 +264,10 @@ const ProfilePhotoManager: React.FC<ProfilePhotoManagerProps> = ({
             ]}
           >
             <View style={styles.confirmHeader}>
-              <Text style={styles.confirmTitle}>Remove Photo</Text>
-              <Text style={styles.confirmMessage}>
+              <ThemedText style={styles.confirmTitle}>Remove Photo</ThemedText>
+              <ThemedText style={styles.confirmMessage}>
                 Are you sure you want to remove your profile photo?
-              </Text>
+              </ThemedText>
             </View>
 
             <View style={styles.confirmActions}>
@@ -276,7 +276,7 @@ const ProfilePhotoManager: React.FC<ProfilePhotoManagerProps> = ({
                 onPress={closeRemoveConfirm}
                 activeOpacity={0.7}
               >
-                <Text style={styles.confirmCancelText}>Cancel</Text>
+                <ThemedText style={styles.confirmCancelText}>Cancel</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -284,7 +284,7 @@ const ProfilePhotoManager: React.FC<ProfilePhotoManagerProps> = ({
                 onPress={removePhoto}
                 activeOpacity={0.7}
               >
-                <Text style={styles.confirmDangerText}>Remove</Text>
+                <ThemedText style={styles.confirmDangerText}>Remove</ThemedText>
               </TouchableOpacity>
             </View>
           </Animated.View>

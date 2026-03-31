@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Animated,
   StatusBar,
   Dimensions,
   Image,
-  Easing,
+  Easing
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from '../components/ThemedText';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -363,7 +363,7 @@ const LoadingScreen: React.FC = () => {
 
         <Animated.View style={[styles.badge, { opacity: badgeOpacity }]}>
           <View style={[styles.badgeDot, { backgroundColor: theme.primary }]} />
-          <Text style={[styles.badgeText, { color: theme.primary + 'B3' }]}>SECURE CONNECTION</Text>
+          <ThemedText style={[styles.badgeText, { color: theme.primary + 'B3' }]}>SECURE CONNECTION</ThemedText>
           <View style={[styles.badgeDot, { backgroundColor: theme.primary }]} />
         </Animated.View>
       </View>

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
+  RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
 import { Student } from '../../types';
 import { THEME } from '../../config/api.config';
+import ThemedText from '../../components/ThemedText';
 
 interface MyQRCodesScreenProps {
   user: Student;
@@ -70,7 +70,7 @@ const MyQRCodesScreen: React.FC<MyQRCodesScreenProps> = ({ user, navigation, onB
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={THEME.colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My QR Codes</Text>
+        <ThemedText style={styles.headerTitle}>My QR Codes</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -83,23 +83,23 @@ const MyQRCodesScreen: React.FC<MyQRCodesScreenProps> = ({ user, navigation, onB
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={THEME.colors.primary} />
-            <Text style={styles.loadingText}>Loading QR codes...</Text>
+            <ThemedText style={styles.loadingText}>Loading QR codes...</ThemedText>
           </View>
         ) : qrCodes.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="qr-code-outline" size={64} color={THEME.colors.textSecondary} />
-            <Text style={styles.emptyStateText}>No QR codes available</Text>
+            <ThemedText style={styles.emptyStateText}>No QR codes available</ThemedText>
           </View>
         ) : (
           qrCodes.map((qr) => (
             <View key={qr.id} style={styles.qrCard}>
               <View style={styles.qrHeader}>
                 <View>
-                  <Text style={styles.qrLabel}>{qr.label}</Text>
-                  <Text style={styles.qrDescription}>{qr.description}</Text>
+                  <ThemedText style={styles.qrLabel}>{qr.label}</ThemedText>
+                  <ThemedText style={styles.qrDescription}>{qr.description}</ThemedText>
                 </View>
                 <View style={styles.qrTypeBadge}>
-                  <Text style={styles.qrTypeText}>{qr.type}</Text>
+                  <ThemedText style={styles.qrTypeText}>{qr.type}</ThemedText>
                 </View>
               </View>
 
@@ -113,12 +113,12 @@ const MyQRCodesScreen: React.FC<MyQRCodesScreenProps> = ({ user, navigation, onB
               </View>
 
               <View style={styles.qrInfo}>
-                <Text style={styles.qrInfoLabel}>Student Name</Text>
-                <Text style={styles.qrInfoValue}>{user.firstName} {user.lastName}</Text>
-                <Text style={styles.qrInfoLabel}>Registration Number</Text>
-                <Text style={styles.qrInfoValue}>{user.regNo}</Text>
-                <Text style={styles.qrInfoLabel}>Department</Text>
-                <Text style={styles.qrInfoValue}>{user.department}</Text>
+                <ThemedText style={styles.qrInfoLabel}>Student Name</ThemedText>
+                <ThemedText style={styles.qrInfoValue}>{user.firstName} {user.lastName}</ThemedText>
+                <ThemedText style={styles.qrInfoLabel}>Registration Number</ThemedText>
+                <ThemedText style={styles.qrInfoValue}>{user.regNo}</ThemedText>
+                <ThemedText style={styles.qrInfoLabel}>Department</ThemedText>
+                <ThemedText style={styles.qrInfoValue}>{user.department}</ThemedText>
               </View>
             </View>
           ))

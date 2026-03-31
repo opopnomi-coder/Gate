@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -11,7 +10,7 @@ import {
   Modal,
   ActivityIndicator,
   Platform,
-  Alert,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -22,6 +21,7 @@ import { formatDateTime } from '../../utils/dateUtils';
 import { exportStyledPdfReport } from '../../utils/pdfReport';
 import { Calendar } from 'react-native-calendars';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import ThemedText from '../../components/ThemedText';
 
 interface ModernScanHistoryScreenProps {
   security: SecurityPersonnel;
@@ -252,41 +252,41 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           <TouchableOpacity style={styles.fsBackBtn} onPress={closeRangeResults}>
             <Ionicons name="arrow-back" size={22} color="#1F2937" />
           </TouchableOpacity>
-          <Text style={styles.fsHeaderTitle}>Date range results</Text>
+          <ThemedText style={styles.fsHeaderTitle}>Date range results</ThemedText>
           <View style={styles.fsStatusPill}>
-            <Text style={styles.fsStatusPillText}>{filteredScans.length}</Text>
+            <ThemedText style={styles.fsStatusPillText}>{filteredScans.length}</ThemedText>
           </View>
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
           <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
             <View style={styles.rangeResultsTop}>
-              <Text style={styles.rangeResultsSub}>
+              <ThemedText style={styles.rangeResultsSub}>
                 {fromDate?.toLocaleDateString()} — {toDate?.toLocaleDateString()}
-              </Text>
+              </ThemedText>
               <TouchableOpacity style={styles.rangeResultsDownloadBtn} onPress={exportScanPdf}>
                 <Ionicons name="download-outline" size={16} color="#fff" />
-                <Text style={styles.rangeResultsDownloadText}>Download PDF</Text>
+                <ThemedText style={styles.rangeResultsDownloadText}>Download PDF</ThemedText>
               </TouchableOpacity>
             </View>
             <View style={styles.scrollContent}>
               {filteredScans.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Ionicons name="time-outline" size={64} color="#D1D5DB" />
-                  <Text style={styles.emptyText}>No scan records in selected range</Text>
+                  <ThemedText style={styles.emptyText}>No scan records in selected range</ThemedText>
                 </View>
               ) : (
                 filteredScans.map((scan, index) => (
                   <View key={`range-${scan.id}-${index}`} style={styles.scanCard}>
                     <View style={styles.scanAvatar}>
-                      <Text style={styles.scanAvatarText}>{scan.isBulkPass ? 'GP' : getInitials(scan.name)}</Text>
+                      <ThemedText style={styles.scanAvatarText}>{scan.isBulkPass ? 'GP' : getInitials(scan.name)}</ThemedText>
                     </View>
                     <View style={styles.scanInfo}>
-                      <Text style={styles.scanName}>{scan.name}</Text>
-                      <Text style={styles.scanType}>{scan.type}</Text>
-                      <Text style={styles.scanPurpose} numberOfLines={1}>{scan.purpose}</Text>
+                      <ThemedText style={styles.scanName}>{scan.name}</ThemedText>
+                      <ThemedText style={styles.scanType}>{scan.type}</ThemedText>
+                      <ThemedText style={styles.scanPurpose} numberOfLines={1}>{scan.purpose}</ThemedText>
                     </View>
                     <View style={styles.scanRight}>
-                      <Text style={styles.scanTime}>{formatTime(scan.outTime || scan.inTime)}</Text>
+                      <ThemedText style={styles.scanTime}>{formatTime(scan.outTime || scan.inTime)}</ThemedText>
                     </View>
                   </View>
                 ))
@@ -307,38 +307,38 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           <TouchableOpacity style={styles.backButton} onPress={() => setRangePickerPage(false)}>
             <Ionicons name="arrow-back" size={24} color="#1F2937" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Select date range</Text>
+          <ThemedText style={styles.headerTitle}>Select date range</ThemedText>
           <View style={styles.headerRight} />
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-            <Text style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 12 }]}>Scan history date range</Text>
+            <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 12 }]}>Scan history date range</ThemedText>
             <View style={styles.dateTypeTabs}>
               <TouchableOpacity
                 style={[styles.dateTypeTab, selectingDateType === 'FROM' && styles.dateTypeTabActive]}
                 onPress={() => setSelectingDateType('FROM')}
               >
-                <Text style={[styles.dateTypeTabText, selectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>From</Text>
+                <ThemedText style={[styles.dateTypeTabText, selectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>From</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.dateTypeTab, selectingDateType === 'TO' && styles.dateTypeTabActive]}
                 onPress={() => setSelectingDateType('TO')}
               >
-                <Text style={[styles.dateTypeTabText, selectingDateType === 'TO' && styles.dateTypeTabTextActive]}>To</Text>
+                <ThemedText style={[styles.dateTypeTabText, selectingDateType === 'TO' && styles.dateTypeTabTextActive]}>To</ThemedText>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.dateInputButton} onPress={() => setSelectingDateType('FROM')}>
               <Ionicons name="calendar-outline" size={18} color="#00BCD4" />
-              <Text style={styles.dateInputText}>
+              <ThemedText style={styles.dateInputText}>
                 {fromDate ? fromDate.toLocaleDateString() : 'Select from date'}
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.dateInputButton} onPress={() => setSelectingDateType('TO')}>
               <Ionicons name="calendar-outline" size={18} color="#00BCD4" />
-              <Text style={styles.dateInputText}>
+              <ThemedText style={styles.dateInputText}>
                 {toDate ? toDate.toLocaleDateString() : 'Select to date'}
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
 
             <View style={styles.calendarWrap}>
@@ -361,10 +361,10 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             </View>
             <View style={styles.actionButtons}>
               <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => setRangePickerPage(false)}>
-                <Text style={styles.actionBtnText}>Cancel</Text>
+                <ThemedText style={styles.actionBtnText}>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.actionBtn, styles.applyBtn]} onPress={applyDateRange}>
-                <Text style={styles.actionBtnText}>Apply</Text>
+                <ThemedText style={styles.actionBtnText}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -383,7 +383,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>History</Text>
+        <ThemedText style={styles.headerTitle}>History</ThemedText>
         <View style={styles.headerRight} />
       </View>
 
@@ -402,9 +402,9 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             size={20} 
             color={activeTab === 'SCANS' ? '#00BCD4' : '#9CA3AF'} 
           />
-          <Text style={[styles.mainTabText, activeTab === 'SCANS' && styles.mainTabTextActive]}>
+          <ThemedText style={[styles.mainTabText, activeTab === 'SCANS' && styles.mainTabTextActive]}>
             Scan History
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.mainTab, activeTab === 'VEHICLES' && styles.mainTabActive]}
@@ -418,9 +418,9 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             size={20} 
             color={activeTab === 'VEHICLES' ? '#00BCD4' : '#9CA3AF'} 
           />
-          <Text style={[styles.mainTabText, activeTab === 'VEHICLES' && styles.mainTabTextActive]}>
+          <ThemedText style={[styles.mainTabText, activeTab === 'VEHICLES' && styles.mainTabTextActive]}>
             Vehicle History
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -449,7 +449,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         <View style={styles.rangeActionsRow}>
           <TouchableOpacity style={styles.rangeActionBtn} onPress={() => setRangePickerPage(true)}>
             <Ionicons name="calendar-outline" size={16} color="#00BCD4" />
-            <Text style={styles.rangeActionText}>From / To</Text>
+            <ThemedText style={styles.rangeActionText}>From / To</ThemedText>
           </TouchableOpacity>
         </View>
         <View style={styles.filterContainer}>
@@ -457,25 +457,25 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             style={[styles.filterTab, activeFilter === 'ALL' && styles.filterTabActive]}
             onPress={() => setActiveFilter('ALL')}
           >
-            <Text style={[styles.filterText, activeFilter === 'ALL' && styles.filterTextActive]}>
+            <ThemedText style={[styles.filterText, activeFilter === 'ALL' && styles.filterTextActive]}>
               All
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterTab, activeFilter === 'ENTRY' && styles.filterTabActive]}
             onPress={() => setActiveFilter('ENTRY')}
           >
-            <Text style={[styles.filterText, activeFilter === 'ENTRY' && styles.filterTextActive]}>
+            <ThemedText style={[styles.filterText, activeFilter === 'ENTRY' && styles.filterTextActive]}>
               Entry
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterTab, activeFilter === 'EXIT' && styles.filterTabActive]}
             onPress={() => setActiveFilter('EXIT')}
           >
-            <Text style={[styles.filterText, activeFilter === 'EXIT' && styles.filterTextActive]}>
+            <ThemedText style={[styles.filterText, activeFilter === 'EXIT' && styles.filterTextActive]}>
               Exit
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         </View>
         </>
@@ -485,7 +485,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00BCD4" />
-          <Text style={styles.loadingText}>Loading {activeTab === 'SCANS' ? 'scan' : 'vehicle'} history...</Text>
+          <ThemedText style={styles.loadingText}>Loading {activeTab === 'SCANS' ? 'scan' : 'vehicle'} history...</ThemedText>
         </View>
       ) : (
         <View style={styles.scrollContent}>
@@ -494,7 +494,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             filteredScans.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="time-outline" size={64} color="#D1D5DB" />
-                <Text style={styles.emptyText}>No scan records found</Text>
+                <ThemedText style={styles.emptyText}>No scan records found</ThemedText>
               </View>
             ) : (
               filteredScans.map((scan, index) => (
@@ -507,28 +507,28 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   }}
                 >
                   <View style={styles.scanAvatar}>
-                    <Text style={styles.scanAvatarText}>
+                    <ThemedText style={styles.scanAvatarText}>
                       {scan.isBulkPass ? 'GP' : getInitials(scan.name)}
-                    </Text>
+                    </ThemedText>
                   </View>
                   <View style={styles.scanInfo}>
                     {scan.isBulkPass ? (
                       <>
-                        <Text style={styles.scanName}>Bulk Pass - {scan.incharge}</Text>
-                        <Text style={styles.scanType}>
+                        <ThemedText style={styles.scanName}>Bulk Pass - {scan.incharge}</ThemedText>
+                        <ThemedText style={styles.scanType}>
                           {scan.subtype} • {scan.participantCount} participants
-                        </Text>
-                        <Text style={styles.scanPurpose} numberOfLines={1}>
+                        </ThemedText>
+                        <ThemedText style={styles.scanPurpose} numberOfLines={1}>
                           {scan.purpose || scan.reason}
-                        </Text>
+                        </ThemedText>
                       </>
                     ) : (
                       <>
-                        <Text style={styles.scanName}>{scan.name}</Text>
-                        <Text style={styles.scanType}>{scan.type}</Text>
-                        <Text style={styles.scanPurpose} numberOfLines={1}>
+                        <ThemedText style={styles.scanName}>{scan.name}</ThemedText>
+                        <ThemedText style={styles.scanType}>{scan.type}</ThemedText>
+                        <ThemedText style={styles.scanPurpose} numberOfLines={1}>
                           {scan.purpose}
-                        </Text>
+                        </ThemedText>
                       </>
                     )}
                   </View>
@@ -542,14 +542,14 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                         size={12}
                         color={scan.status === 'EXITED' || scan.outTime ? '#EF4444' : '#10B981'}
                       />
-                      <Text style={[
+                      <ThemedText style={[
                         styles.scanStatusText,
                         scan.status === 'EXITED' || scan.outTime ? styles.scanStatusTextExit : styles.scanStatusTextEntry
                       ]}>
                         {scan.status === 'EXITED' || scan.outTime ? 'EXIT' : 'ENTRY'}
-                      </Text>
+                      </ThemedText>
                     </View>
-                    <Text style={styles.scanTime}>{formatTime(scan.outTime || scan.inTime)}</Text>
+                    <ThemedText style={styles.scanTime}>{formatTime(scan.outTime || scan.inTime)}</ThemedText>
                   </View>
                 </TouchableOpacity>
               ))
@@ -559,7 +559,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             filteredVehicles.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="car-outline" size={64} color="#D1D5DB" />
-                <Text style={styles.emptyText}>No vehicle records found</Text>
+                <ThemedText style={styles.emptyText}>No vehicle records found</ThemedText>
               </View>
             ) : (
               filteredVehicles.map((vehicle) => (
@@ -575,11 +575,11 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                     <Ionicons name="car" size={24} color="#FFF" />
                   </View>
                   <View style={styles.scanInfo}>
-                    <Text style={styles.scanName}>{vehicle.licensePlate || 'N/A'}</Text>
-                    <Text style={styles.scanType}>{vehicle.vehicleType || 'Unknown Type'}</Text>
-                    <Text style={styles.scanPurpose} numberOfLines={1}>
+                    <ThemedText style={styles.scanName}>{vehicle.licensePlate || 'N/A'}</ThemedText>
+                    <ThemedText style={styles.scanType}>{vehicle.vehicleType || 'Unknown Type'}</ThemedText>
+                    <ThemedText style={styles.scanPurpose} numberOfLines={1}>
                       Owner: {vehicle.ownerName || 'N/A'}
-                    </Text>
+                    </ThemedText>
                   </View>
                   <View style={styles.scanRight}>
                     <View style={[
@@ -591,11 +591,11 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                         size={12}
                         color="#10B981"
                       />
-                      <Text style={[styles.scanStatusText, styles.scanStatusTextEntry]}>
+                      <ThemedText style={[styles.scanStatusText, styles.scanStatusTextEntry]}>
                         REGISTERED
-                      </Text>
+                      </ThemedText>
                     </View>
-                    <Text style={styles.scanTime}>{formatTime(vehicle.createdAt)}</Text>
+                    <ThemedText style={styles.scanTime}>{formatTime(vehicle.createdAt)}</ThemedText>
                   </View>
                 </TouchableOpacity>
               ))
@@ -628,9 +628,9 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   <TouchableOpacity style={styles.fsBackBtn} onPress={() => setShowDetailModal(false)}>
                     <Ionicons name="arrow-back" size={22} color="#1F2937" />
                   </TouchableOpacity>
-                  <Text style={styles.fsHeaderTitle}>Scan Details</Text>
+                  <ThemedText style={styles.fsHeaderTitle}>Scan Details</ThemedText>
                   <View style={[styles.fsStatusPill, { backgroundColor: statusColor + '22' }]}>
-                    <Text style={[styles.fsStatusPillText, { color: statusColor }]}>{statusLabel}</Text>
+                    <ThemedText style={[styles.fsStatusPillText, { color: statusColor }]}>{statusLabel}</ThemedText>
                   </View>
                 </View>
 
@@ -640,47 +640,47 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       {/* Bulk pass profile row */}
                       <View style={styles.fsProfileRow}>
                         <View style={[styles.fsAvatar, { backgroundColor: '#F59E0B' }]}>
-                          <Text style={styles.fsAvatarText}>GP</Text>
+                          <ThemedText style={styles.fsAvatarText}>GP</ThemedText>
                         </View>
                         <View style={styles.fsProfileInfo}>
-                          <Text style={styles.fsProfileName}>Bulk Pass</Text>
-                          <Text style={styles.fsProfileSub}>
+                          <ThemedText style={styles.fsProfileName}>Bulk Pass</ThemedText>
+                          <ThemedText style={styles.fsProfileSub}>
                             {selectedScan.incharge} • {selectedScan.subtype}
-                          </Text>
+                          </ThemedText>
                         </View>
                       </View>
 
                       {/* Info grid */}
                       <View style={styles.fsInfoGrid}>
                         <View style={styles.fsInfoCell}>
-                          <Text style={styles.fsInfoLabel}>PURPOSE</Text>
-                          <Text style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</Text>
+                          <ThemedText style={styles.fsInfoLabel}>PURPOSE</ThemedText>
+                          <ThemedText style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</ThemedText>
                         </View>
                         <View style={styles.fsInfoDivider} />
                         <View style={styles.fsInfoCell}>
-                          <Text style={styles.fsInfoLabel}>PARTICIPANTS</Text>
-                          <Text style={styles.fsInfoValue}>{selectedScan.participantCount || '—'}</Text>
+                          <ThemedText style={styles.fsInfoLabel}>PARTICIPANTS</ThemedText>
+                          <ThemedText style={styles.fsInfoValue}>{selectedScan.participantCount || '—'}</ThemedText>
                         </View>
                       </View>
 
                       {/* Reason */}
                       {!!selectedScan.reason && (
                         <View style={styles.fsBlock}>
-                          <Text style={styles.fsBlockLabel}>REASON</Text>
-                          <Text style={styles.fsReasonText}>{selectedScan.reason}</Text>
+                          <ThemedText style={styles.fsBlockLabel}>REASON</ThemedText>
+                          <ThemedText style={styles.fsReasonText}>{selectedScan.reason}</ThemedText>
                         </View>
                       )}
 
                       {/* Time info */}
                       <View style={styles.fsBlock}>
-                        <Text style={styles.fsBlockLabel}>TIME INFORMATION</Text>
+                        <ThemedText style={styles.fsBlockLabel}>TIME INFORMATION</ThemedText>
                         <View style={styles.fsTlItem}>
                           <View style={[styles.fsTlDot, { backgroundColor: '#EF4444' }]}>
                             <Ionicons name="log-out" size={14} color="#FFF" />
                           </View>
                           <View style={styles.fsTlBody}>
-                            <Text style={styles.fsTlTitle}>Exit Time</Text>
-                            <Text style={styles.fsTlSub}>{formatTime(selectedScan.inTime || selectedScan.outTime)}</Text>
+                            <ThemedText style={styles.fsTlTitle}>Exit Time</ThemedText>
+                            <ThemedText style={styles.fsTlSub}>{formatTime(selectedScan.inTime || selectedScan.outTime)}</ThemedText>
                           </View>
                         </View>
                       </View>
@@ -688,16 +688,16 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       {/* Participants */}
                       {selectedScan.participants && selectedScan.participants.length > 0 && (
                         <View style={styles.fsBlock}>
-                          <Text style={styles.fsBlockLabel}>PARTICIPANTS</Text>
+                          <ThemedText style={styles.fsBlockLabel}>PARTICIPANTS</ThemedText>
                           {selectedScan.participants.map((p, i) => (
                             <View key={i} style={styles.participantCard}>
                               <View style={styles.participantAvatar}>
-                                <Text style={styles.participantAvatarText}>{getInitials(p.name)}</Text>
+                                <ThemedText style={styles.participantAvatarText}>{getInitials(p.name)}</ThemedText>
                               </View>
                               <View style={styles.participantInfo}>
-                                <Text style={styles.participantName}>{p.name}</Text>
-                                <Text style={styles.participantDetails}>{p.id} • {p.type}</Text>
-                                {p.department && <Text style={styles.participantDept}>{p.department}</Text>}
+                                <ThemedText style={styles.participantName}>{p.name}</ThemedText>
+                                <ThemedText style={styles.participantDetails}>{p.id} • {p.type}</ThemedText>
+                                {p.department && <ThemedText style={styles.participantDept}>{p.department}</ThemedText>}
                               </View>
                             </View>
                           ))}
@@ -709,49 +709,49 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       {/* Single pass profile row */}
                       <View style={styles.fsProfileRow}>
                         <View style={[styles.fsAvatar, { backgroundColor: statusColor }]}>
-                          <Text style={styles.fsAvatarText}>{getInitials(selectedScan.name)}</Text>
+                          <ThemedText style={styles.fsAvatarText}>{getInitials(selectedScan.name)}</ThemedText>
                         </View>
                         <View style={styles.fsProfileInfo}>
-                          <Text style={styles.fsProfileName}>{selectedScan.name}</Text>
-                          <Text style={styles.fsProfileSub}>
+                          <ThemedText style={styles.fsProfileName}>{selectedScan.name}</ThemedText>
+                          <ThemedText style={styles.fsProfileSub}>
                             {selectedScan.regNo ? `${selectedScan.regNo} • ` : ''}{selectedScan.type}
                             {selectedScan.department ? ` • ${selectedScan.department}` : ''}
-                          </Text>
+                          </ThemedText>
                         </View>
                       </View>
 
                       {/* Info grid */}
                       <View style={styles.fsInfoGrid}>
                         <View style={styles.fsInfoCell}>
-                          <Text style={styles.fsInfoLabel}>{selectedScan.type === 'VISITOR' ? 'PURPOSE OF VISIT' : 'PURPOSE'}</Text>
-                          <Text style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</Text>
+                          <ThemedText style={styles.fsInfoLabel}>{selectedScan.type === 'VISITOR' ? 'PURPOSE OF VISIT' : 'PURPOSE'}</ThemedText>
+                          <ThemedText style={styles.fsInfoValue} numberOfLines={2}>{selectedScan.purpose || 'N/A'}</ThemedText>
                         </View>
                         <View style={styles.fsInfoDivider} />
                         <View style={styles.fsInfoCell}>
-                          <Text style={styles.fsInfoLabel}>TYPE</Text>
-                          <Text style={styles.fsInfoValue}>{selectedScan.type || 'N/A'}</Text>
+                          <ThemedText style={styles.fsInfoLabel}>TYPE</ThemedText>
+                          <ThemedText style={styles.fsInfoValue}>{selectedScan.type || 'N/A'}</ThemedText>
                         </View>
                       </View>
 
                       {/* Reason — only for non-visitor types */}
                       {!!selectedScan.reason && selectedScan.type !== 'VISITOR' && (
                         <View style={styles.fsBlock}>
-                          <Text style={styles.fsBlockLabel}>REASON</Text>
-                          <Text style={styles.fsReasonText}>{selectedScan.reason}</Text>
+                          <ThemedText style={styles.fsBlockLabel}>REASON</ThemedText>
+                          <ThemedText style={styles.fsReasonText}>{selectedScan.reason}</ThemedText>
                         </View>
                       )}
 
                       {/* Timeline */}
                       <View style={styles.fsBlock}>
-                        <Text style={styles.fsBlockLabel}>TIME INFORMATION</Text>
+                        <ThemedText style={styles.fsBlockLabel}>TIME INFORMATION</ThemedText>
                         {selectedScan.inTime && (
                           <View style={styles.fsTlItem}>
                             <View style={[styles.fsTlDot, { backgroundColor: '#10B981' }]}>
                               <Ionicons name="log-in" size={14} color="#FFF" />
                             </View>
                             <View style={styles.fsTlBody}>
-                              <Text style={styles.fsTlTitle}>Entry Time</Text>
-                              <Text style={styles.fsTlSub}>{formatTime(selectedScan.inTime)}</Text>
+                              <ThemedText style={styles.fsTlTitle}>Entry Time</ThemedText>
+                              <ThemedText style={styles.fsTlSub}>{formatTime(selectedScan.inTime)}</ThemedText>
                             </View>
                           </View>
                         )}
@@ -764,13 +764,13 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                               <Ionicons name="log-out" size={14} color="#FFF" />
                             </View>
                             <View style={styles.fsTlBody}>
-                              <Text style={styles.fsTlTitle}>Exit Time</Text>
-                              <Text style={styles.fsTlSub}>{formatTime(selectedScan.outTime)}</Text>
+                              <ThemedText style={styles.fsTlTitle}>Exit Time</ThemedText>
+                              <ThemedText style={styles.fsTlSub}>{formatTime(selectedScan.outTime)}</ThemedText>
                             </View>
                           </View>
                         )}
                         {!selectedScan.inTime && !selectedScan.outTime && (
-                          <Text style={styles.noDataText}>No time data available</Text>
+                          <ThemedText style={styles.noDataText}>No time data available</ThemedText>
                         )}
                       </View>
                     </>
@@ -781,7 +781,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                 {/* Footer close button */}
                 <View style={styles.fsFooter}>
                   <TouchableOpacity style={styles.fsCloseBtn} onPress={() => setShowDetailModal(false)}>
-                    <Text style={styles.fsCloseBtnText}>Close</Text>
+                    <ThemedText style={styles.fsCloseBtnText}>Close</ThemedText>
                   </TouchableOpacity>
                 </View>
               </>
@@ -809,11 +809,11 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   <TouchableOpacity style={styles.fsBackBtn} onPress={() => setShowVehicleModal(false)}>
                     <Ionicons name="arrow-back" size={22} color="#1F2937" />
                   </TouchableOpacity>
-                  <Text style={styles.fsHeaderTitle}>Vehicle Details</Text>
+                  <ThemedText style={styles.fsHeaderTitle}>Vehicle Details</ThemedText>
                   <View style={[styles.fsStatusPill, { backgroundColor: statusColor + '22' }]}>
-                    <Text style={[styles.fsStatusPillText, { color: statusColor }]}>
+                    <ThemedText style={[styles.fsStatusPillText, { color: statusColor }]}>
                       REGISTERED
-                    </Text>
+                    </ThemedText>
                   </View>
                 </View>
 
@@ -824,31 +824,31 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       <Ionicons name="car" size={24} color="#FFF" />
                     </View>
                     <View style={styles.fsProfileInfo}>
-                      <Text style={styles.fsProfileName}>{selectedVehicle.licensePlate || 'N/A'}</Text>
-                      <Text style={styles.fsProfileSub}>
+                      <ThemedText style={styles.fsProfileName}>{selectedVehicle.licensePlate || 'N/A'}</ThemedText>
+                      <ThemedText style={styles.fsProfileSub}>
                         {selectedVehicle.vehicleType || 'Unknown'} • {selectedVehicle.ownerName || 'N/A'}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </View>
 
                   {/* Info grid */}
                   <View style={styles.fsInfoGrid}>
                     <View style={styles.fsInfoCell}>
-                      <Text style={styles.fsInfoLabel}>OWNER TYPE</Text>
-                      <Text style={styles.fsInfoValue}>{selectedVehicle.ownerType || 'N/A'}</Text>
+                      <ThemedText style={styles.fsInfoLabel}>OWNER TYPE</ThemedText>
+                      <ThemedText style={styles.fsInfoValue}>{selectedVehicle.ownerType || 'N/A'}</ThemedText>
                     </View>
                     <View style={styles.fsInfoDivider} />
                     <View style={styles.fsInfoCell}>
-                      <Text style={styles.fsInfoLabel}>REGISTERED ON</Text>
-                      <Text style={styles.fsInfoValue} numberOfLines={2}>
+                      <ThemedText style={styles.fsInfoLabel}>REGISTERED ON</ThemedText>
+                      <ThemedText style={styles.fsInfoValue} numberOfLines={2}>
                         {formatTime(selectedVehicle.createdAt || selectedVehicle.registeredAt)}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </View>
 
                   {/* Vehicle info */}
                   <View style={styles.fsBlock}>
-                    <Text style={styles.fsBlockLabel}>VEHICLE INFORMATION</Text>
+                    <ThemedText style={styles.fsBlockLabel}>VEHICLE INFORMATION</ThemedText>
                     {[
                       ['License Plate', selectedVehicle.licensePlate],
                       ['Vehicle Type', selectedVehicle.vehicleType],
@@ -856,15 +856,15 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       ['Model', selectedVehicle.vehicleModel || selectedVehicle.model],
                     ].filter(([, v]) => !!v).map(([label, value]) => (
                       <View key={label as string} style={styles.fsRow}>
-                        <Text style={styles.fsRowLabel}>{label}</Text>
-                        <Text style={styles.fsRowValue}>{value}</Text>
+                        <ThemedText style={styles.fsRowLabel}>{label}</ThemedText>
+                        <ThemedText style={styles.fsRowValue}>{value}</ThemedText>
                       </View>
                     ))}
                   </View>
 
                   {/* Owner info */}
                   <View style={styles.fsBlock}>
-                    <Text style={styles.fsBlockLabel}>OWNER INFORMATION</Text>
+                    <ThemedText style={styles.fsBlockLabel}>OWNER INFORMATION</ThemedText>
                     {[
                       ['Owner Name', selectedVehicle.ownerName],
                       ['Owner Type', selectedVehicle.ownerType],
@@ -872,8 +872,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       ['Registered By', selectedVehicle.registeredBy],
                     ].filter(([, v]) => !!v).map(([label, value]) => (
                       <View key={label as string} style={styles.fsRow}>
-                        <Text style={styles.fsRowLabel}>{label}</Text>
-                        <Text style={styles.fsRowValue}>{value}</Text>
+                        <ThemedText style={styles.fsRowLabel}>{label}</ThemedText>
+                        <ThemedText style={styles.fsRowValue}>{value}</ThemedText>
                       </View>
                     ))}
                   </View>
@@ -883,7 +883,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
 
                 <View style={styles.fsFooter}>
                   <TouchableOpacity style={styles.fsCloseBtn} onPress={() => setShowVehicleModal(false)}>
-                    <Text style={styles.fsCloseBtnText}>Close</Text>
+                    <ThemedText style={styles.fsCloseBtnText}>Close</ThemedText>
                   </TouchableOpacity>
                 </View>
               </>

@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
+  TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import ThemedText from '../../components/ThemedText';
 
 export interface Participant {
   id: string;
@@ -62,24 +62,24 @@ const ParticipantsScreen: React.FC<ParticipantsScreenProps> = ({
   const renderItem = ({ item }: { item: Participant }) => (
     <View style={styles.card}>
       <View style={[styles.avatar, item.type === 'staff' ? styles.avatarStaff : styles.avatarStudent]}>
-        <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
+        <ThemedText style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</ThemedText>
       </View>
       <View style={styles.cardInfo}>
         <View style={styles.cardRow}>
-          <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+          <ThemedText style={styles.cardName} numberOfLines={1}>{item.name}</ThemedText>
           {item.isReceiver && (
             <View style={styles.receiverBadge}>
               <Ionicons name="qr-code" size={10} color="#FFF" />
-              <Text style={styles.receiverBadgeText}>QR</Text>
+              <ThemedText style={styles.receiverBadgeText}>QR</ThemedText>
             </View>
           )}
         </View>
-        <Text style={styles.cardId}>{item.id}{item.department ? ` • ${item.department}` : ''}</Text>
+        <ThemedText style={styles.cardId}>{item.id}{item.department ? ` • ${item.department}` : ''}</ThemedText>
       </View>
       <View style={[styles.rolePill, item.type === 'staff' ? styles.rolePillStaff : styles.rolePillStudent]}>
-        <Text style={[styles.roleText, item.type === 'staff' ? styles.roleTextStaff : styles.roleTextStudent]}>
+        <ThemedText style={[styles.roleText, item.type === 'staff' ? styles.roleTextStaff : styles.roleTextStudent]}>
           {item.type === 'staff' ? 'Staff' : 'Student'}
-        </Text>
+        </ThemedText>
       </View>
     </View>
   );
@@ -92,8 +92,8 @@ const ParticipantsScreen: React.FC<ParticipantsScreenProps> = ({
           <Ionicons name="arrow-back" size={22} color="#1F2937" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{title}</Text>
-          <Text style={styles.headerSub}>{participants.length} participants</Text>
+          <ThemedText style={styles.headerTitle}>{title}</ThemedText>
+          <ThemedText style={styles.headerSub}>{participants.length} participants</ThemedText>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -120,9 +120,9 @@ const ParticipantsScreen: React.FC<ParticipantsScreenProps> = ({
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+              <ThemedText style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
                 {tab}
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
           ))}
         </View>
@@ -138,7 +138,7 @@ const ParticipantsScreen: React.FC<ParticipantsScreenProps> = ({
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="people-outline" size={52} color="#D1D5DB" />
-            <Text style={styles.emptyText}>No participants found</Text>
+            <ThemedText style={styles.emptyText}>No participants found</ThemedText>
           </View>
         }
       />

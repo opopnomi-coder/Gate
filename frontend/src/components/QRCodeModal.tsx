@@ -1,16 +1,20 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Image,
   Share,
+  ToastAndroid,
+  Platform
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
+import Clipboard from '@react-native-clipboard/clipboard';
+import RNFS from 'react-native-fs';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 const TypedModal = Modal as any;
 
@@ -30,6 +34,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   request,
 }) => {
   const { theme } = useTheme();
+  const qrSvgRef = React.useRef<any>(null);
 
   // Check if qrCodeData is a base64 image or a QR string
   const isBase64Image = qrCodeData?.startsWith('data:image');
@@ -38,17 +43,52 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   // - Single: SF/ST/VG|staffCode/studentId/null|token
   const isQRString = qrCodeData && !isBase64Image;
 
+  const getPngBase64 = React.useCallback(async (): Promise<string | null> => {
+    if (!qrCodeData) return null;
+    if (isQRString) {
+      const ref = qrSvgRef.current;
+      if (!ref?.toDataURL) return null;
+      return await new Promise((resolve) => {
+        ref.toDataURL((data: string) => resolve(data || null));
+      });
+    }
+
+    if (qrCodeData.startsWith('data:image')) {
+      const idx = qrCodeData.indexOf('base64,');
+      return idx >= 0 ? qrCodeData.slice(idx + 'base64,'.length) : null;
+    }
+
+    return qrCodeData;
+  }, [qrCodeData, isQRString]);
+
+  const writeTempPng = React.useCallback(async (): Promise<string | null> => {
+    const base64 = await getPngBase64();
+    if (!base64) return null;
+    const filename = `gatepass-qr-${Date.now()}.png`;
+    const path = `${RNFS.CachesDirectoryPath}/${filename}`;
+    await RNFS.writeFile(path, base64, 'base64');
+    return `file://${path}`;
+  }, [getPngBase64]);
+
   const handleShare = async () => {
     if (!qrCodeData) return;
-    
+
     try {
+      const url = await writeTempPng();
       await Share.share({
-        message: `Gate Pass QR Code${isQRString ? `\nQR Data: ${qrCodeData}` : ''}\nManual Entry Code: ${manualCode || 'N/A'}\nPurpose: ${request?.purpose || 'N/A'}`,
         title: 'Share Gate Pass',
+        message: `Gate Pass QR Code\nManual Entry Code: ${manualCode || 'N/A'}\nPurpose: ${request?.purpose || 'N/A'}`,
+        ...(url ? { url } : {}),
       });
     } catch (error) {
       console.error('Error sharing:', error);
     }
+  };
+
+  const handleCopyManualCode = () => {
+    if (!manualCode) return;
+    Clipboard.setString(manualCode);
+    if (Platform.OS === 'android') ToastAndroid.show('Copied to clipboard', ToastAndroid.SHORT);
   };
 
   const formatDate = (dateString: string) => {
@@ -75,7 +115,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
       <View style={[styles.modalContent, { backgroundColor: theme.cardBackground }]}>
         {/* Header */}
         <View style={styles.modalHeader}>
-          <Text style={[styles.modalTitle, { color: theme.text }]}>Gate Pass QR Code</Text>
+          <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Gate Pass QR Code</ThemedText>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color={theme.text} />
           </TouchableOpacity>
@@ -92,6 +132,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                   size={250}
                   color={theme.text}
                   backgroundColor={theme.cardBackground}
+                  getRef={(c: any) => {
+                    qrSvgRef.current = c;
+                  }}
                 />
               </View>
             ) : (
@@ -105,9 +148,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
           ) : (
             <View style={styles.loadingContainer}>
               <Ionicons name="qr-code-outline" size={64} color={theme.textSecondary} />
-              <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
                 Loading QR Code...
-              </Text>
+              </ThemedText>
             </View>
           )}
         </View>
@@ -115,12 +158,12 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
         {/* Manual Entry Code */}
         {manualCode && (
           <View style={[styles.manualCodeContainer, { backgroundColor: theme.background }]}>
-            <Text style={[styles.manualCodeLabel, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.manualCodeLabel, { color: theme.textSecondary }]}>
               Manual Entry Code
-            </Text>
-            <Text style={[styles.manualCode, { color: theme.primary }]}>
+            </ThemedText>
+            <ThemedText style={[styles.manualCode, { color: theme.primary }]}>
               {manualCode}
-            </Text>
+            </ThemedText>
           </View>
         )}
 
@@ -131,34 +174,34 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
             {request.passType === 'BULK' && (
               <View style={[styles.bulkPassBadge, { backgroundColor: theme.primary + '20' }]}>
                 <Ionicons name="people" size={16} color={theme.primary} />
-                <Text style={[styles.bulkPassText, { color: theme.primary }]}>
+                <ThemedText style={[styles.bulkPassText, { color: theme.primary }]}>
                   Group Pass {request.includeStaff ? '(Staff Included)' : ''}
-                </Text>
+                </ThemedText>
               </View>
             )}
 
             <View style={styles.detailRow}>
               <Ionicons name="document-text-outline" size={20} color={theme.textSecondary} />
-              <Text style={[styles.detailText, { color: theme.text }]}>
+              <ThemedText style={[styles.detailText, { color: theme.text }]}>
                 {request.purpose || request.reason || 'Gate Pass'}
-              </Text>
+              </ThemedText>
             </View>
             
             {request.requestDate && (
               <View style={styles.detailRow}>
                 <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
-                <Text style={[styles.detailText, { color: theme.text }]}>
+                <ThemedText style={[styles.detailText, { color: theme.text }]}>
                   {formatDate(request.requestDate)}
-                </Text>
+                </ThemedText>
               </View>
             )}
 
             {request.passType === 'BULK' && request.studentCount && (
               <View style={styles.detailRow}>
                 <Ionicons name="people-outline" size={20} color={theme.textSecondary} />
-                <Text style={[styles.detailText, { color: theme.text }]}>
+                <ThemedText style={[styles.detailText, { color: theme.text }]}>
                   {request.studentCount} student{request.studentCount > 1 ? 's' : ''} in group
-                </Text>
+                </ThemedText>
               </View>
             )}
 
@@ -168,9 +211,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                 size={20} 
                 color={request.status === 'APPROVED' ? '#10B981' : '#F59E0B'} 
               />
-              <Text style={[styles.detailText, { color: theme.text }]}>
+              <ThemedText style={[styles.detailText, { color: theme.text }]}>
                 Status: {request.status || 'PENDING'}
-              </Text>
+              </ThemedText>
             </View>
           </View>
         )}
@@ -182,14 +225,26 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
             onPress={handleShare}
           >
             <Ionicons name="share-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.shareButtonText}>Share</Text>
+            <ThemedText style={styles.shareButtonText}>Share</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.copyButton,
+              { backgroundColor: theme.surfaceHighlight, opacity: manualCode ? 1 : 0.5 },
+            ]}
+            onPress={handleCopyManualCode}
+            disabled={!manualCode}
+          >
+            <Ionicons name="copy-outline" size={20} color={theme.text} />
+            <ThemedText style={[styles.copyButtonText, { color: theme.text }]}>Copy code</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.closeButtonBottom, { backgroundColor: theme.background }]}
             onPress={onClose}
           >
-            <Text style={[styles.closeButtonText, { color: theme.text }]}>Close</Text>
+            <ThemedText style={[styles.closeButtonText, { color: theme.text }]}>Close</ThemedText>
           </TouchableOpacity>
         </View>
       </View>
@@ -293,11 +348,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonContainer: {
-    flexDirection: 'row',
     gap: 12,
   },
   shareButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -310,8 +363,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  copyButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
   closeButtonBottom: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,

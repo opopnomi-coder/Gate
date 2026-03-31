@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,7 +9,7 @@ import {
   StatusBar,
   Modal,
   Image,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -29,6 +28,7 @@ import ErrorModal from '../../components/ErrorModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import ThemedText from '../../components/ThemedText';
 
 interface NewStaffDashboardProps {
   staff: Staff;
@@ -322,13 +322,13 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               <Image source={{ uri: profileImage }} style={styles.avatarImage} />
             ) : (
               <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                <Text style={styles.avatarText}>{getInitials(staff.staffName || 'DR')}</Text>
+                <ThemedText style={styles.avatarText}>{getInitials(staff.staffName || 'DR')}</ThemedText>
               </View>
             )}
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</Text>
-            <Text style={[styles.userName, { color: theme.text }]}>{(staff.staffName || 'Divya Rao').toUpperCase()}</Text>
+            <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]}>{(staff.staffName || 'Divya Rao').toUpperCase()}</ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -369,36 +369,36 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]}
           onPress={() => setActiveTab('PENDING')}
         >
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>
             PENDING
-          </Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>
+          </ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>
             {stats.pending}
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]}
           onPress={() => setActiveTab('APPROVED')}
         >
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>
             APPROVED
-          </Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>
+          </ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>
             {stats.approved}
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]}
           onPress={() => setActiveTab('REJECTED')}
         >
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>
             REJECTED
-          </Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>
+          </ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>
             {stats.rejected}
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -407,7 +407,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
         {filteredRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</Text>
+            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
           </View>
         ) : (
           filteredRequests.map((request) => (
@@ -421,59 +421,59 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: request.requestType === 'VISITOR' ? theme.surfaceHighlight : theme.surfaceHighlight }]}>
-                  <Text style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
                     {getInitials(request.studentName || 'ST')}
-                  </Text>
+                  </ThemedText>
                 </View>
                 
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
-                    <Text style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                    <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
                       {request.studentName || 'Unknown'}
-                    </Text>
+                    </ThemedText>
                     {request.requestType === 'VISITOR' ? (
                       <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                        <Text style={[styles.passTypePillText, { color: theme.text }]}>Visitor</Text>
+                        <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
                       </View>
                     ) : (
                       <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                        <Text style={[styles.passTypePillText, { color: theme.text }]}>
+                        <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>
                           {request.passType === 'BULK' ? 'Bulk Gatepass' : 'Single Gatepass'}
-                        </Text>
+                        </ThemedText>
                       </View>
                     )}
                   </View>
-                  <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
                     {request.requestType === 'VISITOR'
                       ? `Visitor • ${request.visitorPhone || ''}`
                       : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
-                  </Text>
+                  </ThemedText>
                 </View>
 
                 <View style={styles.timeAgoContainer}>
-                  <Text style={[styles.timeAgoText, { color: theme.textTertiary }]}>
+                  <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>
                     {getRelativeTime(request.requestDate || request.createdAt)}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
 
               <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
                 <View style={styles.detailItem}>
                   <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</Text>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
                 </View>
                 <View style={styles.detailItem}>
                   <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>
                     {request.requestType === 'VISITOR' && request.visitDate
                       ? `${request.visitDate}${request.visitTime ? ` at ${request.visitTime}` : ''}`
                       : formatDateShort(request.requestDate || request.createdAt)}
-                  </Text>
+                  </ThemedText>
                 </View>
                 {request.passType === 'BULK' && (
                   <View style={styles.detailItem}>
                     <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
-                    <Text style={[styles.detailText, { color: theme.text }]}>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
                       {(() => {
                         const parts: string[] = [];
                         const sc = request.staffCount ?? 0;
@@ -482,7 +482,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
                         if (stc > 0) parts.push(`Students - ${stc}`);
                         return parts.join(', ') || `${request.participantCount || 0} Participants`;
                       })()}
-                    </Text>
+                    </ThemedText>
                   </View>
                 )}
               </View>
@@ -494,14 +494,14 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
                   request.staffApproval === 'APPROVED' && { backgroundColor: theme.success + '22' },
                   request.staffApproval === 'REJECTED' && { backgroundColor: theme.error + '22' },
                 ]}>
-                  <Text style={[
+                  <ThemedText style={[
                     styles.statusText,
                     request.staffApproval === 'PENDING' && { color: theme.warning },
                     request.staffApproval === 'APPROVED' && { color: theme.success },
                     request.staffApproval === 'REJECTED' && { color: theme.error },
                   ]}>
                     {request.staffApproval}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
             </TouchableOpacity>
@@ -522,9 +522,9 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             size={22}
             color={bottomTab === 'HOME' ? theme.primary : theme.textTertiary}
           />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'HOME' && { color: theme.primary }]}>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'HOME' && { color: theme.primary }]}>
             Home
-          </Text>
+          </ThemedText>
           {bottomTab === 'HOME' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
 
@@ -536,7 +536,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           }}
         >
           <Ionicons name="add-circle-outline" size={32} color={theme.textSecondary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>New Pass</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>New Pass</ThemedText>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -551,9 +551,9 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             size={22}
             color={bottomTab === 'MY_REQUESTS' ? theme.primary : theme.textTertiary}
           />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'MY_REQUESTS' && { color: theme.primary }]}>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'MY_REQUESTS' && { color: theme.primary }]}>
             My Requests
-          </Text>
+          </ThemedText>
           {bottomTab === 'MY_REQUESTS' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
 
@@ -569,9 +569,9 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             size={22}
             color={bottomTab === 'PROFILE' ? theme.primary : theme.textTertiary}
           />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'PROFILE' && { color: theme.primary }]}>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'PROFILE' && { color: theme.primary }]}>
             Profile
-          </Text>
+          </ThemedText>
           {bottomTab === 'PROFILE' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
       </View>
@@ -616,7 +616,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           <View style={[styles.qrModalContainer, { backgroundColor: theme.surface }]}>
             {/* Modal Header */}
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Gate Pass QR Code</Text>
+              <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Gate Pass QR Code</ThemedText>
               <TouchableOpacity
                 onPress={() => setShowQRModal(false)}
                 style={[styles.closeButton, { backgroundColor: theme.surfaceHighlight }]}
@@ -632,8 +632,8 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             >
               {/* Staff Info */}
               <View style={styles.qrStaffInfo}>
-                <Text style={[styles.qrStaffName, { color: theme.text }]}>{staff.staffName}</Text>
-                <Text style={[styles.qrStaffCode, { color: theme.textSecondary }]}>{staff.staffCode}</Text>
+                <ThemedText style={[styles.qrStaffName, { color: theme.text }]}>{staff.staffName}</ThemedText>
+                <ThemedText style={[styles.qrStaffCode, { color: theme.textSecondary }]}>{staff.staffCode}</ThemedText>
               </View>
 
               {/* QR Code Display */}
@@ -644,7 +644,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
                   </View>
                 ) : (
                   <View style={styles.qrLoadingContainer}>
-                    <Text style={[styles.qrLoadingText, { color: theme.textSecondary }]}>Loading QR...</Text>
+                    <ThemedText style={[styles.qrLoadingText, { color: theme.textSecondary }]}>Loading QR...</ThemedText>
                   </View>
                 )}
               </View>
@@ -652,28 +652,28 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               {/* Manual Entry Code */}
               {manualEntryCode && (
                 <View style={[styles.manualCodeContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.primary }]}>
-                  <Text style={[styles.manualCodeLabel, { color: theme.textSecondary }]}>Manual Entry Code</Text>
-                  <Text style={[styles.manualCodeText, { color: theme.primary }]}>{manualEntryCode}</Text>
+                  <ThemedText style={[styles.manualCodeLabel, { color: theme.textSecondary }]}>Manual Entry Code</ThemedText>
+                  <ThemedText style={[styles.manualCodeText, { color: theme.primary }]}>{manualEntryCode}</ThemedText>
                 </View>
               )}
 
               {/* Instructions */}
-              <Text style={[styles.qrInstructions, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.qrInstructions, { color: theme.textSecondary }]}>
                 Scan at Main Gate Exit
-              </Text>
+              </ThemedText>
 
               {/* Request Details */}
               {selectedRequest && (
                 <View style={[styles.qrRequestDetails, { backgroundColor: theme.inputBackground }]}>
                   <View style={styles.qrDetailRow}>
-                    <Text style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Reason:</Text>
-                    <Text style={[styles.qrDetailValue, { color: theme.text }]}>
+                    <ThemedText style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
+                    <ThemedText style={[styles.qrDetailValue, { color: theme.text }]}>
                       {selectedRequest.reason || 'Staff Exit'}
-                    </Text>
+                    </ThemedText>
                   </View>
                   <View style={styles.qrDetailRow}>
-                    <Text style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Valid Until:</Text>
-                    <Text style={[styles.qrDetailValue, { color: theme.text }]}>One time</Text>
+                    <ThemedText style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Valid Until:</ThemedText>
+                    <ThemedText style={[styles.qrDetailValue, { color: theme.text }]}>One time</ThemedText>
                   </View>
                 </View>
               )}
@@ -683,7 +683,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
                 style={[styles.qrCloseButton, { backgroundColor: theme.primary }]}
                 onPress={() => setShowQRModal(false)}
               >
-                <Text style={styles.qrCloseButtonText}>Close</Text>
+                <ThemedText style={styles.qrCloseButtonText}>Close</ThemedText>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -740,7 +740,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
         <View style={styles.processingOverlay} pointerEvents="box-only">
           <View style={styles.processingBox}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.processingText, { color: theme.text }]}>Processing...</Text>
+            <ThemedText style={[styles.processingText, { color: theme.text }]}>Processing...</ThemedText>
           </View>
         </View>
       )}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -11,7 +10,7 @@ import {
   Image,
   Dimensions,
   BackHandler,
-  Linking,
+  Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ImagePicker from '../../utils/safeImagePicker';
@@ -25,6 +24,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useActionLock } from '../../context/ActionLockContext';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface GatePassRequestScreenProps {
   user: Student | Staff | HOD;
@@ -170,43 +170,43 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={[styles.header, { backgroundColor: theme.surface }]}>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={handleGoBack}><Ionicons name="arrow-back" size={24} color={theme.text} /></TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>New Gate Pass Request</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>New Gate Pass Request</ThemedText>
         <View style={{ width: 44 }} />
       </View>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <View>
           <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
             <View style={styles.avatarContainer}>
-              <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}><Text style={[styles.avatarText, { color: theme.primary }]}>{userInfo.firstLetter}</Text></View>
-              <View><Text style={[styles.userName, { color: theme.text }]}>{userInfo.fullName}</Text><Text style={[styles.userDetail, { color: theme.textSecondary }]}>Dept: {user?.department || 'AIDS'}</Text></View>
+              <View style={[styles.avatar, { backgroundColor: theme.primary + '20' }]}><ThemedText style={[styles.avatarText, { color: theme.primary }]}>{userInfo.firstLetter}</ThemedText></View>
+              <View><ThemedText style={[styles.userName, { color: theme.text }]}>{userInfo.fullName}</ThemedText><ThemedText style={[styles.userDetail, { color: theme.textSecondary }]}>Dept: {user?.department || 'AIDS'}</ThemedText></View>
             </View>
-            <View style={[styles.activeBadge, { backgroundColor: theme.success + '15' }]}><Text style={[styles.activeText, { color: theme.success }]}>ACTIVE</Text></View>
+            <View style={[styles.activeBadge, { backgroundColor: theme.success + '15' }]}><ThemedText style={[styles.activeText, { color: theme.success }]}>ACTIVE</ThemedText></View>
           </View>
           <View style={styles.formSection}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>DATE & TIME</Text>
+            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>DATE & TIME</ThemedText>
             <View style={styles.row}>
-              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowDatePicker(true)}><Ionicons name="calendar-outline" size={22} color={theme.primary} /><Text style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleDateString()}</Text></TouchableOpacity>
-              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowTimePicker(true)}><Ionicons name="time-outline" size={22} color={theme.primary} /><Text style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase()}</Text></TouchableOpacity>
+              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowDatePicker(true)}><Ionicons name="calendar-outline" size={22} color={theme.primary} /><ThemedText style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleDateString()}</ThemedText></TouchableOpacity>
+              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowTimePicker(true)}><Ionicons name="time-outline" size={22} color={theme.primary} /><ThemedText style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase()}</ThemedText></TouchableOpacity>
             </View>
           </View>
           <View style={styles.formSection}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>PURPOSE</Text>
+            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>PURPOSE</ThemedText>
             <TextInput style={[styles.purposeInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]} placeholder="Purpose" value={purpose} onChangeText={setPurpose} />
           </View>
           <View style={styles.formSection}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>REASON</Text>
+            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>REASON</ThemedText>
             <TextInput style={[styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]} placeholder="Reason" multiline value={reason} onChangeText={setReason} />
           </View>
           <View style={styles.formSection}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>ATTACHMENT</Text>
-            <TouchableOpacity style={[styles.uploadBtn, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]} onPress={pickDocument}><Ionicons name="attach-outline" size={22} color={theme.primary} /><Text style={[styles.uploadText, { color: theme.textSecondary }]}>{attachment ? attachment.name : 'Attach image or PDF'}</Text></TouchableOpacity>
+            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>ATTACHMENT</ThemedText>
+            <TouchableOpacity style={[styles.uploadBtn, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]} onPress={pickDocument}><Ionicons name="attach-outline" size={22} color={theme.primary} /><ThemedText style={[styles.uploadText, { color: theme.textSecondary }]}>{attachment ? attachment.name : 'Attach image or PDF'}</ThemedText></TouchableOpacity>
             {attachment && (
               isImageAttachment ? (
                 <Image source={{ uri: attachment.base64Uri || attachment.uri }} style={styles.attachmentPreview} resizeMode="cover" />
               ) : (
                 <TouchableOpacity style={[styles.filePreview, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => Linking.openURL(attachment.uri || attachment.base64Uri)}>
                   <Ionicons name="document-text-outline" size={20} color={theme.primary} />
-                  <Text style={[styles.filePreviewText, { color: theme.text }]} numberOfLines={1}>Tap to preview {attachment.name}</Text>
+                  <ThemedText style={[styles.filePreviewText, { color: theme.text }]} numberOfLines={1}>Tap to preview {attachment.name}</ThemedText>
                   <Ionicons name="open-outline" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               )
@@ -214,7 +214,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
           </View>
           <TouchableOpacity style={[styles.submitBtn, isLocked && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLocked}>
             <LinearGradient colors={theme.gradients.primary as [string, string, ...string[]]} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <View style={styles.btnContent}><Ionicons name="send" size={20} color="#FFF" /><Text style={styles.submitText}>SUBMIT REQUEST</Text></View>
+              <View style={styles.btnContent}><Ionicons name="send" size={20} color="#FFF" /><ThemedText style={styles.submitText}>SUBMIT REQUEST</ThemedText></View>
             </LinearGradient>
           </TouchableOpacity>
         </View>

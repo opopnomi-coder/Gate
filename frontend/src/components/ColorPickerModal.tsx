@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
   TextInput,
-  ScrollView,
+  ScrollView
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import ThemedText from './ThemedText';
 
 interface ColorPickerModalProps {
   visible: boolean;
@@ -69,14 +69,14 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
+            <ThemedText style={styles.title}>{title}</ThemedText>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={28} color="#1F2937" />
             </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.sectionTitle}>Preset Colors</Text>
+            <ThemedText style={styles.sectionTitle}>Preset Colors</ThemedText>
             <View style={styles.colorGrid}>
               {PRESET_COLORS.map((color) => (
                 <TouchableOpacity
@@ -95,7 +95,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               ))}
             </View>
 
-            <Text style={styles.sectionTitle}>Custom Color</Text>
+            <ThemedText style={styles.sectionTitle}>Custom Color</ThemedText>
             <View style={styles.customColorSection}>
               <TextInput
                 style={styles.input}
@@ -110,7 +110,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
                 style={styles.applyButton}
                 onPress={handleCustomColor}
               >
-                <Text style={styles.applyButtonText}>Apply</Text>
+                <ThemedText style={styles.applyButtonText}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
           </ScrollView>

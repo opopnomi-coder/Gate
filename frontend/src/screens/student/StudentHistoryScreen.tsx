@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
   StatusBar,
-  BackHandler,
+  BackHandler
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { Student } from '../../types';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import ThemedText from '../../components/ThemedText';
 
 interface StudentHistoryScreenProps {
   student: Student;
@@ -146,7 +146,7 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.surface} />
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>History</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>History</ThemedText>
       </View>
       <ScrollView
         style={styles.content}
@@ -156,7 +156,7 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
         {historyData.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="time-outline" size={64} color={theme.border} />
-            <Text style={[styles.emptyText, { color: theme.textTertiary }]}>No history records</Text>
+            <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>No history records</ThemedText>
           </View>
         ) : (
           historyData.map((item) => (
@@ -165,17 +165,17 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
                 <Ionicons name={getIconName(item.type)} size={24} color={getIconColor(item.type)} />
               </View>
               <View style={styles.historyContent}>
-                <Text style={[styles.historyType, { color: theme.text }]}>{getTypeLabel(item.type)}</Text>
-                {item.passId && <Text style={[styles.historyPassId, { color: theme.primary }]}>{item.passId}</Text>}
-                {item.reason && <Text style={[styles.historyReason, { color: theme.textSecondary }]} numberOfLines={2}>{item.reason}</Text>}
+                <ThemedText style={[styles.historyType, { color: theme.text }]}>{getTypeLabel(item.type)}</ThemedText>
+                {item.passId && <ThemedText style={[styles.historyPassId, { color: theme.primary }]}>{item.passId}</ThemedText>}
+                {item.reason && <ThemedText style={[styles.historyReason, { color: theme.textSecondary }]} numberOfLines={2}>{item.reason}</ThemedText>}
                 <View style={styles.historyMeta}>
                   <Ionicons name="time-outline" size={14} color={theme.textTertiary} />
-                  <Text style={[styles.historyTimestamp, { color: theme.textTertiary }]}>{formatTimestamp(item.timestamp)}</Text>
+                  <ThemedText style={[styles.historyTimestamp, { color: theme.textTertiary }]}>{formatTimestamp(item.timestamp)}</ThemedText>
                 </View>
                 {item.location && (
                   <View style={styles.historyMeta}>
                     <Ionicons name="location-outline" size={14} color={theme.textTertiary} />
-                    <Text style={[styles.historyLocation, { color: theme.textTertiary }]}>{item.location}</Text>
+                    <ThemedText style={[styles.historyLocation, { color: theme.textTertiary }]}>{item.location}</ThemedText>
                   </View>
                 )}
               </View>
@@ -186,20 +186,20 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}>
           <Ionicons name="home-outline" size={24} color={theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Home</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Home</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('REQUESTS')}>
           <Ionicons name="document-text-outline" size={24} color={theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Requests</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Requests</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HISTORY')}>
           <Ionicons name="time" size={24} color={theme.primary} />
-          <Text style={[styles.navLabelActive, { color: theme.primary }]}>History</Text>
+          <ThemedText style={[styles.navLabelActive, { color: theme.primary }]}>History</ThemedText>
           <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('PROFILE')}>
           <Ionicons name="person-outline" size={24} color={theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Profile</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Profile</ThemedText>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

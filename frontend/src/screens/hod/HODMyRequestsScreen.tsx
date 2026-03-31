@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -17,6 +16,7 @@ import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import GatePassQRModal from '../../components/GatePassQRModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import ThemedText from '../../components/ThemedText';
 
 interface HODMyRequestsScreenProps {
   user: HOD;
@@ -170,34 +170,34 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
         {/* Top row: avatar + name + badge + time */}
         <View style={styles.cardTopRow}>
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{initials}</Text>
+            <ThemedText style={styles.avatarText}>{initials}</ThemedText>
           </View>
           <View style={styles.cardNameBlock}>
             <View style={styles.cardNameRow}>
-              <Text style={styles.cardName} numberOfLines={1}>{name}</Text>
+              <ThemedText style={styles.cardName} numberOfLines={1}>{name}</ThemedText>
               <View style={styles.typePillInline}>
-                <Text style={styles.typePillInlineText}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</Text>
+                <ThemedText style={styles.typePillInlineText}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</ThemedText>
               </View>
             </View>
-            <Text style={styles.cardSubtitle}>HOD • {user.department || 'Department'}</Text>
+            <ThemedText style={styles.cardSubtitle}>HOD • {user.department || 'Department'}</ThemedText>
           </View>
-          <Text style={styles.cardTimeAgo}>{getTimeAgo(dateStr)}</Text>
+          <ThemedText style={styles.cardTimeAgo}>{getTimeAgo(dateStr)}</ThemedText>
         </View>
 
         {/* Info box */}
         <View style={styles.infoBox}>
           <View style={styles.infoBoxRow}>
             <Ionicons name="document-text-outline" size={14} color="#6B7280" />
-            <Text style={styles.infoBoxText} numberOfLines={1}>{request.purpose || 'General'}</Text>
+            <ThemedText style={styles.infoBoxText} numberOfLines={1}>{request.purpose || 'General'}</ThemedText>
           </View>
           <View style={styles.infoBoxRow}>
             <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-            <Text style={styles.infoBoxText}>{formatDate(dateStr)}</Text>
+            <ThemedText style={styles.infoBoxText}>{formatDate(dateStr)}</ThemedText>
           </View>
           {isBulk && (
             <View style={styles.infoBoxRow}>
               <Ionicons name="people-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoBoxText}>
+              <ThemedText style={styles.infoBoxText}>
                 {(() => {
                   const parts: string[] = [];
                   const sc = request.staffCount ?? 0;
@@ -210,7 +210,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
                   }
                   return parts.join(', ');
                 })()}
-              </Text>
+              </ThemedText>
             </View>
           )}
         </View>
@@ -219,7 +219,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
         <View style={styles.cardBottomRow}>
           <View style={[styles.statusPill, { backgroundColor: badge.bgColor }]}>
             <View style={[styles.statusDot, { backgroundColor: badge.color }]} />
-            <Text style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</Text>
+            <ThemedText style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</ThemedText>
           </View>
         </View>
       </TouchableOpacity>
@@ -233,12 +233,12 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
           <TouchableOpacity onPress={() => onBack && onBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#1F2937" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Requests</Text>
+          <ThemedText style={styles.headerTitle}>My Requests</ThemedText>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F59E0B" />
-          <Text style={styles.loadingText}>Loading requests...</Text>
+          <ThemedText style={styles.loadingText}>Loading requests...</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -251,7 +251,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
         <TouchableOpacity onPress={() => onBack && onBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Requests</Text>
+        <ThemedText style={styles.headerTitle}>My Requests</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -267,10 +267,10 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
         {allRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyStateText}>No requests found</Text>
-            <Text style={styles.emptyStateSubtext}>
+            <ThemedText style={styles.emptyStateText}>No requests found</ThemedText>
+            <ThemedText style={styles.emptyStateSubtext}>
               Your requests will appear here
-            </Text>
+            </ThemedText>
           </View>
         ) : (
           allRequests.map((request, index) => (

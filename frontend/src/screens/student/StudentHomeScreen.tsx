@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -9,7 +8,7 @@ import {
   StatusBar,
   Image,
   Modal,
-  TextInput,
+  TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -28,6 +27,7 @@ import ErrorModal from '../../components/ErrorModal';
 import SuccessModal from '../../components/SuccessModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import ThemedText from '../../components/ThemedText';
 
 interface StudentHomeScreenProps {
   student: Student;
@@ -184,17 +184,17 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               <Image source={{ uri: profileImage }} style={styles.avatarImage} />
             ) : (
               <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                <Text style={[styles.avatarText, { color: '#FFFFFF' }]}>
+                <ThemedText style={[styles.avatarText, { color: '#FFFFFF' }]}>
                   {getInitials(student.firstName, student.lastName)}
-                </Text>
+                </ThemedText>
               </View>
             )}
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={[styles.greeting, { color: theme.textSecondary }]}>{getGreeting()}</Text>
-            <Text style={[styles.userName, { color: theme.text }]}>
+            <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>{getGreeting()}</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]}>
               {student.firstName.toUpperCase()} {student.lastName?.charAt(0) || ''}
-            </Text>
+            </ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -205,7 +205,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
             <Ionicons name="notifications-outline" size={24} color={theme.text} />
             {unreadCount > 0 && (
               <View style={[styles.notificationBadge, { backgroundColor: theme.error }]}>
-                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+                <ThemedText style={styles.notificationBadgeText}>{unreadCount}</ThemedText>
               </View>
             )}
           </TouchableOpacity>
@@ -220,13 +220,13 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       >
         <View style={[styles.statsCard, { backgroundColor: theme.cardBackground }]}>
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: theme.text }]}>{stats.entries}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>ENTRIES</Text>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.entries}</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>ENTRIES</ThemedText>
           </View>
           <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: theme.text }]}>{stats.exits}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>EXITS</Text>
+            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.exits}</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>EXITS</ThemedText>
           </View>
         </View>
 
@@ -236,39 +236,39 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           </View>
           <View style={[styles.requestCardBottom, { backgroundColor: theme.cardBackground }]}>
              <View style={styles.requestCardContent}>
-               <Text style={[styles.requestCardTitle, { color: theme.text }]}>Request Gate Pass</Text>
+               <ThemedText style={[styles.requestCardTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
              </View>
              <TouchableOpacity style={[styles.applyButton, { backgroundColor: theme.primary }]} onPress={onRequestGatePass}>
-               <Text style={styles.applyButtonText}>Apply Now</Text>
+               <ThemedText style={styles.applyButtonText}>Apply Now</ThemedText>
              </TouchableOpacity>
           </View>
         </TouchableOpacity>
 
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</Text>
+          <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
         </View>
 
         {recentRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="document-text-outline" size={48} color={theme.border} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No recent requests</Text>
+            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No recent requests</ThemedText>
           </View>
         ) : (
           recentRequests.map((request) => (
             <TouchableOpacity key={request.id} style={[styles.requestItem, { backgroundColor: theme.cardBackground }]} onPress={() => handleRequestClick(request)}>
                <View style={styles.requestItemTop}>
                  <View style={{ flex: 1 }}>
-                   <Text style={[styles.requestId, { color: theme.text }]}>{request.purpose || 'Gate Pass Request'}</Text>
-                   <Text style={[styles.requestReason, { color: theme.textSecondary }]}>{formatDate(request.requestDate)}</Text>
+                   <ThemedText style={[styles.requestId, { color: theme.text }]}>{request.purpose || 'Gate Pass Request'}</ThemedText>
+                   <ThemedText style={[styles.requestReason, { color: theme.textSecondary }]}>{formatDate(request.requestDate)}</ThemedText>
                  </View>
                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
-                    <Text style={styles.statusText}>{getStatusLabel(request.status)}</Text>
+                    <ThemedText style={styles.statusText}>{getStatusLabel(request.status)}</ThemedText>
                  </View>
                </View>
                {request.status === 'APPROVED' && (
                  <TouchableOpacity style={[styles.viewQRButton, { backgroundColor: theme.primary }]} onPress={() => handleViewQR(request)}>
                    <Ionicons name="qr-code-outline" size={16} color="#FFFFFF" />
-                   <Text style={styles.viewQRButtonText}>View QR</Text>
+                   <ThemedText style={styles.viewQRButtonText}>View QR</ThemedText>
                  </TouchableOpacity>
                )}
             </TouchableOpacity>
@@ -281,20 +281,20 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}>
           <Ionicons name="home" size={24} color={theme.primary} />
-          <Text style={[styles.navLabelActive, { color: theme.primary }]}>Home</Text>
+          <ThemedText style={[styles.navLabelActive, { color: theme.primary }]}>Home</ThemedText>
           <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('REQUESTS')}>
           <Ionicons name="document-text-outline" size={24} color={theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Requests</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Requests</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HISTORY')}>
           <Ionicons name="time-outline" size={24} color={theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>History</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>History</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('PROFILE')}>
           <Ionicons name="person-outline" size={24} color={theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>Profile</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Profile</ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -305,7 +305,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           <View style={[styles.detailModalContainer, { backgroundColor: theme.surface }]}>
             <View style={[styles.modalHandle, { backgroundColor: theme.border }]} />
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Request Status</Text>
+              <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Request Status</ThemedText>
               <TouchableOpacity onPress={() => setShowDetailModal(false)} style={[styles.closeButton, { backgroundColor: theme.surfaceHighlight }]}>
                 <Ionicons name="close-circle" size={30} color={theme.textSecondary} />
               </TouchableOpacity>
@@ -314,13 +314,13 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               <ScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false}>
                 <View style={[styles.statusModalHeader, { borderBottomColor: theme.border }]}>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.statusModalId, { color: theme.primary }]}>#{selectedRequest.id}</Text>
-                    <Text style={[styles.statusModalDate, { color: theme.textSecondary }]}>{new Date(selectedRequest.requestDate).toLocaleDateString()}</Text>
+                    <ThemedText style={[styles.statusModalId, { color: theme.primary }]}>#{selectedRequest.id}</ThemedText>
+                    <ThemedText style={[styles.statusModalDate, { color: theme.textSecondary }]}>{new Date(selectedRequest.requestDate).toLocaleDateString()}</ThemedText>
                   </View>
                 </View>
                 <RequestTimeline status={selectedRequest.status} staffApproval={selectedRequest.staffApproval || 'PENDING'} hodApproval={selectedRequest.hodApproval || 'PENDING'} requestDate={selectedRequest.requestDate} staffRemark={selectedRequest.staffRemark} hodRemark={selectedRequest.hodRemark}/>
                 <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowDetailModal(false)}>
-                  <Text style={styles.closeModalButtonText}>Close Status</Text>
+                  <ThemedText style={styles.closeModalButtonText}>Close Status</ThemedText>
                 </TouchableOpacity>
               </ScrollView>
             )}

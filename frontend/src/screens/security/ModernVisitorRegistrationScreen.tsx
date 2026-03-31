@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   TextInput,
   StatusBar,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -17,6 +16,7 @@ import { apiService } from '../../services/api';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface ModernVisitorRegistrationScreenProps {
   security: SecurityPersonnel;
@@ -183,7 +183,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Visitor Registration</Text>
+        <ThemedText style={styles.headerTitle}>Visitor Registration</ThemedText>
         <TouchableOpacity 
           style={styles.qrButton} 
           onPress={() => onNavigate('VISITOR_QR')}
@@ -195,10 +195,10 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {/* Visitor Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Visitor Information</Text>
+          <ThemedText style={styles.sectionTitle}>Visitor Information</ThemedText>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Number of Visitors *</Text>
+            <ThemedText style={styles.inputLabel}>Number of Visitors *</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="people-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -215,9 +215,9 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           {/* Dynamic Visitor Names */}
           {visitorNames.map((name, index) => (
             <View key={index} style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
+              <ThemedText style={styles.inputLabel}>
                 {index === 0 ? 'Main Visitor Name *' : `Visitor ${index + 1} Name *`}
-              </Text>
+              </ThemedText>
               <View style={styles.inputContainer}>
                 <Ionicons name="person-outline" size={20} color="#9CA3AF" />
                 <TextInput
@@ -232,7 +232,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           ))}
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email *</Text>
+            <ThemedText style={styles.inputLabel}>Email *</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -248,7 +248,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Phone Number *</Text>
+            <ThemedText style={styles.inputLabel}>Phone Number *</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="call-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -263,7 +263,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Vehicle Number (Optional)</Text>
+            <ThemedText style={styles.inputLabel}>Vehicle Number (Optional)</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="car-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -280,10 +280,10 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
 
         {/* Visit Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Visit Details</Text>
+          <ThemedText style={styles.sectionTitle}>Visit Details</ThemedText>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Role *</Text>
+            <ThemedText style={styles.inputLabel}>Role *</ThemedText>
             <View style={styles.pickerContainer}>
               <Ionicons name="person-outline" size={20} color="#9CA3AF" style={styles.pickerIcon} />
               <Picker
@@ -298,7 +298,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Department *</Text>
+            <ThemedText style={styles.inputLabel}>Department *</ThemedText>
             <View style={styles.pickerContainer}>
               <Ionicons name="business-outline" size={20} color="#9CA3AF" style={styles.pickerIcon} />
               <Picker
@@ -315,7 +315,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Staff to Meet *</Text>
+            <ThemedText style={styles.inputLabel}>Staff to Meet *</ThemedText>
             <View style={styles.pickerContainer}>
               <Ionicons name="person-circle-outline" size={20} color="#9CA3AF" style={styles.pickerIcon} />
               <Picker
@@ -333,7 +333,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Purpose of Visit *</Text>
+            <ThemedText style={styles.inputLabel}>Purpose of Visit *</ThemedText>
             <View style={styles.textAreaContainer}>
               <Ionicons name="document-text-outline" size={20} color="#9CA3AF" style={styles.textAreaIcon} />
               <TextInput
@@ -361,7 +361,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
           ) : (
             <>
               <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-              <Text style={styles.submitButtonText}>Register Visitor</Text>
+              <ThemedText style={styles.submitButtonText}>Register Visitor</ThemedText>
             </>
           )}
         </TouchableOpacity>

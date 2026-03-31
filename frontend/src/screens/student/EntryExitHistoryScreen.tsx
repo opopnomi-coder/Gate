@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
+  RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { Student } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
 import { formatDateTime } from '../../utils/dateUtils';
+import ThemedText from '../../components/ThemedText';
 
 interface EntryExitHistoryScreenProps {
   user: Student;
@@ -85,7 +85,7 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
         <TouchableOpacity onPress={handleGoBack} style={[styles.backButton, { backgroundColor: theme.surfaceHighlight }]}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Entry / Exit History</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Entry / Exit History</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -96,15 +96,15 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
         {isLoading ? (
           <View style={styles.centered}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading history...</Text>
+            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading history...</ThemedText>
           </View>
         ) : history.length === 0 ? (
           <View style={styles.centered}>
             <Ionicons name="time-outline" size={64} color={theme.border} />
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>No history yet</Text>
-            <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.emptyTitle, { color: theme.text }]}>No history yet</ThemedText>
+            <ThemedText style={[styles.emptySubtext, { color: theme.textSecondary }]}>
               Your campus entry and exit records will appear here
-            </Text>
+            </ThemedText>
           </View>
         ) : (
           history.map((entry) => (
@@ -120,30 +120,30 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
                 />
               </View>
               <View style={styles.cardBody}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>
+                <ThemedText style={[styles.cardTitle, { color: theme.text }]}>
                   {entry.type === 'ENTRY' ? 'Campus Entry' : 'Campus Exit'}
-                </Text>
-                <Text style={[styles.cardTime, { color: theme.textSecondary }]}>{formatTime(entry.timestamp)}</Text>
+                </ThemedText>
+                <ThemedText style={[styles.cardTime, { color: theme.textSecondary }]}>{formatTime(entry.timestamp)}</ThemedText>
                 <View style={styles.detailRow}>
                   <Ionicons name="location-outline" size={14} color={theme.textTertiary} />
-                  <Text style={[styles.detailText, { color: theme.textTertiary }]}>{entry.gate}</Text>
+                  <ThemedText style={[styles.detailText, { color: theme.textTertiary }]}>{entry.gate}</ThemedText>
                 </View>
                 {entry.purpose ? (
                   <View style={styles.detailRow}>
                     <Ionicons name="document-text-outline" size={14} color={theme.textTertiary} />
-                    <Text style={[styles.detailText, { color: theme.textTertiary }]}>{entry.purpose}</Text>
+                    <ThemedText style={[styles.detailText, { color: theme.textTertiary }]}>{entry.purpose}</ThemedText>
                   </View>
                 ) : null}
                 {entry.isLate && (
                   <View style={[styles.badge, { backgroundColor: theme.error + '18' }]}>
                     <Ionicons name="time-outline" size={13} color={theme.error} />
-                    <Text style={[styles.badgeText, { color: theme.error }]}>Late Arrival</Text>
+                    <ThemedText style={[styles.badgeText, { color: theme.error }]}>Late Arrival</ThemedText>
                   </View>
                 )}
                 {entry.isGatePass && (
                   <View style={[styles.badge, { backgroundColor: theme.primary + '18' }]}>
                     <Ionicons name="qr-code-outline" size={13} color={theme.primary} />
-                    <Text style={[styles.badgeText, { color: theme.primary }]}>Gate Pass</Text>
+                    <ThemedText style={[styles.badgeText, { color: theme.primary }]}>Gate Pass</ThemedText>
                   </View>
                 )}
               </View>

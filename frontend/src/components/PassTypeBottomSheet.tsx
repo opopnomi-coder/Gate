@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import Modal from 'react-native-modal';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 const TypedModal = Modal as any;
 const TypedLinearGradient = LinearGradient as any;
@@ -47,10 +48,10 @@ const PassTypeBottomSheet: React.FC<PassTypeBottomSheetProps> = ({
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text }]}>Select Pass Type</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+          <ThemedText style={[styles.title, { color: theme.text }]}>Select Pass Type</ThemedText>
+          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>
             Choose the type of gate pass you want to create
-          </Text>
+          </ThemedText>
         </View>
 
         {/* Pass Type Cards */}
@@ -71,10 +72,10 @@ const PassTypeBottomSheet: React.FC<PassTypeBottomSheetProps> = ({
             </TypedLinearGradient>
 
             <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, { color: theme.text }]}>Myself (Single Pass)</Text>
-              <Text style={[styles.cardDescription, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Myself (Single Pass)</ThemedText>
+              <ThemedText style={[styles.cardDescription, { color: theme.textSecondary }]}>
                 Create a gate pass for yourself
-              </Text>
+              </ThemedText>
             </View>
 
             <View style={styles.arrowContainer}>
@@ -98,10 +99,10 @@ const PassTypeBottomSheet: React.FC<PassTypeBottomSheetProps> = ({
             </TypedLinearGradient>
 
             <View style={styles.cardContent}>
-              <Text style={[styles.cardTitle, { color: theme.text }]}>Bulk Student Pass</Text>
-              <Text style={[styles.cardDescription, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Bulk Student Pass</ThemedText>
+              <ThemedText style={[styles.cardDescription, { color: theme.textSecondary }]}>
                 Create a gate pass for multiple students
-              </Text>
+              </ThemedText>
             </View>
 
             <View style={styles.arrowContainer}>
@@ -127,10 +128,10 @@ const PassTypeBottomSheet: React.FC<PassTypeBottomSheetProps> = ({
                 <Ionicons name="person-add" size={28} color="#FFF" />
               </TypedLinearGradient>
               <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>Pre-register guest</Text>
-                <Text style={[styles.cardDescription, { color: theme.textSecondary }]}>
+                <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Pre-register guest</ThemedText>
+                <ThemedText style={[styles.cardDescription, { color: theme.textSecondary }]}>
                   Instant visitor pass — QR &amp; manual code (share via WhatsApp)
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.arrowContainer}>
                 <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
@@ -145,7 +146,7 @@ const PassTypeBottomSheet: React.FC<PassTypeBottomSheetProps> = ({
           onPress={onClose}
           activeOpacity={0.8}
         >
-          <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</Text>
+          <ThemedText style={[styles.cancelButtonText, { color: theme.textSecondary }]}>Cancel</ThemedText>
         </TouchableOpacity>
       </View>
     </TypedModal>

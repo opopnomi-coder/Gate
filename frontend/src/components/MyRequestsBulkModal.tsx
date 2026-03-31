@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, Modal, ScrollView, TouchableOpacity,
-  ActivityIndicator, Image, StatusBar, Platform, Dimensions,
+  View,
+  StyleSheet,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+  StatusBar,
+  Platform,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -10,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 import { formatDateTime, formatDateShort } from '../utils/dateUtils';
 import ParticipantsScreen from '../screens/shared/ParticipantsScreen';
 import GatePassQRModal from './GatePassQRModal';
+import ThemedText from './ThemedText';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -134,10 +143,10 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
           <TouchableOpacity onPress={onClose} style={[styles.backBtn, { backgroundColor: theme.inputBackground }]}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Bulk Pass Details</Text>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Bulk Pass Details</ThemedText>
           {!loading && !error && (
             <View style={[styles.statusPill, { backgroundColor: statusColor + '22' }]}>
-              <Text style={[styles.statusPillText, { color: statusColor }]}>{statusLabel}</Text>
+              <ThemedText style={[styles.statusPillText, { color: statusColor }]}>{statusLabel}</ThemedText>
             </View>
           )}
         </View>
@@ -145,14 +154,14 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading...</Text>
+            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading...</ThemedText>
           </View>
         ) : error ? (
           <View style={styles.center}>
             <Ionicons name="alert-circle" size={48} color={theme.error} />
-            <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
+            <ThemedText style={[styles.errorText, { color: theme.error }]}>{error}</ThemedText>
             <TouchableOpacity style={[styles.retryBtn, { backgroundColor: theme.primary }]} onPress={loadDetails}>
-              <Text style={styles.retryText}>Retry</Text>
+              <ThemedText style={styles.retryText}>Retry</ThemedText>
             </TouchableOpacity>
           </View>
         ) : (
@@ -161,22 +170,22 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
             {/* Profile row */}
             <View style={[styles.profileRow, { backgroundColor: theme.surface }]}>
               <View style={[styles.avatar, { backgroundColor: statusColor }]}>
-                <Text style={styles.avatarText}>
+                <ThemedText style={styles.avatarText}>
                   {getInitials(requester?.name || details?.requestedByStaffName || 'BK')}
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.profileInfo}>
-                <Text style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
+                <ThemedText style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
                   {requester?.name || details?.requestedByStaffName || 'N/A'}
-                </Text>
-                <Text style={[styles.profileSub, { color: theme.textSecondary }]} numberOfLines={1}>
+                </ThemedText>
+                <ThemedText style={[styles.profileSub, { color: theme.textSecondary }]} numberOfLines={1}>
                   {requester?.role || userRole} • {requester?.department || details?.department || 'N/A'}
-                </Text>
+                </ThemedText>
               </View>
               {participants.length > 0 && (
                 <View style={[styles.countChip, { backgroundColor: theme.primary + '22' }]}>
                   <Ionicons name="people" size={13} color={theme.primary} />
-                  <Text style={[styles.countChipText, { color: theme.primary }]}>{participants.length}</Text>
+                  <ThemedText style={[styles.countChipText, { color: theme.primary }]}>{participants.length}</ThemedText>
                 </View>
               )}
             </View>
@@ -184,22 +193,22 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
             {/* Applied by — shown when viewer is the receiver and someone else created the pass */}
             {showAppliedBy && (
               <View style={[styles.block, { backgroundColor: theme.surface }]}>
-                <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>APPLIED BY</Text>
+                <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>APPLIED BY</ThemedText>
                 <View style={styles.appliedByRow}>
                   <View style={[styles.appliedByAvatar, { backgroundColor: theme.primary + '22' }]}>
-                    <Text style={[styles.appliedByAvatarText, { color: theme.primary }]}>
+                    <ThemedText style={[styles.appliedByAvatarText, { color: theme.primary }]}>
                       {(appliedByName || 'U').split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)}
-                    </Text>
+                    </ThemedText>
                   </View>
                   <View style={styles.appliedByInfo}>
-                    <Text style={[styles.appliedByName, { color: theme.text }]}>{appliedByName}</Text>
-                    <Text style={[styles.appliedBySub, { color: theme.textSecondary }]}>
+                    <ThemedText style={[styles.appliedByName, { color: theme.text }]}>{appliedByName}</ThemedText>
+                    <ThemedText style={[styles.appliedBySub, { color: theme.textSecondary }]}>
                       {details?.requestedByRole || (viewerRole === 'STUDENT' ? 'Class Incharge' : 'HOD')}
-                    </Text>
+                    </ThemedText>
                   </View>
                   <View style={[styles.appliedByBadge, { backgroundColor: theme.primary + '15' }]}>
                     <Ionicons name="person-circle-outline" size={14} color={theme.primary} />
-                    <Text style={[styles.appliedByBadgeText, { color: theme.primary }]}>Organiser</Text>
+                    <ThemedText style={[styles.appliedByBadgeText, { color: theme.primary }]}>Organiser</ThemedText>
                   </View>
                 </View>
               </View>
@@ -208,37 +217,37 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
             {/* Info grid */}
             <View style={[styles.infoGrid, { backgroundColor: theme.surface }]}>
               <View style={styles.infoCell}>
-                <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>PURPOSE</Text>
-                <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textTertiary }]}>PURPOSE</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>
                   {details?.purpose || 'N/A'}
-                </Text>
+                </ThemedText>
               </View>
               <View style={[styles.infoDivider, { backgroundColor: theme.border }]} />
               <View style={styles.infoCell}>
-                <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>DATE</Text>
-                <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textTertiary }]}>DATE</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>
                   {formatDate(details?.exitDateTime || details?.requestDate)}
-                </Text>
+                </ThemedText>
               </View>
             </View>
 
             {/* Reason */}
             <View style={[styles.block, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>REASON</Text>
-              <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>REASON</ThemedText>
+              <ThemedText style={[styles.reasonText, { color: theme.textSecondary }]}>
                 {details?.reason || 'No reason provided.'}
-              </Text>
+              </ThemedText>
             </View>
 
             {/* Attachment */}
             {!!details?.attachmentUri && (
               <View style={[styles.block, { backgroundColor: theme.surface }]}>
-                <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>PREVIEW</Text>
+                <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>PREVIEW</ThemedText>
                 <TouchableOpacity style={styles.previewBox} onPress={() => setShowFullscreen(true)} activeOpacity={0.85}>
                   <Image source={{ uri: details.attachmentUri }} style={styles.previewImage} resizeMode="cover" />
                   <View style={styles.previewOverlay}>
                     <Ionicons name="expand-outline" size={16} color="#FFF" />
-                    <Text style={styles.previewOverlayText}>Tap to expand</Text>
+                    <ThemedText style={styles.previewOverlayText}>Tap to expand</ThemedText>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -246,7 +255,7 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
 
             {/* Approval timeline */}
             <View style={[styles.block, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>APPROVAL TIMELINE</Text>
+              <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>APPROVAL TIMELINE</ThemedText>
               {tlSteps.map((step, idx) => {
                 const dotColor = step.status === 'done' ? theme.success
                   : step.status === 'rejected' ? theme.error
@@ -266,12 +275,12 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
                         {step.status === 'pending' && <View style={[styles.tlDotInner, { backgroundColor: theme.textTertiary }]} />}
                       </View>
                       <View style={styles.tlBody}>
-                        <Text style={[styles.tlTitle, { color: theme.text }]}>{step.label}</Text>
-                        <Text style={[styles.tlStatus, { color: statusTxtColor }]}>{statusTxt}</Text>
+                        <ThemedText style={[styles.tlTitle, { color: theme.text }]}>{step.label}</ThemedText>
+                        <ThemedText style={[styles.tlStatus, { color: statusTxtColor }]}>{statusTxt}</ThemedText>
                         {step.remark ? (
                           <View style={[styles.tlRemark, { backgroundColor: theme.background, borderLeftColor: theme.warning }]}>
-                            <Text style={[styles.tlRemarkLabel, { color: theme.textSecondary }]}>Remark:</Text>
-                            <Text style={[styles.tlRemarkText, { color: theme.text }]}>{step.remark}</Text>
+                            <ThemedText style={[styles.tlRemarkLabel, { color: theme.textSecondary }]}>Remark:</ThemedText>
+                            <ThemedText style={[styles.tlRemarkText, { color: theme.text }]}>{step.remark}</ThemedText>
                           </View>
                         ) : null}
                       </View>
@@ -297,17 +306,17 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
                 onPress={() => setShowParticipants(true)}
               >
                 <Ionicons name="people" size={20} color="#FFF" />
-                <Text style={styles.footerBtnText}>View Participants ({participants.length})</Text>
+                <ThemedText style={styles.footerBtnText}>View Participants ({participants.length})</ThemedText>
               </TouchableOpacity>
             )}
             {isApproved && hasQR && isQROwner && viewerRole !== 'STUDENT' ? (
               <TouchableOpacity style={[styles.footerBtn, { backgroundColor: theme.success }]} onPress={() => setShowQR(true)}>
                 <Ionicons name="qr-code" size={20} color="#FFF" />
-                <Text style={styles.footerBtnText}>View QR & Manual Code</Text>
+                <ThemedText style={styles.footerBtnText}>View QR & Manual Code</ThemedText>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity style={[styles.footerBtn, { backgroundColor: theme.primary }]} onPress={onClose}>
-                <Text style={styles.footerBtnText}>Close</Text>
+                <ThemedText style={styles.footerBtnText}>Close</ThemedText>
               </TouchableOpacity>
             )}
           </View>

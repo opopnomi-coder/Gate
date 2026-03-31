@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
   ScrollView,
   StatusBar,
-  Modal,
+  Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, CameraView } from '../../shims/expoCamera';
@@ -18,6 +17,7 @@ import { apiService } from '../../services/api';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface ModernQRScannerScreenProps {
   security: SecurityPersonnel;
@@ -193,7 +193,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00BCD4" />
-          <Text style={styles.loadingText}>Requesting camera permission...</Text>
+          <ThemedText style={styles.loadingText}>Requesting camera permission...</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -204,8 +204,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="camera-reverse-outline" size={64} color="#EF4444" />
-          <Text style={styles.errorTitle}>Camera Access Denied</Text>
-          <Text style={styles.errorText}>Please enable camera permissions in settings</Text>
+          <ThemedText style={styles.errorTitle}>Camera Access Denied</ThemedText>
+          <ThemedText style={styles.errorText}>Please enable camera permissions in settings</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -220,7 +220,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>QR/Barcode Scanner</Text>
+        <ThemedText style={styles.headerTitle}>QR/Barcode Scanner</ThemedText>
         <View style={styles.headerRight} />
       </View>
 
@@ -228,7 +228,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
           {/* Scanner Type Selection */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Scan Type</Text>
+            <ThemedText style={styles.sectionTitle}>Select Scan Type</ThemedText>
             
             <TouchableOpacity
               style={styles.scanTypeCard}
@@ -238,8 +238,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 <Ionicons name="log-in" size={32} color="#3B82F6" />
               </View>
               <View style={styles.scanTypeInfo}>
-                <Text style={styles.scanTypeTitle}>Entry Scan</Text>
-                <Text style={styles.scanTypeDesc}>Scan QR code or barcode for campus entry</Text>
+                <ThemedText style={styles.scanTypeTitle}>Entry Scan</ThemedText>
+                <ThemedText style={styles.scanTypeDesc}>Scan QR code or barcode for campus entry</ThemedText>
               </View>
               <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
             </TouchableOpacity>
@@ -252,8 +252,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 <Ionicons name="log-out" size={32} color="#EF4444" />
               </View>
               <View style={styles.scanTypeInfo}>
-                <Text style={styles.scanTypeTitle}>Exit Scan</Text>
-                <Text style={styles.scanTypeDesc}>Scan QR code or barcode for campus exit</Text>
+                <ThemedText style={styles.scanTypeTitle}>Exit Scan</ThemedText>
+                <ThemedText style={styles.scanTypeDesc}>Scan QR code or barcode for campus exit</ThemedText>
               </View>
               <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
             </TouchableOpacity>
@@ -261,13 +261,13 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
 
           {/* Manual Entry Option */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Manual Entry</Text>
+            <ThemedText style={styles.sectionTitle}>Manual Entry</ThemedText>
             <TouchableOpacity
               style={styles.manualButton}
               onPress={() => setShowManualModal(true)}
             >
               <Ionicons name="keypad" size={24} color="#00BCD4" />
-              <Text style={styles.manualButtonText}>Enter Code Manually</Text>
+              <ThemedText style={styles.manualButtonText}>Enter Code Manually</ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -275,8 +275,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
           <View style={styles.instructionsCard}>
             <Ionicons name="information-circle" size={24} color="#00BCD4" />
             <View style={styles.instructionsContent}>
-              <Text style={styles.instructionsTitle}>How to Scan</Text>
-              <Text style={styles.instructionsText}>
+              <ThemedText style={styles.instructionsTitle}>How to Scan</ThemedText>
+              <ThemedText style={styles.instructionsText}>
                 Entry Scanner:{'\n'}
                 • QR codes & Barcodes → Regular entry/exit{'\n'}
                 • Plain ID codes → Late entry{'\n'}
@@ -285,7 +285,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 • QR codes & Barcodes → Exit records{'\n'}
                 {'\n'}
                 The system auto-detects the format!
-              </Text>
+              </ThemedText>
             </View>
           </View>
         </ScrollView>
@@ -319,9 +319,9 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                   size={20}
                   color="#FFF"
                 />
-                <Text style={styles.scanTypeBadgeText}>
+                <ThemedText style={styles.scanTypeBadgeText}>
                   {scannerType === 'ENTRY' ? 'ENTRY SCAN' : 'EXIT SCAN'}
-                </Text>
+                </ThemedText>
               </View>
 
               {/* Scan Frame */}
@@ -334,9 +334,9 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
 
               {/* Instructions */}
               <View style={styles.scanInstructions}>
-                <Text style={styles.scanInstructionsText}>
+                <ThemedText style={styles.scanInstructionsText}>
                   Position QR code or barcode within frame
-                </Text>
+                </ThemedText>
               </View>
 
               {/* Cancel Button */}
@@ -345,14 +345,14 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 onPress={resetScanner}
               >
                 <Ionicons name="close-circle" size={24} color="#FFF" />
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
               </TouchableOpacity>
             </View>
 
             {isLoading && (
               <View style={styles.loadingOverlay}>
                 <ActivityIndicator size="large" color="#FFF" />
-                <Text style={styles.loadingOverlayText}>Processing...</Text>
+                <ThemedText style={styles.loadingOverlayText}>Processing...</ThemedText>
               </View>
             )}
           </CameraView>
@@ -369,7 +369,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Manual Entry</Text>
+              <ThemedText style={styles.modalTitle}>Manual Entry</ThemedText>
               <TouchableOpacity
                 onPress={() => setShowManualModal(false)}
                 style={styles.closeButton}
@@ -379,7 +379,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
             </View>
 
             <View style={styles.modalContent}>
-              <Text style={styles.modalLabel}>Select Type</Text>
+              <ThemedText style={styles.modalLabel}>Select Type</ThemedText>
               <View style={styles.typeButtons}>
                 <TouchableOpacity
                   style={[
@@ -388,12 +388,12 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                   ]}
                   onPress={() => setScannerType('ENTRY')}
                 >
-                  <Text style={[
+                  <ThemedText style={[
                     styles.typeButtonText,
                     scannerType === 'ENTRY' && styles.typeButtonTextActive
                   ]}>
                     Entry
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -402,16 +402,16 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                   ]}
                   onPress={() => setScannerType('EXIT')}
                 >
-                  <Text style={[
+                  <ThemedText style={[
                     styles.typeButtonText,
                     scannerType === 'EXIT' && styles.typeButtonTextActive
                   ]}>
                     Exit
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.modalLabel}>Enter Code</Text>
+              <ThemedText style={styles.modalLabel}>Enter Code</ThemedText>
               <TextInput
                 style={styles.manualInput}
                 placeholder="Enter QR code manually"
@@ -434,7 +434,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 ) : (
                   <>
                     <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                    <Text style={styles.submitButtonText}>Submit</Text>
+                    <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
                   </>
                 )}
               </TouchableOpacity>

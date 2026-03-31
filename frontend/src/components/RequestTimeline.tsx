@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface RequestTimelineProps {
   status: string;
@@ -110,22 +111,22 @@ const RequestTimeline: React.FC<RequestTimelineProps> = ({
               )}
             </View>
             <View style={styles.stepContent}>
-              <Text style={[styles.stepLabel, { color: theme.text }]}>{item.label}</Text>
-              <Text style={[styles.stepStatus, { color }]}>
+              <ThemedText style={[styles.stepLabel, { color: theme.text }]}>{item.label}</ThemedText>
+              <ThemedText style={[styles.stepStatus, { color }]}>
                 {stepStatus === 'completed' ? '✓ Completed' :
                  stepStatus === 'rejected' ? '✗ Rejected' :
                  stepStatus === 'active' ? '⏳ In Progress' : '○ Pending'}
-              </Text>
+              </ThemedText>
               {item.step === 2 && staffRemark && (
                 <View style={[styles.remarkContainer, { backgroundColor: theme.inputBackground, borderLeftColor: theme.warning }]}>
-                  <Text style={[styles.remarkLabel, { color: theme.textSecondary }]}>Staff Remark:</Text>
-                  <Text style={[styles.remarkText, { color: theme.text }]}>{staffRemark}</Text>
+                  <ThemedText style={[styles.remarkLabel, { color: theme.textSecondary }]}>Staff Remark:</ThemedText>
+                  <ThemedText style={[styles.remarkText, { color: theme.text }]}>{staffRemark}</ThemedText>
                 </View>
               )}
               {item.step === 3 && hodRemark && (
                 <View style={[styles.remarkContainer, { backgroundColor: theme.inputBackground, borderLeftColor: theme.warning }]}>
-                  <Text style={[styles.remarkLabel, { color: theme.textSecondary }]}>HOD Remark:</Text>
-                  <Text style={[styles.remarkText, { color: theme.text }]}>{hodRemark}</Text>
+                  <ThemedText style={[styles.remarkLabel, { color: theme.textSecondary }]}>HOD Remark:</ThemedText>
+                  <ThemedText style={[styles.remarkText, { color: theme.text }]}>{hodRemark}</ThemedText>
                 </View>
               )}
             </View>

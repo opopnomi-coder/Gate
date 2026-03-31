@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
   StatusBar,
   TextInput,
-  BackHandler,
+  BackHandler
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -20,6 +19,7 @@ import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import { useErrorModal } from '../../hooks/useErrorModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface StudentRequestsScreenProps {
   student: Student;
@@ -126,42 +126,42 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
         {/* Top row */}
         <View style={styles.cardTopRow}>
           <View style={[styles.avatar, { backgroundColor: theme.primary + '22' }]}>
-            <Text style={[styles.avatarText, { color: theme.primary }]}>{initials}</Text>
+            <ThemedText style={[styles.avatarText, { color: theme.primary }]}>{initials}</ThemedText>
           </View>
           <View style={styles.nameBlock}>
             <View style={styles.nameRow}>
-              <Text style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</Text>
+              <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</ThemedText>
               <View style={[styles.typePill, { backgroundColor: theme.inputBackground }]}>
-                <Text style={[styles.typePillText, { color: theme.text }]}>
+                <ThemedText style={[styles.typePillText, { color: theme.text }]}>
                   {isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}
-                </Text>
+                </ThemedText>
               </View>
             </View>
-            <Text style={[styles.cardSub, { color: theme.textSecondary }]}>
+            <ThemedText style={[styles.cardSub, { color: theme.textSecondary }]}>
               Student • {student.department || 'Department'}
-            </Text>
+            </ThemedText>
           </View>
-          <Text style={[styles.timeAgo, { color: theme.textTertiary }]}>{getTimeAgo(dateStr)}</Text>
+          <ThemedText style={[styles.timeAgo, { color: theme.textTertiary }]}>{getTimeAgo(dateStr)}</ThemedText>
         </View>
 
         {/* Info box */}
         <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
           <View style={styles.infoRow}>
             <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
-            <Text style={[styles.infoText, { color: theme.text }]} numberOfLines={1}>
+            <ThemedText style={[styles.infoText, { color: theme.text }]} numberOfLines={1}>
               {request.purpose || request.reason || 'Gate Pass Request'}
-            </Text>
+            </ThemedText>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
-            <Text style={[styles.infoText, { color: theme.text }]}>{formatDate(dateStr)}</Text>
+            <ThemedText style={[styles.infoText, { color: theme.text }]}>{formatDate(dateStr)}</ThemedText>
           </View>
         </View>
 
         {/* Status pill */}
         <View style={[styles.statusPill, { backgroundColor: badge.bg }]}>
           <View style={[styles.statusDot, { backgroundColor: badge.color }]} />
-          <Text style={[styles.statusText, { color: badge.color }]}>{badge.text}</Text>
+          <ThemedText style={[styles.statusText, { color: badge.color }]}>{badge.text}</ThemedText>
         </View>
       </TouchableOpacity>
     );
@@ -172,7 +172,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
       <StatusBar barStyle="dark-content" backgroundColor={theme.surface} />
 
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>My Requests</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
       </View>
 
       <View style={[styles.searchWrap, { backgroundColor: theme.surface }]}>
@@ -195,7 +195,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
         {filteredRequests.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="document-text-outline" size={64} color={theme.border} />
-            <Text style={[styles.emptyText, { color: theme.textTertiary }]}>No requests found</Text>
+            <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>No requests found</ThemedText>
           </View>
         ) : (
           filteredRequests.map(r => renderCard(r))
@@ -215,9 +215,9 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
           return (
             <TouchableOpacity key={tab} style={styles.navItem} onPress={() => onTabChange(tab as any)}>
               <Ionicons name={icon as any} size={24} color={active ? theme.primary : theme.textTertiary} />
-              <Text style={[styles.navLabel, { color: active ? theme.primary : theme.textTertiary, fontWeight: active ? '700' : '500' }]}>
+              <ThemedText style={[styles.navLabel, { color: active ? theme.primary : theme.textTertiary, fontWeight: active ? '700' : '500' }]}>
                 {label}
-              </Text>
+              </ThemedText>
               {active && <View style={[styles.navIndicator, { backgroundColor: theme.primary }]} />}
             </TouchableOpacity>
           );

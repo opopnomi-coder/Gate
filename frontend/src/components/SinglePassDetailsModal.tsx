@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, Image,
-  TextInput, StatusBar, Platform, Dimensions, ActivityIndicator, ScrollView,
-  KeyboardAvoidingView, Keyboard, Linking,
+  View,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  StatusBar,
+  Platform,
+  Dimensions,
+  ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Keyboard,
+  Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { formatDateTime } from '../utils/dateUtils';
+import ThemedText from './ThemedText';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -97,11 +109,11 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
           <TouchableOpacity onPress={onClose} style={[styles.backBtn, { backgroundColor: theme.inputBackground }]} disabled={processing}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>
             {isReadOnly ? 'Request Details' : 'Pass Verification'}
-          </Text>
+          </ThemedText>
           <View style={[styles.statusPill, { backgroundColor: statusColor + '22' }]}>
-            <Text style={[styles.statusPillText, { color: statusColor }]}>{statusLabel}</Text>
+            <ThemedText style={[styles.statusPillText, { color: statusColor }]}>{statusLabel}</ThemedText>
           </View>
         </View>
 
@@ -109,68 +121,68 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
           {/* Profile Row */}
           <View style={[styles.profileRow, { backgroundColor: theme.surface }]}>
             <View style={[styles.avatar, { backgroundColor: statusColor }]}>
-              <Text style={styles.avatarText}>{getInitials(request.studentName || request.staffName || request.regNo || 'ST')}</Text>
+              <ThemedText style={styles.avatarText}>{getInitials(request.studentName || request.staffName || request.regNo || 'ST')}</ThemedText>
             </View>
             <View style={styles.profileInfo}>
               {request.requestType === 'VISITOR' && (
                 <View style={[styles.visitorBadge, { backgroundColor: theme.primary + '22' }]}>
-                  <Text style={[styles.visitorBadgeText, { color: theme.primary }]}>VISITOR</Text>
+                  <ThemedText style={[styles.visitorBadgeText, { color: theme.primary }]}>VISITOR</ThemedText>
                 </View>
               )}
-              <Text style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
+              <ThemedText style={[styles.profileName, { color: theme.text }]} numberOfLines={1}>
                 {request.studentName || request.staffName || request.regNo}
-              </Text>
-              <Text style={[styles.profileSub, { color: theme.textSecondary }]} numberOfLines={1}>
+              </ThemedText>
+              <ThemedText style={[styles.profileSub, { color: theme.textSecondary }]} numberOfLines={1}>
                 {request.regNo || request.staffCode} • {request.department || 'N/A'}
-              </Text>
+              </ThemedText>
             </View>
           </View>
 
           {/* Info Grid */}
           <View style={[styles.infoGrid, { backgroundColor: theme.surface }]}>
             <View style={styles.infoCell}>
-              <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>
+              <ThemedText style={[styles.infoLabel, { color: theme.textTertiary }]}>
                 {request.requestType === 'VISITOR' ? 'PURPOSE OF VISIT' : 'PURPOSE'}
-              </Text>
-              <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>{request.purpose || 'General'}</Text>
+              </ThemedText>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>{request.purpose || 'General'}</ThemedText>
             </View>
             <View style={[styles.infoDivider, { backgroundColor: theme.border }]} />
             <View style={styles.infoCell}>
-              <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>
+              <ThemedText style={[styles.infoLabel, { color: theme.textTertiary }]}>
                 {request.requestType === 'VISITOR' ? 'ENTRY DATE' : 'DATE'}
-              </Text>
-              <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>
+              </ThemedText>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]} numberOfLines={2}>
                 {formatDate(request.visitDate || request.exitDateTime || request.requestDate)}
-              </Text>
+              </ThemedText>
             </View>
           </View>
 
           {/* Reason — hidden for visitor requests */}
           {request.requestType !== 'VISITOR' && (
             <View style={[styles.block, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>REASON</Text>
-              <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>REASON</ThemedText>
+              <ThemedText style={[styles.reasonText, { color: theme.textSecondary }]}>
                 {request.reason || 'No reason provided.'}
-              </Text>
+              </ThemedText>
             </View>
           )}
 
           {/* Attachment — only shown when present */}
           {!!attachmentUri && (
             <View style={[styles.block, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>PREVIEW</Text>
+              <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>PREVIEW</ThemedText>
               <TouchableOpacity style={styles.previewBox} onPress={handleOpenAttachment} activeOpacity={0.85}>
                 {isPdfAttachment ? (
                   <View style={styles.pdfPreview}>
                     <Ionicons name="document-text-outline" size={26} color="#FFFFFF" />
-                    <Text style={styles.previewOverlayText}>Open PDF</Text>
+                    <ThemedText style={styles.previewOverlayText}>Open PDF</ThemedText>
                   </View>
                 ) : (
                   <>
                     <Image source={{ uri: attachmentUri }} style={styles.previewImage} resizeMode="cover" />
                     <View style={styles.previewOverlay}>
                       <Ionicons name="expand-outline" size={16} color="#FFF" />
-                      <Text style={styles.previewOverlayText}>Tap to expand</Text>
+                      <ThemedText style={styles.previewOverlayText}>Tap to expand</ThemedText>
                     </View>
                   </>
                 )}
@@ -181,17 +193,17 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
           {/* Remarks (for reviewer roles) */}
           {hasAnyRemark && (
             <View style={[styles.block, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>REMARKS</Text>
+              <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>REMARKS</ThemedText>
               {showStaffRemark && (
                 <View style={[styles.remarkChip, { backgroundColor: theme.warning + '15', borderLeftColor: theme.warning }]}>
-                  <Text style={[styles.remarkChipRole, { color: theme.warning }]}>Staff</Text>
-                  <Text style={[styles.remarkChipText, { color: theme.text }]} numberOfLines={3}>{request.staffRemark}</Text>
+                  <ThemedText style={[styles.remarkChipRole, { color: theme.warning }]}>Staff</ThemedText>
+                  <ThemedText style={[styles.remarkChipText, { color: theme.text }]} numberOfLines={3}>{request.staffRemark}</ThemedText>
                 </View>
               )}
               {showHodRemark && (
                 <View style={[styles.remarkChip, showStaffRemark && { marginTop: 8 }, { backgroundColor: theme.primary + '15', borderLeftColor: theme.primary }]}>
-                  <Text style={[styles.remarkChipRole, { color: theme.primary }]}>HOD</Text>
-                  <Text style={[styles.remarkChipText, { color: theme.text }]} numberOfLines={3}>{request.hodRemark}</Text>
+                  <ThemedText style={[styles.remarkChipRole, { color: theme.primary }]}>HOD</ThemedText>
+                  <ThemedText style={[styles.remarkChipText, { color: theme.text }]} numberOfLines={3}>{request.hodRemark}</ThemedText>
                 </View>
               )}
             </View>
@@ -200,7 +212,7 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
           {/* Timeline (read-only my-requests view) */}
           {isReadOnly && timelineSteps && timelineSteps.length > 0 && (
             <View style={[styles.block, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.blockLabel, { color: theme.textTertiary }]}>APPROVAL TIMELINE</Text>
+              <ThemedText style={[styles.blockLabel, { color: theme.textTertiary }]}>APPROVAL TIMELINE</ThemedText>
               {timelineSteps.map((step, idx) => {
                 const dotColor = step.status === 'done' ? theme.success
                   : step.status === 'rejected' ? theme.error
@@ -221,12 +233,12 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
                         {step.status === 'pending' && <View style={[styles.tlDotInner, { backgroundColor: theme.textTertiary }]} />}
                       </View>
                       <View style={styles.tlBody}>
-                        <Text style={[styles.tlTitle, { color: theme.text }]}>{step.label}</Text>
-                        <Text style={[styles.tlStatus, { color: statusTxtColor }]}>{statusText}</Text>
+                        <ThemedText style={[styles.tlTitle, { color: theme.text }]}>{step.label}</ThemedText>
+                        <ThemedText style={[styles.tlStatus, { color: statusTxtColor }]}>{statusText}</ThemedText>
                         {step.remark ? (
                           <View style={[styles.tlRemark, { backgroundColor: theme.background, borderLeftColor: theme.warning }]}>
-                            <Text style={[styles.tlRemarkLabel, { color: theme.textSecondary }]}>Remark:</Text>
-                            <Text style={[styles.tlRemarkText, { color: theme.text }]}>{step.remark}</Text>
+                            <ThemedText style={[styles.tlRemarkLabel, { color: theme.textSecondary }]}>Remark:</ThemedText>
+                            <ThemedText style={[styles.tlRemarkText, { color: theme.text }]}>{step.remark}</ThemedText>
                           </View>
                         ) : null}
                       </View>
@@ -261,13 +273,13 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
                 {onReject && (
                   <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.error }, processing && { opacity: 0.5 }]} onPress={() => { Keyboard.dismiss(); onReject(request.id, remark); }} disabled={processing}>
                     <Ionicons name="close-circle" size={20} color="#FFF" />
-                    <Text style={styles.actionBtnText}>Reject</Text>
+                    <ThemedText style={styles.actionBtnText}>Reject</ThemedText>
                   </TouchableOpacity>
                 )}
                 {onApprove && (
                   <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.success }, processing && { opacity: 0.5 }]} onPress={() => { Keyboard.dismiss(); onApprove(request.id, remark); }} disabled={processing}>
                     {processing ? <ActivityIndicator size="small" color="#FFF" /> : <Ionicons name="checkmark-circle" size={20} color="#FFF" />}
-                    <Text style={styles.actionBtnText}>{processing ? 'Processing...' : 'Approve'}</Text>
+                    <ThemedText style={styles.actionBtnText}>{processing ? 'Processing...' : 'Approve'}</ThemedText>
                   </TouchableOpacity>
                 )}
               </View>
@@ -278,11 +290,11 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
             {isApproved && onViewQR ? (
               <TouchableOpacity style={[styles.qrBtn, { backgroundColor: theme.success }]} onPress={() => { onClose(); onViewQR(request); }}>
                 <Ionicons name="qr-code" size={20} color="#FFF" />
-                <Text style={styles.actionBtnText}>View QR Code</Text>
+                <ThemedText style={styles.actionBtnText}>View QR Code</ThemedText>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity style={[styles.closeBtn, { backgroundColor: theme.primary }]} onPress={onClose}>
-                <Text style={styles.closeBtnText}>Close</Text>
+                <ThemedText style={styles.closeBtnText}>Close</ThemedText>
               </TouchableOpacity>
             )}
           </View>

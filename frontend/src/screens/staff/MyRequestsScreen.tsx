@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, ActivityIndicator,
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -12,6 +16,7 @@ import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import GatePassQRModal from '../../components/GatePassQRModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import ThemedText from '../../components/ThemedText';
 
 interface MyRequestsScreenProps {
   user: Staff;
@@ -130,33 +135,33 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
       <TouchableOpacity style={[styles.requestCard, { backgroundColor: theme.surface }]} onPress={() => handleReviewRequest(request)} activeOpacity={0.85}>
         <View style={styles.cardTopRow}>
           <View style={[styles.avatarCircle, { backgroundColor: theme.warning + '22' }]}>
-            <Text style={[styles.avatarText, { color: theme.warning }]}>{initials}</Text>
+            <ThemedText style={[styles.avatarText, { color: theme.warning }]}>{initials}</ThemedText>
           </View>
           <View style={styles.cardNameBlock}>
             <View style={styles.cardNameRow}>
-              <Text style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</Text>
+              <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</ThemedText>
               <View style={[styles.typePillInline, { backgroundColor: theme.inputBackground }]}>
-                <Text style={[styles.typePillInlineText, { color: theme.text }]}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</Text>
+                <ThemedText style={[styles.typePillInlineText, { color: theme.text }]}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</ThemedText>
               </View>
             </View>
-            <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>Staff • {user.department || 'Department'}</Text>
+            <ThemedText style={[styles.cardSubtitle, { color: theme.textSecondary }]}>Staff • {user.department || 'Department'}</ThemedText>
           </View>
-          <Text style={[styles.cardTimeAgo, { color: theme.textTertiary }]}>{getTimeAgo(dateStr)}</Text>
+          <ThemedText style={[styles.cardTimeAgo, { color: theme.textTertiary }]}>{getTimeAgo(dateStr)}</ThemedText>
         </View>
 
         <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
           <View style={styles.infoBoxRow}>
             <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
-            <Text style={[styles.infoBoxText, { color: theme.text }]} numberOfLines={1}>{request.purpose || 'General'}</Text>
+            <ThemedText style={[styles.infoBoxText, { color: theme.text }]} numberOfLines={1}>{request.purpose || 'General'}</ThemedText>
           </View>
           <View style={styles.infoBoxRow}>
             <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
-            <Text style={[styles.infoBoxText, { color: theme.text }]}>{formatDate(dateStr)}</Text>
+            <ThemedText style={[styles.infoBoxText, { color: theme.text }]}>{formatDate(dateStr)}</ThemedText>
           </View>
           {isBulk && (
             <View style={styles.infoBoxRow}>
               <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
-              <Text style={[styles.infoBoxText, { color: theme.text }]}>
+              <ThemedText style={[styles.infoBoxText, { color: theme.text }]}>
                 {(() => {
                   const parts: string[] = [];
                   const sc = request.staffCount ?? 0;
@@ -166,7 +171,7 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
                   if (parts.length === 0) { const total = request.participantCount || 0; return `${total} Participant${total !== 1 ? 's' : ''}`; }
                   return parts.join(', ');
                 })()}
-              </Text>
+              </ThemedText>
             </View>
           )}
         </View>
@@ -174,7 +179,7 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         <View style={styles.cardBottomRow}>
           <View style={[styles.statusPill, { backgroundColor: badge.bgColor }]}>
             <View style={[styles.statusDot, { backgroundColor: badge.color }]} />
-            <Text style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</Text>
+            <ThemedText style={[styles.statusPillText, { color: badge.color }]}>{badge.text}</ThemedText>
           </View>
         </View>
       </TouchableOpacity>
@@ -188,12 +193,12 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
           <TouchableOpacity onPress={() => onBack && onBack()} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>My Requests</Text>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</Text>
+          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -205,7 +210,7 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         <TouchableOpacity onPress={() => onBack && onBack()} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>My Requests</Text>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -219,8 +224,8 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         {allRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="document-text-outline" size={64} color={theme.textTertiary} />
-            <Text style={[styles.emptyStateText, { color: theme.text }]}>No requests found</Text>
-            <Text style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>Your requests will appear here</Text>
+            <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No requests found</ThemedText>
+            <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>Your requests will appear here</ThemedText>
           </View>
         ) : (
           allRequests.map((request, index) => (

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { API_CONFIG } from '../../config/api.config';
 import { useTheme } from '../../context/ThemeContext';
+import ThemedText from '../../components/ThemedText';
 
 interface Notification {
   id: number;
@@ -33,6 +33,7 @@ interface NotificationsScreenProps {
 
 export default function NotificationsScreen({ userId, userType, onBack }: NotificationsScreenProps) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -151,40 +152,66 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
     return (
       <View style={[styles.centerContainer, { backgroundColor: theme.background }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading notifications...</Text>
+        <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading notifications...</ThemedText>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
-      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-        <View style={styles.headerTopRow}>
-          <TouchableOpacity onPress={onBack} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
-            <Ionicons name="arrow-back" size={24} color={theme.text} />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['left', 'right', 'bottom']}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.surface,
+            borderBottomColor: theme.border,
+            paddingTop: Math.max(12, insets.top + 8),
+          },
+        ]}
+      >
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={onBack}
+            disabled={!onBack}
+            style={[
+              styles.iconButton,
+              { backgroundColor: theme.inputBackground, opacity: onBack ? 1 : 0.6 },
+            ]}
+          >
+            <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
+
+          <View style={styles.headerTitleWrap}>
+            <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Notifications</ThemedText>
+            <ThemedText style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+              Latest updates
+            </ThemedText>
+          </View>
+
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={markAllAsRead} style={styles.actionButton}>
+            <TouchableOpacity
+              onPress={markAllAsRead}
+              style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}
+            >
               <Ionicons name="checkmark-done-outline" size={20} color={theme.primary} />
-              <Text style={[styles.actionText, { color: theme.primary }]}>Mark Read</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={clearAllNotifications} style={styles.actionButton}>
+            <TouchableOpacity
+              onPress={clearAllNotifications}
+              style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}
+            >
               <Ionicons name="trash-outline" size={20} color={theme.error} />
-              <Text style={[styles.actionText, { color: theme.error }]}>Clear</Text>
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
-        <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Latest messages</Text>
       </View>
 
       {notifications.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="notifications-off-outline" size={64} color={theme.border} />
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No notifications yet</Text>
-          <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
+          <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No notifications yet</ThemedText>
+          <ThemedText style={[styles.emptySubtext, { color: theme.textTertiary }]}>
             You'll see your latest notifications here
-          </Text>
+          </ThemedText>
         </View>
       ) : (
         <FlatList
@@ -205,18 +232,18 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
                   <Ionicons name={icon.name as any} size={24} color={icon.color} />
                 </View>
                 <View style={styles.contentContainer}>
-                  <View style={styles.headerRow}>
-                    <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+                  <View style={styles.cardHeaderRow}>
+                    <ThemedText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
                       {item.title}
-                    </Text>
+                    </ThemedText>
                     {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />}
                   </View>
-                  <Text style={[styles.message, { color: theme.textSecondary }]} numberOfLines={2}>
+                  <ThemedText style={[styles.message, { color: theme.textSecondary }]} numberOfLines={2}>
                     {item.message}
-                  </Text>
-                  <Text style={[styles.timestamp, { color: theme.textTertiary }]}>
+                  </ThemedText>
+                  <ThemedText style={[styles.timestamp, { color: theme.textTertiary }]}>
                     {formatTimestamp(item.timestamp)}
-                  </Text>
+                  </ThemedText>
                 </View>
               </TouchableOpacity>
             );
@@ -240,14 +267,13 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: 16 },
-  header: { padding: 20, borderBottomWidth: 1 },
-  headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  backButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  headerActions: { flexDirection: 'row', gap: 12 },
-  actionButton: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12, backgroundColor: '#f3f4f6' },
-  actionText: { fontSize: 12, fontWeight: '600' },
-  headerTitle: { fontSize: 24, fontWeight: '700', marginBottom: 4 },
-  headerSubtitle: { fontSize: 14 },
+  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 1 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  iconButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  headerTitleWrap: { flex: 1, paddingHorizontal: 4 },
+  headerActions: { flexDirection: 'row', gap: 10 },
+  headerTitle: { fontSize: 20, fontWeight: '900', letterSpacing: -0.2 },
+  headerSubtitle: { fontSize: 13, marginTop: 2 },
   listContainer: { padding: 16 },
   notificationCard: {
     flexDirection: 'row',
@@ -265,7 +291,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
   contentContainer: { flex: 1 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  cardHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   title: { flex: 1, fontSize: 16, fontWeight: '600' },
   unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
   message: { fontSize: 14, lineHeight: 20, marginBottom: 8 },

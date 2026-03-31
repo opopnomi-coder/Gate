@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, RefreshControl, StatusBar, Clipboard,
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  RefreshControl,
+  StatusBar,
+  Clipboard
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -11,6 +17,7 @@ import { API_CONFIG } from '../../config/api.config';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface VisitorRequest {
   id: number;
@@ -115,7 +122,7 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
         <TouchableOpacity onPress={() => onNavigate('VISITOR_REGISTRATION')} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Visitor QR Codes</Text>
+        <ThemedText style={styles.headerTitle}>Visitor QR Codes</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
@@ -127,7 +134,7 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
             style={[styles.filterTab, selectedFilter === f && styles.filterTabActive]}
             onPress={() => setSelectedFilter(f)}
           >
-            <Text style={[styles.filterText, selectedFilter === f && styles.filterTextActive]}>{f}</Text>
+            <ThemedText style={[styles.filterText, selectedFilter === f && styles.filterTextActive]}>{f}</ThemedText>
           </TouchableOpacity>
         ))}
       </View>
@@ -141,10 +148,10 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
         {filteredVisitors.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="people-outline" size={64} color="#D1D5DB" />
-            <Text style={styles.emptyText}>No visitor requests found</Text>
-            <Text style={styles.emptySubtext}>
+            <ThemedText style={styles.emptyText}>No visitor requests found</ThemedText>
+            <ThemedText style={styles.emptySubtext}>
               {selectedFilter === 'ALL' ? 'Visitor requests will appear here' : `No ${selectedFilter.toLowerCase()} requests`}
-            </Text>
+            </ThemedText>
           </View>
         ) : (
           filteredVisitors.map(visitor => (
@@ -157,14 +164,14 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
             >
               <View style={styles.cardHeader}>
                 <View style={[styles.avatar, { backgroundColor: '#E0F7FA' }]}>
-                  <Text style={styles.avatarText}>{getInitials(visitor.name)}</Text>
+                  <ThemedText style={styles.avatarText}>{getInitials(visitor.name)}</ThemedText>
                 </View>
                 <View style={styles.cardInfo}>
-                  <Text style={styles.visitorName}>{visitor.name}</Text>
-                  <Text style={styles.visitorPhone}>{visitor.phone}</Text>
+                  <ThemedText style={styles.visitorName}>{visitor.name}</ThemedText>
+                  <ThemedText style={styles.visitorPhone}>{visitor.phone}</ThemedText>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusBg(visitor.status) }]}>
-                  <Text style={[styles.statusText, { color: getStatusColor(visitor.status) }]}>{visitor.status}</Text>
+                  <ThemedText style={[styles.statusText, { color: getStatusColor(visitor.status) }]}>{visitor.status}</ThemedText>
                 </View>
               </View>
 
@@ -173,16 +180,16 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
               <View style={styles.cardBody}>
                 <View style={styles.infoRow}>
                   <Ionicons name="document-text-outline" size={16} color="#6B7280" />
-                  <Text style={styles.infoText}>{visitor.purpose}</Text>
+                  <ThemedText style={styles.infoText}>{visitor.purpose}</ThemedText>
                 </View>
                 <View style={styles.infoRow}>
                   <Ionicons name="person-outline" size={16} color="#6B7280" />
-                  <Text style={styles.infoText}>Meeting: {visitor.personToMeet}</Text>
+                  <ThemedText style={styles.infoText}>Meeting: {visitor.personToMeet}</ThemedText>
                 </View>
                 {visitor.status === 'APPROVED' && (
                   <View style={styles.qrHint}>
                     <Ionicons name="qr-code" size={14} color="#00BCD4" />
-                    <Text style={styles.qrHintText}>Tap to view QR code</Text>
+                    <ThemedText style={styles.qrHintText}>Tap to view QR code</ThemedText>
                   </View>
                 )}
               </View>
@@ -204,8 +211,8 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
               {selectedVisitor && (
                 <>
                   {/* Name + ID */}
-                  <Text style={styles.passName}>{selectedVisitor.name}</Text>
-                  <Text style={styles.passId}>Visitor Pass</Text>
+                  <ThemedText style={styles.passName}>{selectedVisitor.name}</ThemedText>
+                  <ThemedText style={styles.passId}>Visitor Pass</ThemedText>
 
                   {/* QR Code centered */}
                   <View style={styles.passQrWrapper}>
@@ -214,7 +221,7 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
                     ) : (
                       <>
                         <Ionicons name="qr-code-outline" size={64} color="#D1D5DB" />
-                        <Text style={{ color: '#9CA3AF', marginTop: 8, fontSize: 13 }}>QR not available</Text>
+                        <ThemedText style={{ color: '#9CA3AF', marginTop: 8, fontSize: 13 }}>QR not available</ThemedText>
                       </>
                     )}
                   </View>
@@ -223,9 +230,9 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
                   {selectedVisitor.manualCode && (
                     <>
                       <TouchableOpacity style={styles.passManualBox} onPress={() => copyManualCode(selectedVisitor.manualCode!)}>
-                        <Text style={styles.passManualDigits}>{selectedVisitor.manualCode}</Text>
+                        <ThemedText style={styles.passManualDigits}>{selectedVisitor.manualCode}</ThemedText>
                       </TouchableOpacity>
-                      <Text style={styles.passScanLabel}>SCAN AT MAIN GATE EXIT</Text>
+                      <ThemedText style={styles.passScanLabel}>SCAN AT MAIN GATE EXIT</ThemedText>
                     </>
                   )}
 
@@ -233,17 +240,17 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
 
                   {/* Reason + Meeting rows */}
                   <View style={styles.passInfoRow}>
-                    <Text style={styles.passInfoLabel}>Reason</Text>
-                    <Text style={styles.passInfoValue}>{selectedVisitor.purpose}</Text>
+                    <ThemedText style={styles.passInfoLabel}>Reason</ThemedText>
+                    <ThemedText style={styles.passInfoValue}>{selectedVisitor.purpose}</ThemedText>
                   </View>
                   <View style={styles.passInfoRow}>
-                    <Text style={styles.passInfoLabel}>Meeting</Text>
-                    <Text style={styles.passInfoValue}>{selectedVisitor.personToMeet}</Text>
+                    <ThemedText style={styles.passInfoLabel}>Meeting</ThemedText>
+                    <ThemedText style={styles.passInfoValue}>{selectedVisitor.personToMeet}</ThemedText>
                   </View>
                   {(selectedVisitor.numberOfPeople || 1) > 1 && (
                     <View style={styles.passInfoRow}>
-                      <Text style={styles.passInfoLabel}>Visitors</Text>
-                      <Text style={styles.passInfoValue}>{selectedVisitor.numberOfPeople} people</Text>
+                      <ThemedText style={styles.passInfoLabel}>Visitors</ThemedText>
+                      <ThemedText style={styles.passInfoValue}>{selectedVisitor.numberOfPeople} people</ThemedText>
                     </View>
                   )}
                 </>

@@ -1,3 +1,4 @@
+import ThemedText from '../components/ThemedText';
 /**
  * ActionLockContext
  * -----------------
@@ -8,7 +9,7 @@
  *   - No duplicate API calls can be triggered
  */
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, Modal } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Modal } from 'react-native';
 
 interface ActionLockContextType {
   isLocked: boolean;
@@ -68,8 +69,8 @@ export const ActionLockProvider: React.FC<{ children: ReactNode }> = ({ children
         <View style={styles.overlay}>
           <View style={styles.card}>
             <ActivityIndicator size="large" color="#00B4D8" style={styles.spinner} />
-            <Text style={styles.message}>{lockMessage}</Text>
-            <Text style={styles.subtext}>Please wait...</Text>
+            <ThemedText style={styles.message}>{lockMessage}</ThemedText>
+            <ThemedText style={styles.subtext}>Please wait...</ThemedText>
           </View>
         </View>
       </Modal>

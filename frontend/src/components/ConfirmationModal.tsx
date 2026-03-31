@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
   Animated,
-  Easing,
+  Easing
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -80,8 +80,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </View>
 
           {/* Text */}
-          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-          <Text style={[styles.message, { color: theme.textSecondary }]}>{message}</Text>
+          <ThemedText style={[styles.title, { color: theme.text }]}>{title}</ThemedText>
+          <ThemedText style={[styles.message, { color: theme.textSecondary }]}>{message}</ThemedText>
 
           {/* Buttons */}
           <View style={styles.btnRow}>
@@ -90,7 +90,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               onPress={() => dismiss(onCancel)}
               activeOpacity={0.75}
             >
-              <Text style={[styles.cancelText, { color: theme.textSecondary }]}>{cancelText}</Text>
+              <ThemedText style={[styles.cancelText, { color: theme.textSecondary }]}>{cancelText}</ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -99,7 +99,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               activeOpacity={0.8}
             >
               <Ionicons name={icon as any} size={18} color="#FFF" style={{ marginRight: 6 }} />
-              <Text style={styles.confirmText}>{confirmText}</Text>
+              <ThemedText style={styles.confirmText}>{confirmText}</ThemedText>
             </TouchableOpacity>
           </View>
         </Animated.View>

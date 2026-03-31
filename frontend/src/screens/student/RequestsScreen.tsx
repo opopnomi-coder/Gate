@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
   StatusBar,
-  Animated,
+  Animated
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -18,6 +17,7 @@ import QRCodeModal from '../../components/QRCodeModal';
 import RequestTimeline from '../../components/RequestTimeline';
 import Modal from 'react-native-modal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 const TypedModal = Modal as any;
 
@@ -250,9 +250,9 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
           >
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>
             My Requests
-          </Text>
+          </ThemedText>
           <View style={{ width: 40 }} />
         </View>
 
@@ -270,16 +270,16 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
         >
           {loading && requests.length === 0 ? (
             <View style={styles.loadingContainer}>
-              <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
                 Loading requests...
-              </Text>
+              </ThemedText>
             </View>
           ) : filteredRequests.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="document-text-outline" size={64} color={theme.textSecondary} />
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
                 No requests found
-              </Text>
+              </ThemedText>
             </View>
           ) : (
             <Animated.View 
@@ -297,12 +297,12 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
                 >
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.cardTitle, { color: theme.text }]}>
+                      <ThemedText style={[styles.cardTitle, { color: theme.text }]}>
                         {request.purpose || 'Gate Pass Request'}
-                      </Text>
-                      <Text style={[styles.cardDate, { color: theme.textSecondary }]}>
+                      </ThemedText>
+                      <ThemedText style={[styles.cardDate, { color: theme.textSecondary }]}>
                         {formatDate(request.requestDate)}
-                      </Text>
+                      </ThemedText>
                     </View>
                     <View
                       style={[
@@ -313,7 +313,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
                         }
                       ]}
                     >
-                      <Text
+                      <ThemedText
                         style={[
                           styles.statusText,
                           { 
@@ -323,7 +323,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
                         ]}
                       >
                         {request.status || 'PENDING'}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </View>
 
@@ -340,26 +340,26 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
                     >
                       <View style={styles.cardFooter}>
                         <Ionicons name="qr-code-outline" size={16} color={theme.primary} />
-                        <Text style={[styles.cardFooterText, { color: theme.primary }]}>
+                        <ThemedText style={[styles.cardFooterText, { color: theme.primary }]}>
                           {request.passType === 'BULK' ? 'View Group Pass QR' : 'View QR Code'}
-                        </Text>
+                        </ThemedText>
                       </View>
                     </TouchableOpacity>
                   ) : (
                     <View style={styles.cardFooter}>
                       <Ionicons name="time-outline" size={16} color={theme.textSecondary} />
-                      <Text style={[styles.cardFooterText, { color: theme.textSecondary }]}>
+                      <ThemedText style={[styles.cardFooterText, { color: theme.textSecondary }]}>
                         {request.passType === 'BULK' && request.status !== 'REJECTED' ? 'Waiting for HOD approval' : 'Tap to track status'}
-                      </Text>
+                      </ThemedText>
                     </View>
                   )}
 
                   {request.status === 'REJECTED' && request.rejectionReason && (
                     <View style={[styles.rejectionContainer, { backgroundColor: theme.background }]}>
                       <Ionicons name="close-circle" size={16} color="#EF4444" />
-                      <Text style={[styles.rejectionText, { color: theme.text }]} numberOfLines={2}>
+                      <ThemedText style={[styles.rejectionText, { color: theme.text }]} numberOfLines={2}>
                         {request.rejectionReason}
-                      </Text>
+                      </ThemedText>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -396,9 +396,9 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
         >
           <View style={[styles.trackingModalContent, { backgroundColor: theme.cardBackground }]}>
             <View style={styles.trackingModalHeader}>
-              <Text style={[styles.trackingModalTitle, { color: theme.text }]}>
+              <ThemedText style={[styles.trackingModalTitle, { color: theme.text }]}>
                 Request Status
-              </Text>
+              </ThemedText>
               <TouchableOpacity onPress={() => setShowTrackingModal(false)}>
                 <Ionicons name="close" size={24} color={theme.text} />
               </TouchableOpacity>
@@ -417,7 +417,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
               style={[styles.trackingCloseButton, { backgroundColor: theme.primary }]}
               onPress={() => setShowTrackingModal(false)}
             >
-              <Text style={styles.trackingCloseButtonText}>Close</Text>
+              <ThemedText style={styles.trackingCloseButtonText}>Close</ThemedText>
             </TouchableOpacity>
           </View>
         </TypedModal>

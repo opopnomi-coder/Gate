@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { Alert } from 'react-native';
+// No disruptive popups: notification updates are surfaced via the bell + list.
 import { API_CONFIG } from '../config/api.config';
 
 interface Notification {
@@ -57,10 +57,11 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         const latest = data.notifications as Notification[];
         const todaysOnly = latest.filter((n) => isToday(n.timestamp || n.createdAt));
         if (options.scheduleBanners) {
-          const unreadNew = todaysOnly.filter(n => !n.isRead && !shownNotificationIdsRef.current.has(n.id));
+          const unreadNew = todaysOnly.filter(
+            (n) => !n.isRead && !shownNotificationIdsRef.current.has(n.id)
+          );
           for (const n of unreadNew) {
             shownNotificationIdsRef.current.add(n.id);
-            Alert.alert(n.title || 'New Notification', n.message || '');
           }
         }
         setNotifications(todaysOnly);

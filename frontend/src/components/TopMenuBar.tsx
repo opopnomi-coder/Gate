@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface TopMenuBarProps {
   onNotificationPress: () => void;
@@ -39,14 +40,20 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({
               <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
               <View style={[styles.profileCircle, { backgroundColor: theme.primary }]}>
-                <Text style={styles.initialsText}>{getInitials(title)}</Text>
+                <ThemedText style={styles.initialsText}>{getInitials(title)}</ThemedText>
               </View>
             )}
           </TouchableOpacity>
         )}
         <View style={styles.greetingContainer}>
-          <Text style={[styles.greetingText, { color: theme.textSecondary }]}>{greeting}</Text>
-          <Text style={[styles.titleText, { color: theme.text }]} numberOfLines={1}>{title}</Text>
+          <ThemedText style={[styles.greetingText, { color: theme.textSecondary }]}>{greeting}</ThemedText>
+          <ThemedText
+            variant="primary"
+            style={[styles.titleText, { color: theme.text }]}
+            numberOfLines={1}
+          >
+            {title}
+          </ThemedText>
         </View>
       </View>
       <View style={styles.rightSection}>
@@ -54,7 +61,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({
           <Ionicons name="notifications-outline" size={24} color={theme.text} />
           {notificationCount > 0 && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{notificationCount > 9 ? '9+' : notificationCount}</Text>
+              <ThemedText style={styles.badgeText}>{notificationCount > 9 ? '9+' : notificationCount}</ThemedText>
             </View>
           )}
         </TouchableOpacity>

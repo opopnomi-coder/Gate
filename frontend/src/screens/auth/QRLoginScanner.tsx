@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
+  StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { Camera, CameraView } from '../../shims/expoCamera';
 import { THEME } from '../../config/api.config';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface QRLoginScannerProps {
   onScanSuccess: (qrData: string) => void;
@@ -74,7 +74,7 @@ const QRLoginScanner: React.FC<QRLoginScannerProps> = ({ onScanSuccess, onClose 
         <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={THEME.colors.primary} />
-          <Text style={styles.loadingText}>Requesting camera permission...</Text>
+          <ThemedText style={styles.loadingText}>Requesting camera permission...</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -86,12 +86,12 @@ const QRLoginScanner: React.FC<QRLoginScannerProps> = ({ onScanSuccess, onClose 
         <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
         <View style={styles.errorContainer}>
           <Ionicons name="close-circle" size={64} color="#EF4444" />
-          <Text style={styles.errorTitle}>Camera Access Denied</Text>
-          <Text style={styles.errorText}>
+          <ThemedText style={styles.errorTitle}>Camera Access Denied</ThemedText>
+          <ThemedText style={styles.errorText}>
             Camera permission is required to scan QR codes for login.
-          </Text>
+          </ThemedText>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Go Back</Text>
+            <ThemedText style={styles.closeButtonText}>Go Back</ThemedText>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -107,7 +107,7 @@ const QRLoginScanner: React.FC<QRLoginScannerProps> = ({ onScanSuccess, onClose 
         <TouchableOpacity style={styles.backButton} onPress={onClose}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Scan QR/Barcode</Text>
+        <ThemedText style={styles.headerTitle}>Scan QR/Barcode</ThemedText>
         <View style={styles.placeholder} />
       </View>
 
@@ -148,9 +148,9 @@ const QRLoginScanner: React.FC<QRLoginScannerProps> = ({ onScanSuccess, onClose 
         <View style={styles.instructionsContainer}>
           <View style={styles.instructionsBadge}>
             <Ionicons name="qr-code" size={24} color="#FFFFFF" />
-            <Text style={styles.instructionsText}>
+            <ThemedText style={styles.instructionsText}>
               {scanned ? 'Processing...' : 'Position QR code or barcode within the frame'}
-            </Text>
+            </ThemedText>
           </View>
         </View>
 
@@ -159,7 +159,7 @@ const QRLoginScanner: React.FC<QRLoginScannerProps> = ({ onScanSuccess, onClose 
           <View style={styles.rescanContainer}>
             <TouchableOpacity style={styles.rescanButton} onPress={handleRescan}>
               <Ionicons name="refresh" size={20} color="#FFFFFF" />
-              <Text style={styles.rescanText}>Scan Again</Text>
+              <ThemedText style={styles.rescanText}>Scan Again</ThemedText>
             </TouchableOpacity>
           </View>
         )}

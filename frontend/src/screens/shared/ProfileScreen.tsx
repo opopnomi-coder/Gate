@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -12,7 +11,7 @@ import {
   RefreshControl,
   Image,
   BackHandler,
-  Alert,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -24,6 +23,7 @@ import ThemePresetSelector from '../../components/ThemePresetSelector';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface ProfileScreenProps {
   user: any;
@@ -212,7 +212,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={{ color: theme.textSecondary, marginTop: 10, fontWeight: '600' }}>Loading profile...</Text>
+          <ThemedText style={{ color: theme.textSecondary, marginTop: 10, fontWeight: '600' }}>Loading profile...</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -232,7 +232,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <View style={[styles.avatarRing, { borderColor: theme.accent }]}>
               {profileImage ? <Image source={{ uri: profileImage }} style={styles.avatarImage} /> : (
                 <View style={[styles.avatar, { backgroundColor: theme.surfaceHighlight }]}>
-                  <Text style={[styles.avatarText, { color: theme.accent }]}>{getInitials()}</Text>
+                  <ThemedText style={[styles.avatarText, { color: theme.accent }]}>{getInitials()}</ThemedText>
                 </View>
               )}
             </View>
@@ -240,30 +240,30 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               <Ionicons name="camera" size={14} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          <Text style={[styles.userName, { color: theme.text }]}>{getName().toUpperCase()}</Text>
-          <Text style={[styles.userRole, { color: theme.textSecondary }]}>{getRole()} | Dept: {getDept()}</Text>
+          <ThemedText style={[styles.userName, { color: theme.text }]}>{getName().toUpperCase()}</ThemedText>
+          <ThemedText style={[styles.userRole, { color: theme.textSecondary }]}>{getRole()} | Dept: {getDept()}</ThemedText>
         </View>
 
         <View style={[styles.statsCard, { backgroundColor: theme.surface }]}>
           <View style={styles.statItem}>
-            {loadingStats ? <ActivityIndicator size="small" color={theme.accent} /> : <Text style={[styles.statNumber, { color: theme.primary }]}>{stats.stat1}</Text>}
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'ACTIVE' : 'APPROVED'}</Text>
+            {loadingStats ? <ActivityIndicator size="small" color={theme.accent} /> : <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat1}</ThemedText>}
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'ACTIVE' : 'APPROVED'}</ThemedText>
           </View>
           <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            {loadingStats ? <ActivityIndicator size="small" color={theme.error} /> : <Text style={[styles.statNumber, { color: theme.primary }]}>{stats.stat2}</Text>}
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'EXITED' : 'REJECTED'}</Text>
+            {loadingStats ? <ActivityIndicator size="small" color={theme.error} /> : <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat2}</ThemedText>}
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'EXITED' : 'REJECTED'}</ThemedText>
           </View>
           <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            {loadingStats ? <ActivityIndicator size="small" color={theme.warning} /> : <Text style={[styles.statNumber, { color: theme.primary }]}>{stats.stat3}</Text>}
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'TOTAL' : 'PENDING'}</Text>
+            {loadingStats ? <ActivityIndicator size="small" color={theme.warning} /> : <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat3}</ThemedText>}
+            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'TOTAL' : 'PENDING'}</ThemedText>
           </View>
         </View>
 
         <View style={styles.sectionHeaderContainer}>
-          <Text style={[styles.sectionHeader, { color: theme.text }]}>INTERFACE THEME</Text>
-          <TouchableOpacity onPress={resetTheme}><Text style={[styles.resetText, { color: theme.textSecondary }]}>Reset</Text></TouchableOpacity>
+          <ThemedText style={[styles.sectionHeader, { color: theme.text }]}>INTERFACE THEME</ThemedText>
+          <TouchableOpacity onPress={resetTheme}><ThemedText style={[styles.resetText, { color: theme.textSecondary }]}>Reset</ThemedText></TouchableOpacity>
         </View>
         <ThemePresetSelector onScrollLock={(locked) => {
           setOuterScrollEnabled(!locked);
@@ -271,33 +271,33 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         }} />
 
         <View style={styles.sectionHeaderContainer}>
-          <Text style={[styles.sectionHeader, { color: theme.text }]}>PERSONAL INFORMATION</Text>
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)}><Text style={[styles.editButton, { color: theme.accent }]}>{isEditing ? 'Cancel' : 'Edit'}</Text></TouchableOpacity>
+          <ThemedText style={[styles.sectionHeader, { color: theme.text }]}>PERSONAL INFORMATION</ThemedText>
+          <TouchableOpacity onPress={() => setIsEditing(!isEditing)}><ThemedText style={[styles.editButton, { color: theme.accent }]}>{isEditing ? 'Cancel' : 'Edit'}</ThemedText></TouchableOpacity>
         </View>
         <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
           <View style={styles.infoRow}>
             <View style={[styles.iconBox, { backgroundColor: theme.surfaceHighlight }]}><Ionicons name="card-outline" size={20} color={theme.accent} /></View>
-            <View style={styles.infoContent}><Text style={[styles.infoLabel, { color: theme.textSecondary }]}>ID</Text><Text style={[styles.infoValue, { color: theme.text }]}>{getID()}</Text></View>
+            <View style={styles.infoContent}><ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>ID</ThemedText><ThemedText style={[styles.infoValue, { color: theme.text }]}>{getID()}</ThemedText></View>
           </View>
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <View style={styles.infoRow}>
             <View style={[styles.iconBox, { backgroundColor: theme.surfaceHighlight }]}><Ionicons name="mail-outline" size={20} color={theme.accent} /></View>
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>EMAIL</Text>
-              {isEditing ? <TextInput style={[styles.editInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.inputBackground }]} value={editEmail} onChangeText={setEditEmail} keyboardType="email-address" autoCapitalize="none" placeholderTextColor={theme.textTertiary} /> : <Text style={[styles.infoValue, { color: theme.text }]}>{profileData.email || 'N/A'}</Text>}
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>EMAIL</ThemedText>
+              {isEditing ? <TextInput style={[styles.editInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.inputBackground }]} value={editEmail} onChangeText={setEditEmail} keyboardType="email-address" autoCapitalize="none" placeholderTextColor={theme.textTertiary} /> : <ThemedText style={[styles.infoValue, { color: theme.text }]}>{profileData.email || 'N/A'}</ThemedText>}
             </View>
           </View>
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <View style={styles.infoRow}>
             <View style={[styles.iconBox, { backgroundColor: theme.surfaceHighlight }]}><Ionicons name="phone-portrait-outline" size={20} color={theme.accent} /></View>
             <View style={styles.infoContent}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>PHONE</Text>
-              {isEditing ? <TextInput style={[styles.editInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.inputBackground }]} value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" placeholderTextColor={theme.textTertiary} /> : <Text style={[styles.infoValue, { color: theme.text }]}>{profileData.phone || 'N/A'}</Text>}
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>PHONE</ThemedText>
+              {isEditing ? <TextInput style={[styles.editInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.inputBackground }]} value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" placeholderTextColor={theme.textTertiary} /> : <ThemedText style={[styles.infoValue, { color: theme.text }]}>{profileData.phone || 'N/A'}</ThemedText>}
             </View>
           </View>
           {isEditing && (
             <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.primary }]} onPress={handleSaveProfile} disabled={savingProfile}>
-              {savingProfile ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.saveButtonText}>Save Changes</Text>}
+              {savingProfile ? <ActivityIndicator color="#FFF" size="small" /> : <ThemedText style={styles.saveButtonText}>Save Changes</ThemedText>}
             </TouchableOpacity>
           )}
         </View>
@@ -306,17 +306,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         <TouchableOpacity style={[styles.logoutButton, { backgroundColor: theme.surface, borderColor: theme.error }]} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={theme.error} style={{ marginRight: 8 }} />
-          <Text style={[styles.logoutText, { color: theme.error }]}>Log Out</Text>
+          <ThemedText style={[styles.logoutText, { color: theme.error }]}>Log Out</ThemedText>
         </TouchableOpacity>
         <View style={{ height: showBottomNav ? 100 : 40 }} />
       </ScrollView>
 
       {showBottomNav && onTabChange && (
         <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}><Ionicons name="home-outline" size={24} color={theme.textTertiary} /><Text style={[styles.navLabel, { color: theme.textTertiary }]}>Home</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('REQUESTS')}><Ionicons name="document-text-outline" size={24} color={theme.textTertiary} /><Text style={[styles.navLabel, { color: theme.textTertiary }]}>Requests</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HISTORY')}><Ionicons name="time-outline" size={24} color={theme.textTertiary} /><Text style={[styles.navLabel, { color: theme.textTertiary }]}>History</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('PROFILE')}><Ionicons name="person" size={24} color={theme.primary} /><Text style={[styles.navLabelActive, { color: theme.primary }]}>Profile</Text><View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} /></TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}><Ionicons name="home-outline" size={24} color={theme.textTertiary} /><ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Home</ThemedText></TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('REQUESTS')}><Ionicons name="document-text-outline" size={24} color={theme.textTertiary} /><ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>Requests</ThemedText></TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HISTORY')}><Ionicons name="time-outline" size={24} color={theme.textTertiary} /><ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>History</ThemedText></TouchableOpacity>
+          <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('PROFILE')}><Ionicons name="person" size={24} color={theme.primary} /><ThemedText style={[styles.navLabelActive, { color: theme.primary }]}>Profile</ThemedText><View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} /></TouchableOpacity>
         </View>
       )}
       <ConfirmationModal visible={showLogoutModal} title="Logout" message="Are you sure you want to log out?" confirmText="Logout" onConfirm={onLogout} onCancel={() => setShowLogoutModal(false)} icon="log-out-outline" confirmColor={theme.error}/>

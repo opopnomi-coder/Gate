@@ -1,17 +1,22 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
   ScrollView,
   Image,
   ActivityIndicator,
+  Share,
+  ToastAndroid,
+  Platform
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
+import Clipboard from '@react-native-clipboard/clipboard';
+import RNFS from 'react-native-fs';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface GatePassQRModalProps {
   visible: boolean;
@@ -41,6 +46,52 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
   validUntil = 'One time',
 }) => {
   const { theme } = useTheme();
+  const qrSvgRef = React.useRef<any>(null);
+
+  const getPngBase64 = React.useCallback(async (): Promise<string | null> => {
+    if (!qrCodeData) return null;
+    if (isQRString(qrCodeData)) {
+      const ref = qrSvgRef.current;
+      if (!ref?.toDataURL) return null;
+      return await new Promise((resolve) => {
+        ref.toDataURL((data: string) => resolve(data || null));
+      });
+    }
+    if (qrCodeData.startsWith('data:image')) {
+      const idx = qrCodeData.indexOf('base64,');
+      return idx >= 0 ? qrCodeData.slice(idx + 'base64,'.length) : null;
+    }
+    return qrCodeData;
+  }, [qrCodeData]);
+
+  const writeTempPng = React.useCallback(async (): Promise<string | null> => {
+    const base64 = await getPngBase64();
+    if (!base64) return null;
+    const filename = `gatepass-qr-${Date.now()}.png`;
+    const path = `${RNFS.CachesDirectoryPath}/${filename}`;
+    await RNFS.writeFile(path, base64, 'base64');
+    return `file://${path}`;
+  }, [getPngBase64]);
+
+  const handleShare = async () => {
+    if (!qrCodeData) return;
+    try {
+      const url = await writeTempPng();
+      await Share.share({
+        title: 'Share Gate Pass',
+        message: `Gate Pass QR Code\nManual Entry Code: ${manualCode || 'N/A'}\nValid Until: ${validUntil}\nReason: ${reason || 'Gate Pass'}`,
+        ...(url ? { url } : {}),
+      });
+    } catch (e) {
+      // silent
+    }
+  };
+
+  const handleCopyManualCode = () => {
+    if (!manualCode) return;
+    Clipboard.setString(manualCode);
+    if (Platform.OS === 'android') ToastAndroid.show('Copied to clipboard', ToastAndroid.SHORT);
+  };
   return (
     <Modal
       visible={visible}
@@ -52,7 +103,7 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
         <View style={[styles.card, { backgroundColor: theme.surface }]}>
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: theme.border }]}>
-            <Text style={[styles.title, { color: theme.text }]}>Gate Pass QR Code</Text>
+            <ThemedText style={[styles.title, { color: theme.text }]}>Gate Pass QR Code</ThemedText>
             <TouchableOpacity onPress={onClose} style={[styles.closeBtn, { backgroundColor: theme.surfaceHighlight }]}>
               <Ionicons name="close" size={22} color={theme.text} />
             </TouchableOpacity>
@@ -60,8 +111,8 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
             {/* Person Info */}
-            <Text style={[styles.personName, { color: theme.text }]}>{personName.toUpperCase()}</Text>
-            <Text style={[styles.personId, { color: theme.textSecondary }]}>{personId}</Text>
+            <ThemedText style={[styles.personName, { color: theme.text }]}>{personName.toUpperCase()}</ThemedText>
+            <ThemedText style={[styles.personId, { color: theme.textSecondary }]}>{personId}</ThemedText>
 
             {/* QR Code */}
             <View style={[styles.qrCard, { backgroundColor: theme.surface }]}>
@@ -72,6 +123,9 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
                     size={220}
                     color="#000000"
                     backgroundColor="#FFFFFF"
+                    getRef={(c: any) => {
+                      qrSvgRef.current = c;
+                    }}
                   />
                 ) : (
                   <Image
@@ -83,7 +137,7 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
               ) : (
                 <View style={styles.qrLoading}>
                   <ActivityIndicator size="large" color={theme.primary} />
-                  <Text style={[styles.qrLoadingText, { color: theme.textTertiary }]}>Loading...</Text>
+                  <ThemedText style={[styles.qrLoadingText, { color: theme.textTertiary }]}>Loading...</ThemedText>
                 </View>
               )}
             </View>
@@ -91,26 +145,48 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
             {/* Manual Entry Code */}
             {manualCode ? (
               <View style={[styles.manualBox, { borderColor: theme.border }]}>
-                <Text style={[styles.manualLabel, { color: theme.textSecondary }]}>MANUAL ENTRY CODE</Text>
-                <Text style={[styles.manualValue, { color: theme.text }]}>{manualCode}</Text>
+                <ThemedText style={[styles.manualLabel, { color: theme.textSecondary }]}>MANUAL ENTRY CODE</ThemedText>
+                <ThemedText style={[styles.manualValue, { color: theme.text }]}>{manualCode}</ThemedText>
               </View>
             ) : null}
 
             {/* Scan instruction */}
-            <Text style={[styles.scanText, { color: theme.textTertiary }]}>SCAN AT MAIN GATE EXIT</Text>
+            <ThemedText style={[styles.scanText, { color: theme.textTertiary }]}>SCAN AT MAIN GATE EXIT</ThemedText>
 
             {/* Details card */}
             <View style={[styles.detailsCard, { backgroundColor: theme.inputBackground }]}>
               <View style={styles.detailRow}>
-                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Reason:</Text>
-                <Text style={[styles.detailValue, { color: theme.text }]} numberOfLines={2}>
+                <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
+                <ThemedText style={[styles.detailValue, { color: theme.text }]} numberOfLines={2}>
                   {reason || 'Gate Pass'}
-                </Text>
+                </ThemedText>
               </View>
               <View style={styles.detailRow}>
-                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Valid Until:</Text>
-                <Text style={[styles.detailValue, { color: theme.text }]}>{validUntil}</Text>
+                <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>Valid Until:</ThemedText>
+                <ThemedText style={[styles.detailValue, { color: theme.text }]}>{validUntil}</ThemedText>
               </View>
+            </View>
+
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: theme.primary }]}
+                onPress={handleShare}
+                disabled={!qrCodeData}
+              >
+                <Ionicons name="share-outline" size={18} color="#FFF" />
+                <ThemedText style={styles.actionTextPrimary}>Share</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: theme.surfaceHighlight, opacity: manualCode ? 1 : 0.5 },
+                ]}
+                onPress={handleCopyManualCode}
+                disabled={!manualCode}
+              >
+                <Ionicons name="copy-outline" size={18} color={theme.text} />
+                <ThemedText style={[styles.actionText, { color: theme.text }]}>Copy code</ThemedText>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
@@ -249,6 +325,30 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     flex: 2,
     textAlign: 'right',
+  },
+  actions: {
+    marginTop: 14,
+    width: '100%',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionTextPrimary: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '800',
   },
 });
 

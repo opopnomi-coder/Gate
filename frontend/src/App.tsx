@@ -1,3 +1,4 @@
+import ThemedText from './components/ThemedText';
 // CLEAN VERSION OF APP.TSX - Only SmartGate Screens
 // This is the corrected version that should replace the current App.tsx
 
@@ -7,11 +8,10 @@ import {
   StyleSheet,
   View,
   Alert,
-  Text,
   BackHandler,
   Animated,
   ToastAndroid,
-  Platform,
+  Platform
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Student, Staff, HOD, HR, SecurityPersonnel, UserType, UserRole, ScreenName } from './types';
@@ -72,7 +72,7 @@ const AppNavigator: React.FC<{
   const { isLocked, swipeLocked } = useActionLock();
   return (
     <SwipeBackWrapper
-      enabled={!isRootScreen && !isLoading}
+      enabled={!isLoading}
       locked={isLocked || swipeLocked}
       onBack={onBack}
     >
@@ -99,6 +99,11 @@ const App: React.FC = () => {
 
   // Double-back-to-exit tracking
   const lastBackPress = useRef<number>(0);
+
+  // Exit animation (Home swipe-back)
+  const [exitAnimating, setExitAnimating] = React.useState(false);
+  const exitOpacity = useRef(new Animated.Value(0)).current;
+  const exitTranslateY = useRef(new Animated.Value(12)).current;
 
   // ── Notification tap → screen navigation ────────────────────────────────
   // Maps actionRoute strings (set by backend) to ScreenName values
@@ -423,11 +428,44 @@ const App: React.FC = () => {
     }
   };
 
+  const goBackToHome = React.useCallback(() => {
+    setUserType(null);
+    setCurrentScreen('HOME');
+  }, []);
+
+  const runExitAnimationAndClose = React.useCallback(() => {
+    if (exitAnimating) return;
+    if (Platform.OS !== 'android') return;
+    setExitAnimating(true);
+    exitOpacity.setValue(0);
+    exitTranslateY.setValue(12);
+    Animated.parallel([
+      Animated.timing(exitOpacity, { toValue: 1, duration: 160, useNativeDriver: true }),
+      Animated.timing(exitTranslateY, { toValue: 0, duration: 160, useNativeDriver: true }),
+    ]).start(() => {
+      setTimeout(() => {
+        BackHandler.exitApp();
+      }, 180);
+    });
+  }, [exitAnimating, exitOpacity, exitTranslateY]);
+
   // ── Hardware back button / gesture back ──────────────────────────────────
   const ROOT_SCREENS: ScreenName[] = [
     'HOME', 'DASHBOARD', 'STAFF_DASHBOARD', 'HOD_DASHBOARD',
     'HR_DASHBOARD', 'SECURITY_DASHBOARD',
   ];
+
+  const handleSwipeBack = React.useCallback(() => {
+    if (isLoading) return;
+    if ((global as any).__actionLocked) return;
+
+    if (currentScreen === 'HOME') {
+      runExitAnimationAndClose();
+      return;
+    }
+    // Product requirement: any back/swipe (not on Home) returns to Home.
+    goBackToHome();
+  }, [currentScreen, isLoading, goBackToHome, navigateBack, runExitAnimationAndClose]);
 
   React.useEffect(() => {
     const onBackPress = () => {
@@ -437,36 +475,19 @@ const App: React.FC = () => {
       // Block back if action lock is active (checked via global ref set by ActionLockProvider)
       if ((global as any).__actionLocked) return true;
 
-      if (currentScreen === 'UNIFIED_LOGIN') {
-        goBackToHome();
+      if (currentScreen === 'HOME') {
+        runExitAnimationAndClose();
         return true;
       }
 
-      if (ROOT_SCREENS.includes(currentScreen)) {
-        // Double-back-to-exit on root screens
-        const now = Date.now();
-        if (now - lastBackPress.current < 2000) {
-          return false; // let system exit
-        }
-        lastBackPress.current = now;
-        if (Platform.OS === 'android') {
-          ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
-        }
-        return true;
-      }
-
-      navigateBack();
+      // Product requirement: any back (not on Home) returns to Home.
+      goBackToHome();
       return true;
     };
 
     const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => sub.remove();
-  }, [currentScreen, userType, isLoading]);
-
-  const goBackToHome = () => {
-    setUserType(null);
-    setCurrentScreen('HOME');
-  };
+  }, [currentScreen, userType, isLoading, goBackToHome, runExitAnimationAndClose]);
 
   const renderCurrentScreen = () => {
     console.log(`📱 RENDER: screen=${currentScreen}, userType=${userType}, isLoading=${isLoading}`);
@@ -521,7 +542,7 @@ const App: React.FC = () => {
               <ProfileScreen
                 user={student}
                 userType="STUDENT"
-                onBack={navigateBack}
+                onBack={goBackToHome}
                 onLogout={handleLogout}
               />
             );
@@ -546,7 +567,7 @@ const App: React.FC = () => {
               setTimeout(() => setCurrentScreen('DASHBOARD'), 0);
               return (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
-                  <Text style={{ color: '#666' }}>Loading...</Text>
+                  <ThemedText style={{ color: '#666' }}>Loading...</ThemedText>
                 </View>
               );
             }
@@ -562,7 +583,7 @@ const App: React.FC = () => {
               <NotificationsScreen
                 userId={student.regNo}
                 userType="student"
-                onBack={navigateBack}
+                onBack={goBackToHome}
               />
             );
           default:
@@ -624,7 +645,7 @@ const App: React.FC = () => {
               setTimeout(() => setCurrentScreen('STAFF_DASHBOARD'), 0);
               return (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
-                  <Text style={{ color: '#666' }}>Loading...</Text>
+                  <ThemedText style={{ color: '#666' }}>Loading...</ThemedText>
                 </View>
               );
             }
@@ -654,7 +675,7 @@ const App: React.FC = () => {
               <NotificationsScreen
                 userId={staff.staffCode}
                 userType="staff"
-                onBack={navigateBack}
+                onBack={goBackToHome}
               />
             );
           case 'GUEST_PRE_REQUEST':
@@ -748,7 +769,7 @@ const App: React.FC = () => {
               <NotificationsScreen
                 userId={hod.hodCode}
                 userType="hod"
-                onBack={navigateBack}
+                onBack={goBackToHome}
               />
             );
           case 'GUEST_PRE_REQUEST':
@@ -796,7 +817,7 @@ const App: React.FC = () => {
               <NotificationsScreen
                 userId={hr.hrCode}
                 userType="hr"
-                onBack={navigateBack}
+                onBack={goBackToHome}
               />
             );
           case 'GUEST_PRE_REQUEST':
@@ -878,12 +899,12 @@ const App: React.FC = () => {
       console.error('❌ Error in renderCurrentScreen:', error);
       return (
         <View style={styles.errorContainer}>
-          <Text style={{ color: 'red', fontSize: 18, marginBottom: 20 }}>
+          <ThemedText style={{ color: 'red', fontSize: 18, marginBottom: 20 }}>
             Error Loading Screen
-          </Text>
-          <Text style={{ color: '#666', textAlign: 'center' }}>
+          </ThemedText>
+          <ThemedText style={{ color: '#666', textAlign: 'center' }}>
             {String(error)}
-          </Text>
+          </ThemedText>
         </View>
       );
     }
@@ -914,12 +935,27 @@ const App: React.FC = () => {
                   <AppNavigator
                     isRootScreen={isRootScreen}
                     isLoading={isLoading}
-                    onBack={currentScreen === 'UNIFIED_LOGIN' ? goBackToHome : navigateBack}
+                    onBack={handleSwipeBack}
                   >
                     <ErrorBoundary fallbackScreen={goBackToHome}>
                       {renderCurrentScreen()}
                     </ErrorBoundary>
                   </AppNavigator>
+                  {exitAnimating && (
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        StyleSheet.absoluteFillObject,
+                        styles.exitOverlay,
+                        { opacity: exitOpacity },
+                      ]}
+                    >
+                      <Animated.View style={[styles.exitToast, { transform: [{ translateY: exitTranslateY }] }]}>
+                        <ThemedText style={styles.exitToastTitle}>Closing application</ThemedText>
+                        <ThemedText style={styles.exitToastSub}>Please wait…</ThemedText>
+                      </Animated.View>
+                    </Animated.View>
+                  )}
                 </View>
               </ThemedApp>
             </ProfileProvider>
@@ -941,6 +977,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 30,
   },
+  exitOverlay: {
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingBottom: 40,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+  },
+  exitToast: {
+    width: '88%',
+    maxWidth: 420,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: '#0F172A',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    elevation: 12,
+  },
+  exitToastTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', marginBottom: 2, letterSpacing: 0.2 },
+  exitToastSub: { color: 'rgba(255,255,255,0.78)', fontSize: 12, fontWeight: '600' },
 });
 
 export default App;

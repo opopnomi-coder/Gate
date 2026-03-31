@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -11,7 +10,7 @@ import {
   ActivityIndicator,
   Image,
   Modal,
-  Alert,
+  Alert
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +31,7 @@ import ConfirmationModal from '../../components/ConfirmationModal';
 import { exportStyledPdfReport } from '../../utils/pdfReport';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import GuestPreRequestScreen from '../shared/GuestPreRequestScreen';
+import ThemedText from '../../components/ThemedText';
 
 interface NewHRDashboardProps {
   hr: HR;
@@ -123,16 +123,24 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       }
 
       allRequests = [...allRequests, ...visitorRequests];
+      const sorted = allRequests.sort((a: any, b: any) => {
+        const dateB = new Date(b.requestDate || b.createdAt || b.timestamp || b.visitDate || 0).getTime();
+        const dateA = new Date(a.requestDate || a.createdAt || a.timestamp || a.visitDate || 0).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        const idB = parseInt(b.id?.toString().split('-')[1]) || parseInt(b.id) || 0;
+        const idA = parseInt(a.id?.toString().split('-')[1]) || parseInt(a.id) || 0;
+        return idB - idA;
+      });
 
-      setRequests(allRequests);
+      setRequests(sorted);
 
-      const pending = allRequests.filter((r: any) =>
+      const pending = sorted.filter((r: any) =>
         r.requestType === 'VISITOR' ? r.status === 'PENDING' : (r.hrApproval === 'PENDING_HR' || r.hrApproval === 'PENDING' || !r.hrApproval)
       ).length;
-      const approved = allRequests.filter((r: any) =>
+      const approved = sorted.filter((r: any) =>
         r.requestType === 'VISITOR' ? r.status === 'APPROVED' : r.hrApproval === 'APPROVED'
       ).length;
-      const rejected = allRequests.filter((r: any) =>
+      const rejected = sorted.filter((r: any) =>
         r.requestType === 'VISITOR' ? r.status === 'REJECTED' : r.hrApproval === 'REJECTED'
       ).length;
 
@@ -311,13 +319,13 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
               <Image source={{ uri: profileImage }} style={styles.avatarImage} />
             ) : (
               <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                <Text style={styles.avatarText}>{getInitials(hr.hrName || hr.name || 'HR')}</Text>
+                <ThemedText style={styles.avatarText}>{getInitials(hr.hrName || hr.name || 'HR')}</ThemedText>
               </View>
             )}
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</Text>
-            <Text style={[styles.userName, { color: theme.text }]}>{(hr.hrName || hr.name || 'HR').toUpperCase()}</Text>
+            <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]}>{(hr.hrName || hr.name || 'HR').toUpperCase()}</ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -353,16 +361,16 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       {/* Stats Tabs */}
       <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
         <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.primary }]} onPress={() => setActiveTab('PENDING')}>
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.primary }]}>PENDING</Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</Text>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.primary }]}>PENDING</ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]} onPress={() => setActiveTab('APPROVED')}>
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</Text>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]} onPress={() => setActiveTab('REJECTED')}>
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</Text>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -371,7 +379,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
         {filteredRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</Text>
+            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
           </View>
         ) : (
           filteredRequests.map((request) => (
@@ -395,55 +403,55 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
             >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
-                  <Text style={[styles.cardAvatarText, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.cardAvatarText, { color: theme.textSecondary }]}>
                     {getInitials(request.requestType === 'BULK' ? (request.hodCode || 'HOD') : request.requestType === 'VISITOR' ? (request.visitorName || 'VR') : (request.requestedByStaffName || request.studentName || 'ST'))}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
-                    <Text style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                    <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
                       {request.requestType === 'VISITOR'
                         ? (request.visitorName || request.studentName || 'Visitor')
                         : request.requestType === 'SINGLE'
                         ? (request.requestedByStaffName || request.studentName || request.regNo || `Request #${request.id}`)
                         : `${request.requestedByStaffName || request.hodCode || 'Staff'}`}
-                    </Text>
-                    <Text style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
+                    </ThemedText>
+                    <ThemedText style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
                       {request.requestType === 'BULK'
                         ? '(Bulk Gatepass)'
                         : request.requestType === 'VISITOR'
                         ? `(${(request.role || 'VISITOR').toUpperCase()} Request)`
                         : '(Single Gatepass)'}
-                    </Text>
+                    </ThemedText>
                   </View>
-                  <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
                     {request.requestType === 'VISITOR'
                       ? `${request.visitorPhone || ''} • ${request.department || 'Department'}`
                       : request.requestType === 'SINGLE'
                       ? `${request.requestedByStaffCode || request.regNo || 'N/A'} • ${request.department || 'Department'}`
                       : `${request.userType || 'HOD'} • ${request.department || 'N/A'}`}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.timeAgoContainer}>
-                  <Text style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</Text>
+                  <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</ThemedText>
                 </View>
               </View>
 
               <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
                 <View style={styles.detailItem}>
                   <Ionicons name="medical" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</Text>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
                 </View>
                 <View style={styles.detailItem}>
                   <Ionicons name="calendar" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>
                     Exit: {formatDateShort(request.exitDateTime || request.requestDate)}
-                  </Text>
+                  </ThemedText>
                 </View>
                 {request.requestType === 'BULK' && (
                   <View style={styles.detailItem}>
                     <Ionicons name="people" size={16} color={theme.textSecondary} />
-                    <Text style={[styles.detailText, { color: theme.text }]}>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
                       {(() => {
                         const parts: string[] = [];
                         const total = request.participantCount || 0;
@@ -453,7 +461,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                         if (students > 0) parts.push(`Students - ${students}`);
                         return parts.join(', ') || `${total} Participants`;
                       })()}
-                    </Text>
+                    </ThemedText>
                   </View>
                 )}
               </View>
@@ -468,7 +476,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                     return { backgroundColor: theme.warning + '22' };
                   })(),
                 ]}>
-                  <Text style={[
+                  <ThemedText style={[
                     styles.statusText,
                     (() => {
                       const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
@@ -481,12 +489,12 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                       const s = (request.requestType === 'VISITOR' ? request.status : request.hrApproval) || 'PENDING';
                       return (s === 'PENDING_HR' || s === 'PENDING' || !s) ? 'PENDING' : s;
                     })()}
-                  </Text>
+                  </ThemedText>
                 </View>
                 {request.requestType === 'BULK' && (
                   <View style={[styles.viewBadge, { backgroundColor: theme.surfaceHighlight }]}>
                     <Ionicons name="people" size={14} color={theme.textSecondary} />
-                    <Text style={[styles.viewBadgeText, { color: theme.textSecondary }]}>Bulk Gatepass</Text>
+                    <ThemedText style={[styles.viewBadgeText, { color: theme.textSecondary }]}>Bulk Gatepass</ThemedText>
                   </View>
                 )}
               </View>
@@ -521,40 +529,40 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
         >
           <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
             <Ionicons name="calendar-outline" size={20} color={theme.textTertiary} />
-            <Text style={[styles.searchInput, { color: theme.text }]}>Today&apos;s exits ({exitLogs.length})</Text>
+            <ThemedText style={[styles.searchInput, { color: theme.text }]}>Today&apos;s exits ({exitLogs.length})</ThemedText>
           </View>
           <View style={styles.actionButtons}>
             <TouchableOpacity style={[styles.approveButton, { backgroundColor: theme.primary }]} onPress={() => setRangeModalVisible(true)}>
               <Ionicons name="funnel-outline" size={16} color="#fff" />
-              <Text style={styles.approveButtonText}>From / To</Text>
+              <ThemedText style={styles.approveButtonText}>From / To</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.rejectButton, { backgroundColor: theme.success }]} onPress={() => exportExitsPdf(exitLogs)}>
               <Ionicons name="download-outline" size={16} color="#fff" />
-              <Text style={styles.rejectButtonText}>Download PDF</Text>
+              <ThemedText style={styles.rejectButtonText}>Download PDF</ThemedText>
             </TouchableOpacity>
           </View>
           <View style={styles.scrollContent}>
             {exitLogs.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="log-out-outline" size={64} color={theme.border} />
-                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No exits for selected date</Text>
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No exits for selected date</ThemedText>
               </View>
             ) : (
               exitLogs.map((item) => (
                 <View key={`exit-${item.id}`} style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
                   <View style={styles.cardTopRow}>
                     <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
-                      <Text style={[styles.cardAvatarText, { color: theme.textSecondary }]}>{getInitials(item.name || item.userId || 'NA')}</Text>
+                      <ThemedText style={[styles.cardAvatarText, { color: theme.textSecondary }]}>{getInitials(item.name || item.userId || 'NA')}</ThemedText>
                     </View>
                     <View style={styles.headerMainInfo}>
-                      <Text style={[styles.requestStudentName, { color: theme.text }]}>{item.name || item.userId}</Text>
-                      <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>{item.userType} • {item.userId}</Text>
+                      <ThemedText style={[styles.requestStudentName, { color: theme.text }]}>{item.name || item.userId}</ThemedText>
+                      <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>{item.userType} • {item.userId}</ThemedText>
                     </View>
                   </View>
                   <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
-                    <Text style={[styles.detailText, { color: theme.text }]}>{item.department || '-'}</Text>
-                    <Text style={[styles.detailText, { color: theme.text }]}>{item.purpose || 'General'}</Text>
-                    <Text style={[styles.detailText, { color: theme.textSecondary }]}>Exited: {formatDateShort(item.exitTime)}</Text>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>{item.department || '-'}</ThemedText>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>{item.purpose || 'General'}</ThemedText>
+                    <ThemedText style={[styles.detailText, { color: theme.textSecondary }]}>Exited: {formatDateShort(item.exitTime)}</ThemedText>
                   </View>
                 </View>
               ))
@@ -568,22 +576,22 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setBottomTab('HOME')}>
           <Ionicons name={bottomTab === 'HOME' ? 'home' : 'home-outline'} size={22} color={bottomTab === 'HOME' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'HOME' && { color: theme.primary }]}>Home</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'HOME' && { color: theme.primary }]}>Home</ThemedText>
           {bottomTab === 'HOME' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setBottomTab('GUEST')}>
           <Ionicons name={bottomTab === 'GUEST' ? 'person-add' : 'person-add-outline'} size={22} color={bottomTab === 'GUEST' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'GUEST' && { color: theme.primary }]}>Guest</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'GUEST' && { color: theme.primary }]}>Guest</ThemedText>
           {bottomTab === 'GUEST' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => { setBottomTab('EXITS'); loadExitLogs(); }}>
           <Ionicons name={bottomTab === 'EXITS' ? 'log-out' : 'log-out-outline'} size={22} color={bottomTab === 'EXITS' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'EXITS' && { color: theme.primary }]}>Exits</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'EXITS' && { color: theme.primary }]}>Exits</ThemedText>
           {bottomTab === 'EXITS' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => { setBottomTab('PROFILE'); onNavigate('PROFILE'); }}>
           <Ionicons name={bottomTab === 'PROFILE' ? 'person' : 'person-outline'} size={22} color={bottomTab === 'PROFILE' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'PROFILE' && { color: theme.primary }]}>Profile</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'PROFILE' && { color: theme.primary }]}>Profile</ThemedText>
           {bottomTab === 'PROFILE' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
       </View>
@@ -655,7 +663,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
         <View style={styles.processingOverlay} pointerEvents="box-only">
           <View style={styles.processingBox}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.processingText, { color: theme.text }]}>Processing...</Text>
+            <ThemedText style={[styles.processingText, { color: theme.text }]}>Processing...</ThemedText>
           </View>
         </View>
       )}
@@ -663,7 +671,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       <Modal visible={rangeModalVisible} transparent animationType="fade" onRequestClose={() => setRangeModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={[styles.rangeModalCard, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Filter Exit Date Range</Text>
+            <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Filter Exit Date Range</ThemedText>
             <View style={[styles.dateTypeTabs, { borderColor: theme.border }]}>
               <TouchableOpacity
                 style={[
@@ -673,9 +681,9 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 ]}
                 onPress={() => setSelectingDateType('FROM')}
               >
-                <Text style={[styles.dateTypeTabText, { color: selectingDateType === 'FROM' ? theme.primary : theme.textTertiary }]}>
+                <ThemedText style={[styles.dateTypeTabText, { color: selectingDateType === 'FROM' ? theme.primary : theme.textTertiary }]}>
                   From
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -685,9 +693,9 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 ]}
                 onPress={() => setSelectingDateType('TO')}
               >
-                <Text style={[styles.dateTypeTabText, { color: selectingDateType === 'TO' ? theme.primary : theme.textTertiary }]}>
+                <ThemedText style={[styles.dateTypeTabText, { color: selectingDateType === 'TO' ? theme.primary : theme.textTertiary }]}>
                   To
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             </View>
 
@@ -713,24 +721,24 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
 
             <View style={styles.rangeSummaryRow}>
               <View style={[styles.rangeSummaryCell, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-                <Text style={[styles.rangeSummaryLabel, { color: theme.textTertiary }]}>From</Text>
-                <Text style={[styles.rangeSummaryValue, { color: theme.text }]}>{fromDate || '-'}</Text>
+                <ThemedText style={[styles.rangeSummaryLabel, { color: theme.textTertiary }]}>From</ThemedText>
+                <ThemedText style={[styles.rangeSummaryValue, { color: theme.text }]}>{fromDate || '-'}</ThemedText>
               </View>
               <View style={[styles.rangeSummaryCell, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-                <Text style={[styles.rangeSummaryLabel, { color: theme.textTertiary }]}>To</Text>
-                <Text style={[styles.rangeSummaryValue, { color: theme.text }]}>{toDate || '-'}</Text>
+                <ThemedText style={[styles.rangeSummaryLabel, { color: theme.textTertiary }]}>To</ThemedText>
+                <ThemedText style={[styles.rangeSummaryValue, { color: theme.text }]}>{toDate || '-'}</ThemedText>
               </View>
             </View>
 
             <View style={styles.actionButtons}>
               <TouchableOpacity style={styles.rejectButton} onPress={() => setRangeModalVisible(false)}>
-                <Text style={styles.rejectButtonText}>Cancel</Text>
+                <ThemedText style={styles.rejectButtonText}>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.approveButton} onPress={() => {
                 setRangeModalVisible(false);
                 loadExitLogs(fromDate || undefined, toDate || undefined);
               }}>
-                <Text style={styles.approveButtonText}>Apply</Text>
+                <ThemedText style={styles.approveButtonText}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
           </View>

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { ScreenName } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import ThemedText from './ThemedText';
 
 interface SecurityBottomNavProps {
   activeTab: 'home' | 'scanner' | 'history' | 'vehicle' | 'visitor' | 'contacts';
@@ -28,32 +29,32 @@ const SecurityBottomNav: React.FC<SecurityBottomNavProps> = ({ activeTab, onNavi
     <View style={[styles.bottomTabBar, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
       <TouchableOpacity style={styles.bottomTab} onPress={() => handleNavigate('home')} activeOpacity={0.7}>
         <Ionicons name={activeTab === 'home' ? 'home' : 'home-outline'} size={24} color={activeTab === 'home' ? theme.primary : theme.textTertiary} />
-        <Text style={[styles.bottomTabLabel, { color: activeTab === 'home' ? theme.primary : theme.textTertiary }]}>Home</Text>
+        <ThemedText style={[styles.bottomTabLabel, { color: activeTab === 'home' ? theme.primary : theme.textTertiary }]}>Home</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.bottomTab} onPress={() => handleNavigate('scanner')} activeOpacity={0.7}>
         <Ionicons name={activeTab === 'scanner' ? 'qr-code' : 'qr-code-outline'} size={24} color={activeTab === 'scanner' ? theme.primary : theme.textTertiary} />
-        <Text style={[styles.bottomTabLabel, { color: activeTab === 'scanner' ? theme.primary : theme.textTertiary }]}>Scanner</Text>
+        <ThemedText style={[styles.bottomTabLabel, { color: activeTab === 'scanner' ? theme.primary : theme.textTertiary }]}>Scanner</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.bottomTab} onPress={() => handleNavigate('history')} activeOpacity={0.7}>
         <Ionicons name={activeTab === 'history' ? 'time' : 'time-outline'} size={24} color={activeTab === 'history' ? theme.primary : theme.textTertiary} />
-        <Text style={[styles.bottomTabLabel, { color: activeTab === 'history' ? theme.primary : theme.textTertiary }]}>History</Text>
+        <ThemedText style={[styles.bottomTabLabel, { color: activeTab === 'history' ? theme.primary : theme.textTertiary }]}>History</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.bottomTab} onPress={() => handleNavigate('vehicle')} activeOpacity={0.7}>
         <Ionicons name={activeTab === 'vehicle' ? 'car' : 'car-outline'} size={24} color={activeTab === 'vehicle' ? theme.primary : theme.textTertiary} />
-        <Text style={[styles.bottomTabLabel, { color: activeTab === 'vehicle' ? theme.primary : theme.textTertiary }]}>Vehicle</Text>
+        <ThemedText style={[styles.bottomTabLabel, { color: activeTab === 'vehicle' ? theme.primary : theme.textTertiary }]}>Vehicle</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.bottomTab} onPress={() => handleNavigate('visitor')} activeOpacity={0.7}>
         <Ionicons name={activeTab === 'visitor' ? 'people' : 'people-outline'} size={24} color={activeTab === 'visitor' ? theme.primary : theme.textTertiary} />
-        <Text style={[styles.bottomTabLabel, { color: activeTab === 'visitor' ? theme.primary : theme.textTertiary }]}>Visitor</Text>
+        <ThemedText style={[styles.bottomTabLabel, { color: activeTab === 'visitor' ? theme.primary : theme.textTertiary }]}>Visitor</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.bottomTab} onPress={() => handleNavigate('hods')} activeOpacity={0.7}>
         <Ionicons name={activeTab === 'contacts' ? 'call' : 'call-outline'} size={24} color={activeTab === 'contacts' ? theme.primary : theme.textTertiary} />
-        <Text style={[styles.bottomTabLabel, { color: activeTab === 'contacts' ? theme.primary : theme.textTertiary }]}>Contacts</Text>
+        <ThemedText style={[styles.bottomTabLabel, { color: activeTab === 'contacts' ? theme.primary : theme.textTertiary }]}>Contacts</ThemedText>
       </TouchableOpacity>
     </View>
   );

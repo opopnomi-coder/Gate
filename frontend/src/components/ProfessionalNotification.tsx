@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
   Easing,
-  Platform,
+  Platform
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import { THEME } from '../config/api.config';
+import ThemedText from './ThemedText';
 
 interface ProfessionalNotificationProps {
   visible: boolean;
@@ -120,8 +120,8 @@ const ProfessionalNotification: React.FC<ProfessionalNotificationProps> = ({
             <Ionicons name={getIcon()} size={24} color="#FFFFFF" />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.message}>{message}</Text>
+            <ThemedText style={styles.title}>{title}</ThemedText>
+            <ThemedText style={styles.message}>{message}</ThemedText>
           </View>
         </View>
       </Animated.View>

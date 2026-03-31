@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   TextInput,
   StatusBar,
   ActivityIndicator,
-  Modal,
+  Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -17,6 +16,7 @@ import { apiService } from '../../services/api';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface ModernVehicleRegistrationScreenProps {
   security: SecurityPersonnel;
@@ -173,14 +173,14 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Vehicle Registration</Text>
+        <ThemedText style={styles.headerTitle}>Vehicle Registration</ThemedText>
         <View style={styles.headerRight} />
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {/* Search Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Search Vehicle</Text>
+          <ThemedText style={styles.sectionTitle}>Search Vehicle</ThemedText>
           <View style={styles.searchCard}>
             <View style={styles.searchInputContainer}>
               <Ionicons name="search" size={20} color="#9CA3AF" />
@@ -200,16 +200,16 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
               {loading ? (
                 <ActivityIndicator color="#FFF" size="small" />
               ) : (
-                <Text style={styles.searchButtonText}>Search</Text>
+                <ThemedText style={styles.searchButtonText}>Search</ThemedText>
               )}
             </TouchableOpacity>
           </View>
 
           {searchResults.length > 0 && (
             <View style={styles.resultsContainer}>
-              <Text style={styles.resultsHeader}>
+              <ThemedText style={styles.resultsHeader}>
                 Found {searchResults.length} vehicle{searchResults.length > 1 ? 's' : ''}. Tap to load details.
-              </Text>
+              </ThemedText>
               {searchResults.map((vehicle) => (
                 <TouchableOpacity
                   key={vehicle.id}
@@ -224,9 +224,9 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
                     <Ionicons name={getVehicleIcon(vehicle.vehicleType) as any} size={24} color="#00BCD4" />
                   </View>
                   <View style={styles.vehicleInfo}>
-                    <Text style={styles.vehiclePlate}>{vehicle.licensePlate}</Text>
-                    <Text style={styles.vehicleType}>{vehicle.vehicleType}</Text>
-                    <Text style={styles.vehicleOwner}>{vehicle.ownerName}</Text>
+                    <ThemedText style={styles.vehiclePlate}>{vehicle.licensePlate}</ThemedText>
+                    <ThemedText style={styles.vehicleType}>{vehicle.vehicleType}</ThemedText>
+                    <ThemedText style={styles.vehicleOwner}>{vehicle.ownerName}</ThemedText>
                   </View>
                   <Ionicons name="arrow-down-circle" size={20} color="#00BCD4" />
                 </TouchableOpacity>
@@ -237,12 +237,12 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
 
         {/* Registration Form */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
+          <ThemedText style={styles.sectionTitle}>
             {searchResults.length > 0 ? 'Update Vehicle Details' : 'Register New Vehicle'}
-          </Text>
+          </ThemedText>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Owner Type *</Text>
+            <ThemedText style={styles.inputLabel}>Owner Type *</ThemedText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.ownerTypeScroll}>
               <View style={styles.ownerTypeChips}>
                 {ownerTypes.map((type) => (
@@ -259,12 +259,12 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
                       size={18}
                       color={ownerType === type.id ? '#FFF' : '#6B7280'}
                     />
-                    <Text style={[
+                    <ThemedText style={[
                       styles.ownerTypeChipText,
                       ownerType === type.id && styles.ownerTypeChipTextActive
                     ]}>
                       {type.label}
-                    </Text>
+                    </ThemedText>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -272,7 +272,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>License Plate *</Text>
+            <ThemedText style={styles.inputLabel}>License Plate *</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="card-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -286,7 +286,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Vehicle Type *</Text>
+            <ThemedText style={styles.inputLabel}>Vehicle Type *</ThemedText>
             <View style={styles.typeChips}>
               {vehicleTypes.map((type) => (
                 <TouchableOpacity
@@ -302,19 +302,19 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
                     size={20}
                     color={vehicleType === type.id ? '#FFF' : '#6B7280'}
                   />
-                  <Text style={[
+                  <ThemedText style={[
                     styles.typeChipText,
                     vehicleType === type.id && styles.typeChipTextActive
                   ]}>
                     {type.label}
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Vehicle Model</Text>
+            <ThemedText style={styles.inputLabel}>Vehicle Model</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="car-sport-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -327,7 +327,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Vehicle Color</Text>
+            <ThemedText style={styles.inputLabel}>Vehicle Color</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="color-palette-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -340,7 +340,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Owner Name *</Text>
+            <ThemedText style={styles.inputLabel}>Owner Name *</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="person-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -353,7 +353,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Owner Phone *</Text>
+            <ThemedText style={styles.inputLabel}>Owner Phone *</ThemedText>
             <View style={styles.inputContainer}>
               <Ionicons name="call-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -371,16 +371,16 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
             onPress={handleRegister}
           >
             <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-            <Text style={styles.registerButtonText}>
+            <ThemedText style={styles.registerButtonText}>
               {searchResults.length > 0 ? 'Update Vehicle' : 'Register Vehicle'}
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         </View>
 
         {/* Recent Vehicles */}
         {recentVehicles.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recent Registrations</Text>
+            <ThemedText style={styles.sectionTitle}>Recent Registrations</ThemedText>
             {recentVehicles.map((vehicle) => (
               <TouchableOpacity
                 key={vehicle.id}
@@ -394,9 +394,9 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
                   <Ionicons name={getVehicleIcon(vehicle.vehicleType) as any} size={24} color="#00BCD4" />
                 </View>
                 <View style={styles.vehicleInfo}>
-                  <Text style={styles.vehiclePlate}>{vehicle.licensePlate}</Text>
-                  <Text style={styles.vehicleType}>{vehicle.vehicleType}</Text>
-                  <Text style={styles.vehicleDate}>{formatDate(vehicle.registeredAt)}</Text>
+                  <ThemedText style={styles.vehiclePlate}>{vehicle.licensePlate}</ThemedText>
+                  <ThemedText style={styles.vehicleType}>{vehicle.vehicleType}</ThemedText>
+                  <ThemedText style={styles.vehicleDate}>{formatDate(vehicle.registeredAt)}</ThemedText>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
               </TouchableOpacity>
@@ -415,7 +415,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Vehicle Details</Text>
+              <ThemedText style={styles.modalTitle}>Vehicle Details</ThemedText>
               <TouchableOpacity
                 onPress={() => setShowDetailModal(false)}
                 style={styles.closeButton}
@@ -431,30 +431,30 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
                 </View>
 
                 <View style={styles.modalSection}>
-                  <Text style={styles.sectionTitle}>Vehicle Information</Text>
+                  <ThemedText style={styles.sectionTitle}>Vehicle Information</ThemedText>
                   <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>License Plate</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.licensePlate}</Text>
+                    <ThemedText style={styles.modalLabel}>License Plate</ThemedText>
+                    <ThemedText style={styles.modalValue}>{selectedVehicle.licensePlate}</ThemedText>
                   </View>
                   <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Type</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.vehicleType}</Text>
+                    <ThemedText style={styles.modalLabel}>Type</ThemedText>
+                    <ThemedText style={styles.modalValue}>{selectedVehicle.vehicleType}</ThemedText>
                   </View>
                 </View>
 
                 <View style={styles.modalSection}>
-                  <Text style={styles.sectionTitle}>Owner Information</Text>
+                  <ThemedText style={styles.sectionTitle}>Owner Information</ThemedText>
                   <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Name</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.ownerName}</Text>
+                    <ThemedText style={styles.modalLabel}>Name</ThemedText>
+                    <ThemedText style={styles.modalValue}>{selectedVehicle.ownerName}</ThemedText>
                   </View>
                   <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Phone</Text>
-                    <Text style={styles.modalValue}>{selectedVehicle.ownerPhone}</Text>
+                    <ThemedText style={styles.modalLabel}>Phone</ThemedText>
+                    <ThemedText style={styles.modalValue}>{selectedVehicle.ownerPhone}</ThemedText>
                   </View>
                   <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Registered</Text>
-                    <Text style={styles.modalValue}>{formatDate(selectedVehicle.registeredAt)}</Text>
+                    <ThemedText style={styles.modalLabel}>Registered</ThemedText>
+                    <ThemedText style={styles.modalValue}>{formatDate(selectedVehicle.registeredAt)}</ThemedText>
                   </View>
                 </View>
               </ScrollView>

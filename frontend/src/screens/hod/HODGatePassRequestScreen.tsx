@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -9,7 +8,7 @@ import {
   StatusBar,
   Animated,
   ActivityIndicator,
-  Image,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ImagePicker from '../../utils/safeImagePicker';
@@ -20,6 +19,7 @@ import { HOD } from '../../types';
 import { apiService } from '../../services/api';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import ThemedText from '../../components/ThemedText';
 
 interface HODGatePassRequestScreenProps {
   user: HOD;
@@ -128,7 +128,7 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Gate Pass Request</Text>
+        <ThemedText style={styles.headerTitle}>New Gate Pass Request</ThemedText>
         <View style={{ width: 44 }} />
       </View>
 
@@ -139,38 +139,38 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
           <View style={styles.infoCard}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{getInitials(user.hodName)}</Text>
+                <ThemedText style={styles.avatarText}>{getInitials(user.hodName)}</ThemedText>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.userName} numberOfLines={1}>{user.hodName}</Text>
-                <Text style={styles.userDetail}>Department: {user.department}</Text>
+                <ThemedText style={styles.userName} numberOfLines={1}>{user.hodName}</ThemedText>
+                <ThemedText style={styles.userDetail}>Department: {user.department}</ThemedText>
               </View>
             </View>
             <View style={styles.activeBadge}>
-              <Text style={styles.activeText}>ACTIVE</Text>
+              <ThemedText style={styles.activeText}>ACTIVE</ThemedText>
             </View>
           </View>
 
           {/* Date & Time */}
           <View style={styles.formSection}>
-            <Text style={styles.label}>REQUEST DATE & TIME</Text>
+            <ThemedText style={styles.label}>REQUEST DATE & TIME</ThemedText>
             <View style={styles.row}>
               <TouchableOpacity style={styles.selector} onPress={() => setShowDatePicker(true)}>
                 <Ionicons name="calendar-outline" size={20} color="#0EA5E9" />
-                <Text style={styles.selectorText}>{requestDate.toLocaleDateString()}</Text>
+                <ThemedText style={styles.selectorText}>{requestDate.toLocaleDateString()}</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.selector} onPress={() => setShowTimePicker(true)}>
                 <Ionicons name="time-outline" size={20} color="#0EA5E9" />
-                <Text style={styles.selectorText}>
+                <ThemedText style={styles.selectorText}>
                   {requestDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase()}
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Purpose */}
           <View style={styles.formSection}>
-            <Text style={styles.label}>PURPOSE</Text>
+            <ThemedText style={styles.label}>PURPOSE</ThemedText>
             <TextInput
               style={styles.purposeInput}
               placeholder="e.g. Conference, Official Meeting..."
@@ -182,7 +182,7 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
 
           {/* Reason */}
           <View style={styles.formSection}>
-            <Text style={styles.label}>REASON</Text>
+            <ThemedText style={styles.label}>REASON</ThemedText>
             <TextInput
               style={styles.textArea}
               placeholder="e.g. Medical Appointment, Family Emergency..."
@@ -195,12 +195,12 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
 
           {/* Attachment */}
           <View style={styles.formSection}>
-            <Text style={styles.label}>ATTACHMENT (OPTIONAL)</Text>
+            <ThemedText style={styles.label}>ATTACHMENT (OPTIONAL)</ThemedText>
             <TouchableOpacity style={styles.uploadBtn} onPress={pickDocument}>
               <Ionicons name="attach-outline" size={22} color="#9CA3AF" />
-              <Text style={styles.uploadText}>
+              <ThemedText style={styles.uploadText}>
                 {attachment ? attachment.name : 'Tap to upload image'}
-              </Text>
+              </ThemedText>
               {attachment && (
                 <TouchableOpacity onPress={() => setAttachment(null)}>
                   <Ionicons name="close-circle" size={20} color="#EF4444" />
@@ -229,7 +229,7 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
               ) : (
                 <View style={styles.btnContent}>
                   <Ionicons name="send" size={20} color="#FFF" />
-                  <Text style={styles.submitText}>SUBMIT REQUEST</Text>
+                  <ThemedText style={styles.submitText}>SUBMIT REQUEST</ThemedText>
                 </View>
               )}
             </LinearGradient>

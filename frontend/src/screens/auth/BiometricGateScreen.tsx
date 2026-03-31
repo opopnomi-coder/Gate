@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import ThemedText from '../../components/ThemedText';
 
 interface BiometricGateScreenProps {
   loading: boolean;
@@ -21,22 +22,22 @@ const BiometricGateScreen: React.FC<BiometricGateScreenProps> = ({
         <View style={styles.iconWrap}>
           <Ionicons name="finger-print-outline" size={52} color="#0EA5E9" />
         </View>
-        <Text style={styles.title}>Secure Access</Text>
-        <Text style={styles.subtitle}>
+        <ThemedText style={styles.title}>Secure Access</ThemedText>
+        <ThemedText style={styles.subtitle}>
           Authenticate with fingerprint or your device PIN/pattern/password.
-        </Text>
-        {!!message && <Text style={styles.message}>{message}</Text>}
+        </ThemedText>
+        {!!message && <ThemedText style={styles.message}>{message}</ThemedText>}
 
         <TouchableOpacity style={styles.primaryBtn} onPress={onRetry} disabled={loading}>
           {loading ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={styles.primaryBtnText}>Authenticate</Text>
+            <ThemedText style={styles.primaryBtnText}>Authenticate</ThemedText>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryBtn} onPress={onUseLogin} disabled={loading}>
-          <Text style={styles.secondaryBtnText}>Use Login Instead</Text>
+          <ThemedText style={styles.secondaryBtnText}>Use Login Instead</ThemedText>
         </TouchableOpacity>
       </View>
     </View>
@@ -69,4 +70,3 @@ const styles = StyleSheet.create({
 });
 
 export default BiometricGateScreen;
-

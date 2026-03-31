@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import ThemedText from './ThemedText';
 
 type TabType = 'HOME' | 'HISTORY' | 'REQUESTS' | 'MY_REQUESTS' | 'NEW_PASS' | 'NEW_PASS_REQUEST' | 'PROFILE' | 'ACCOUNT' | 'ENTRY_EXIT' | 'NOTIFICATIONS' | 'LOGOUT' | 'BACK';
 
@@ -71,7 +72,7 @@ const BottomNav: React.FC<BottomNavProps> = ({
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={24} color="#6B7280" />
-          <Text style={styles.navText}>Back</Text>
+          <ThemedText style={styles.navText}>Back</ThemedText>
         </TouchableOpacity>
       )}
 
@@ -91,14 +92,14 @@ const BottomNav: React.FC<BottomNavProps> = ({
                 color={isActive ? '#22D3EE' : '#6B7280'}
               />
             </View>
-            <Text
+            <ThemedText
               style={[
                 styles.navText,
                 { color: isActive ? '#22D3EE' : '#6B7280' }
               ]}
             >
               {item.label}
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         );
       })}

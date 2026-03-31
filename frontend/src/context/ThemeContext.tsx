@@ -37,6 +37,8 @@ export interface Theme {
   };
 }
 
+export type TextStyleMode = 'solid' | 'gradient';
+
 export type ThemePresetId = 'ocean' | 'neon' | 'sunset' | 'minimal';
 
 export interface ThemePreset {
@@ -53,45 +55,45 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'ocean',
     name: 'Executive Blue',
-    description: 'Professional and clean',
-    preview: ['#2563EB', '#0EA5E9', '#38BDF8', '#F8FAFC'],
+    description: 'Corporate and reliable',
+    preview: ['#1D4ED8', '#2563EB', '#0EA5E9', '#F8FAFC'],
     light: {
-      primary: '#2563EB',
-      secondary: '#0EA5E9',
-      accent: '#0284C7',
+      primary: '#1D4ED8',
+      secondary: '#2563EB',
+      accent: '#0EA5E9',
       background: '#F8FAFC',
       surface: '#FFFFFF',
       cardBackground: '#FFFFFF',
       text: '#0F172A',
-      textSecondary: '#334155',
-      textTertiary: '#64748B',
+      textSecondary: '#1E3A8A',
+      textTertiary: '#475569',
       textInverse: '#FFFFFF',
       border: '#E2E8F0',
       surfaceHighlight: '#F1F5F9',
       inputBackground: '#F8FAFC',
       gradients: {
-        primary: ['#2563EB', '#0EA5E9'],
-        secondary: ['#1D4ED8', '#0369A1'],
+        primary: ['#1D4ED8', '#2563EB'],
+        secondary: ['#2563EB', '#0EA5E9'],
         error: ['#EF4444', '#DC2626'],
       },
     },
     dark: {
       primary: '#60A5FA',
-      secondary: '#38BDF8',
-      accent: '#0EA5E9',
-      background: '#020617',
+      secondary: '#3B82F6',
+      accent: '#38BDF8',
+      background: '#0B1220',
       surface: '#0F172A',
       cardBackground: '#111827',
       text: '#E2E8F0',
       textSecondary: '#CBD5E1',
       textTertiary: '#94A3B8',
-      textInverse: '#020617',
+      textInverse: '#0B1220',
       border: '#1E293B',
       surfaceHighlight: '#1E293B',
       inputBackground: '#0F172A',
       gradients: {
-        primary: ['#60A5FA', '#0EA5E9'],
-        secondary: ['#2563EB', '#0369A1'],
+        primary: ['#60A5FA', '#3B82F6'],
+        secondary: ['#3B82F6', '#38BDF8'],
         error: ['#EF4444', '#DC2626'],
       },
     },
@@ -99,12 +101,12 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'neon',
     name: 'Emerald Pro',
-    description: 'Fresh and vibrant',
-    preview: ['#10B981', '#059669', '#34D399', '#F0FDF4'],
+    description: 'Balanced and modern',
+    preview: ['#059669', '#10B981', '#34D399', '#F0FDF4'],
     light: {
-      primary: '#10B981',
-      secondary: '#059669',
-      accent: '#047857',
+      primary: '#059669',
+      secondary: '#10B981',
+      accent: '#34D399',
       background: '#F0FDF4',
       surface: '#FFFFFF',
       cardBackground: '#FFFFFF',
@@ -116,8 +118,8 @@ export const THEME_PRESETS: ThemePreset[] = [
       surfaceHighlight: '#DCFCE7',
       inputBackground: '#F0FDF4',
       gradients: {
-        primary: ['#10B981', '#059669'],
-        secondary: ['#059669', '#047857'],
+        primary: ['#059669', '#10B981'],
+        secondary: ['#10B981', '#34D399'],
         error: ['#FF4D6D', '#C9184A'],
       },
     },
@@ -125,13 +127,13 @@ export const THEME_PRESETS: ThemePreset[] = [
       primary: '#34D399',
       secondary: '#10B981',
       accent: '#6EE7B7',
-      background: '#022C22',
+      background: '#052E16',
       surface: '#064E3B',
       cardBackground: '#065F46',
       text: '#ECFDF5',
       textSecondary: '#D1FAE5',
       textTertiary: '#A7F3D0',
-      textInverse: '#022C22',
+      textInverse: '#052E16',
       border: '#0F766E',
       surfaceHighlight: '#047857',
       inputBackground: '#064E3B',
@@ -145,12 +147,12 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'sunset',
     name: 'Royal Violet',
-    description: 'Premium modern contrast',
-    preview: ['#7C3AED', '#8B5CF6', '#A78BFA', '#F5F3FF'],
+    description: 'Premium and refined',
+    preview: ['#6D28D9', '#7C3AED', '#A78BFA', '#F5F3FF'],
     light: {
-      primary: '#7C3AED',
-      secondary: '#8B5CF6',
-      accent: '#6D28D9',
+      primary: '#6D28D9',
+      secondary: '#7C3AED',
+      accent: '#8B5CF6',
       background: '#F5F3FF',
       surface: '#FFFFFF',
       cardBackground: '#FFFFFF',
@@ -162,14 +164,14 @@ export const THEME_PRESETS: ThemePreset[] = [
       surfaceHighlight: '#EDE9FE',
       inputBackground: '#F5F3FF',
       gradients: {
-        primary: ['#7C3AED', '#8B5CF6'],
-        secondary: ['#8B5CF6', '#A78BFA'],
+        primary: ['#6D28D9', '#7C3AED'],
+        secondary: ['#7C3AED', '#A78BFA'],
         error: ['#EF4444', '#DC2626'],
       },
     },
     dark: {
-      primary: '#A78BFA',
-      secondary: '#8B5CF6',
+      primary: '#C4B5FD',
+      secondary: '#A78BFA',
       accent: '#C4B5FD',
       background: '#1E1B4B',
       surface: '#312E81',
@@ -182,7 +184,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       surfaceHighlight: '#4338CA',
       inputBackground: '#312E81',
       gradients: {
-        primary: ['#A78BFA', '#8B5CF6'],
+        primary: ['#C4B5FD', '#8B5CF6'],
         secondary: ['#8B5CF6', '#6D28D9'],
         error: ['#EF4444', '#DC2626'],
       },
@@ -192,24 +194,24 @@ export const THEME_PRESETS: ThemePreset[] = [
     id: 'minimal',
     name: 'Slate Mono',
     description: 'Minimal enterprise look',
-    preview: ['#0F172A', '#334155', '#64748B', '#F8FAFC'],
+    preview: ['#0F172A', '#1E293B', '#475569', '#F8FAFC'],
     light: {
       primary: '#0F172A',
-      secondary: '#334155',
+      secondary: '#1E293B',
       accent: '#475569',
       background: '#F8FAFC',
       surface: '#FFFFFF',
       cardBackground: '#FFFFFF',
       text: '#0F172A',
-      textSecondary: '#334155',
+      textSecondary: '#1E293B',
       textTertiary: '#64748B',
       textInverse: '#FFFFFF',
       border: '#E2E8F0',
-      surfaceHighlight: '#F5F5F5',
+      surfaceHighlight: '#F1F5F9',
       inputBackground: '#F8FAFC',
       gradients: {
-        primary: ['#0F172A', '#334155'],
-        secondary: ['#334155', '#475569'],
+        primary: ['#0F172A', '#1E293B'],
+        secondary: ['#1E293B', '#475569'],
         error: ['#EF4444', '#DC2626'],
       },
     },
@@ -294,9 +296,11 @@ interface ThemeContextType {
   theme: Theme;
   isDark: boolean;
   activePreset: ThemePresetId;
+  textStyleMode: TextStyleMode;
   transitioning: boolean;
   toggleTheme: () => void;
   applyPreset: (presetId: ThemePresetId) => void;
+  setTextStyleMode: (mode: TextStyleMode) => void;
   resetTheme: () => void;
   /** Animated opacity value (0→1) that fires on every theme change — use for fade transitions */
   transitionOpacity: Animated.Value;
@@ -315,6 +319,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode; userId?: string }> =
 }) => {
   const [isDark, setIsDark] = useState(false);
   const [activePreset, setActivePreset] = useState<ThemePresetId>('ocean');
+  const [textStyleMode, setTextStyleModeState] = useState<TextStyleMode>('solid');
   const [transitioning, setTransitioning] = useState(false);
   const transitionOpacity = useRef(new Animated.Value(1)).current;
 
@@ -325,12 +330,16 @@ export const ThemeProvider: React.FC<{ children: ReactNode; userId?: string }> =
 
   const loadPreferences = async () => {
     try {
-      const [savedMode, savedPreset] = await Promise.all([
+      const [savedMode, savedPreset, savedTextStyle] = await Promise.all([
         AsyncStorage.getItem(storageKey('mode', userId)),
         AsyncStorage.getItem(storageKey('preset', userId)),
+        AsyncStorage.getItem(storageKey('textStyle', userId)),
       ]);
       if (savedMode)   setIsDark(savedMode === 'dark');
       if (savedPreset) setActivePreset(savedPreset as ThemePresetId);
+      if (savedTextStyle === 'solid' || savedTextStyle === 'gradient') {
+        setTextStyleModeState(savedTextStyle);
+      }
     } catch (e) {
       console.error('ThemeContext: load error', e);
     }
@@ -362,6 +371,11 @@ export const ThemeProvider: React.FC<{ children: ReactNode; userId?: string }> =
       ]).catch(() => {});
     });
   }, [userId, runTransition]);
+
+  const setTextStyleMode = useCallback((mode: TextStyleMode) => {
+    setTextStyleModeState(mode);
+    AsyncStorage.setItem(storageKey('textStyle', userId), mode).catch(() => {});
+  }, [userId]);
 
   // ── Reset ─────────────────────────────────────────────────────────────────
   const resetTheme = useCallback(() => {
@@ -395,9 +409,11 @@ export const ThemeProvider: React.FC<{ children: ReactNode; userId?: string }> =
         theme,
         isDark,
         activePreset,
+        textStyleMode,
         transitioning,
         toggleTheme,
         applyPreset,
+        setTextStyleMode,
         resetTheme,
         transitionOpacity,
       }}

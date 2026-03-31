@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,7 +9,7 @@ import {
   StatusBar,
   Modal,
   Image,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
@@ -28,6 +27,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import ThemedText from '../../components/ThemedText';
 
 interface NewHODDashboardProps {
   hod: HOD;
@@ -87,10 +87,18 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
       const gatePassList =
         gatePassResponse.success && gatePassResponse.data ? gatePassResponse.data : [];
       const combined = [...gatePassList, ...visitorRequests];
-      setRequests(combined);
+      const sorted = combined.sort((a: any, b: any) => {
+        const dateB = new Date(b.requestDate || b.createdAt || b.timestamp || b.visitDate || 0).getTime();
+        const dateA = new Date(a.requestDate || a.createdAt || a.timestamp || a.visitDate || 0).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        const idB = parseInt(b.id?.toString().split('-')[1]) || parseInt(b.id) || 0;
+        const idA = parseInt(a.id?.toString().split('-')[1]) || parseInt(a.id) || 0;
+        return idB - idA;
+      });
+      setRequests(sorted);
 
       // Only count requests from staff/students — exclude HOD's own submissions
-      const incomingOnly = combined.filter((r: any) =>
+      const incomingOnly = sorted.filter((r: any) =>
         r.userType !== 'HOD' &&
         r.requestedByStaffCode !== hod.hodCode &&
         r.regNo !== hod.hodCode
@@ -239,13 +247,13 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
               <Image source={{ uri: profileImage }} style={styles.avatarImage} />
             ) : (
               <View style={[styles.avatar, { backgroundColor: theme.warning }]}>
-                <Text style={styles.avatarText}>{getInitials(hod.hodName || 'HOD')}</Text>
+                <ThemedText style={styles.avatarText}>{getInitials(hod.hodName || 'HOD')}</ThemedText>
               </View>
             )}
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</Text>
-            <Text style={[styles.userName, { color: theme.text }]}>{(hod.hodName || 'HOD').toUpperCase()}</Text>
+            <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]}>{(hod.hodName || 'HOD').toUpperCase()}</ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -278,16 +286,16 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
       {/* Stats Tabs */}
       <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
         <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]} onPress={() => setActiveTab('PENDING')}>
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>PENDING</Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</Text>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>PENDING</ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]} onPress={() => setActiveTab('APPROVED')}>
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</Text>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]} onPress={() => setActiveTab('REJECTED')}>
-          <Text style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</Text>
-          <Text style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</Text>
+          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</ThemedText>
+          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -296,7 +304,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         {filteredRequests.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</Text>
+            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
           </View>
         ) : (
           filteredRequests.map((request) => (
@@ -322,49 +330,49 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
               }}            >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
-                  <Text style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
                     {getInitials(request.passType === 'BULK' ? (request.requestedByStaffName || 'BR') : request.passType === 'VISITOR' ? (request.visitorName || request.studentName || 'VR') : (request.studentName || 'ST'))}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.headerMainInfo}>
                   <View style={styles.nameRow}>
-                    <Text style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                    <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
                       {request.passType === 'BULK' ? (request.requestedByStaffName || `Staff: ${request.requestedByStaffCode}`) : request.passType === 'VISITOR' ? (request.visitorName || request.studentName || 'Visitor') : request.studentName || 'Unknown'}
-                    </Text>
+                    </ThemedText>
                     <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                      <Text style={[styles.passTypePillText, { color: theme.text }]}>
+                      <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>
                         {request.passType === 'BULK'
                           ? 'Bulk Gatepass'
                           : request.passType === 'VISITOR'
                           ? `${(request.role || 'VISITOR').toUpperCase()} Request`
                           : 'Single Gatepass'}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </View>
-                  <Text style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                  <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
                     {request.passType === 'BULK' ? `${request.userType || 'Staff'} • ${request.department || 'Department'}` : request.passType === 'VISITOR' ? `${request.visitorPhone || ''} • ${request.department || 'Department'}` : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.timeAgoContainer}>
-                  <Text style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</Text>
+                  <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</ThemedText>
                 </View>
               </View>
 
               <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
                 <View style={styles.detailItem}>
                   <Ionicons name="medical" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</Text>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
                 </View>
                 <View style={styles.detailItem}>
                   <Ionicons name="calendar" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.detailText, { color: theme.text }]}>
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>
                     Exit: {new Date(request.exitDateTime || request.requestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </Text>
+                  </ThemedText>
                 </View>
                 {request.passType === 'BULK' && (
                   <View style={styles.detailItem}>
                     <Ionicons name="people" size={16} color={theme.textSecondary} />
-                    <Text style={[styles.detailText, { color: theme.text }]}>
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
                       {(() => {
                         const parts: string[] = [];
                         const total = request.participantCount || 0;
@@ -374,7 +382,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                         if (students > 0) parts.push(`Students - ${students}`);
                         return parts.join(', ') || `${total} Participants`;
                       })()}
-                    </Text>
+                    </ThemedText>
                   </View>
                 )}
               </View>
@@ -389,7 +397,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                     return { backgroundColor: theme.warning + '22' };
                   })(),
                 ]}>
-                  <Text style={[
+                  <ThemedText style={[
                     styles.statusText,
                     (() => {
                       const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
@@ -402,7 +410,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                       const s = (request.passType === 'VISITOR' ? request.status : request.hodApproval) || 'PENDING';
                       return s === 'PENDING_HOD' ? 'PENDING' : s;
                     })()}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
             </TouchableOpacity>
@@ -416,21 +424,21 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setBottomTab('HOME')}>
           <Ionicons name={bottomTab === 'HOME' ? 'home' : 'home-outline'} size={22} color={bottomTab === 'HOME' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'HOME' && { color: theme.primary }]}>Home</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'HOME' && { color: theme.primary }]}>Home</ThemedText>
           {bottomTab === 'HOME' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => { setBottomTab('NEW_PASS'); setShowPassTypeModal(true); }}>
           <Ionicons name="add-circle-outline" size={32} color={theme.textSecondary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }]}>New Pass</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }]}>New Pass</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => { setBottomTab('MY_REQUESTS'); onNavigate('HOD_MY_REQUESTS'); }}>
           <Ionicons name={bottomTab === 'MY_REQUESTS' ? 'list' : 'list-outline'} size={22} color={bottomTab === 'MY_REQUESTS' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'MY_REQUESTS' && { color: theme.primary }]}>My Requests</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'MY_REQUESTS' && { color: theme.primary }]}>My Requests</ThemedText>
           {bottomTab === 'MY_REQUESTS' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => { setBottomTab('PROFILE'); onNavigate('PROFILE'); }}>
           <Ionicons name={bottomTab === 'PROFILE' ? 'person' : 'person-outline'} size={22} color={bottomTab === 'PROFILE' ? theme.primary : theme.textTertiary} />
-          <Text style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'PROFILE' && { color: theme.primary }]}>Profile</Text>
+          <ThemedText style={[styles.navLabel, { color: theme.textTertiary }, bottomTab === 'PROFILE' && { color: theme.primary }]}>Profile</ThemedText>
           {bottomTab === 'PROFILE' && <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />}
         </TouchableOpacity>
       </View>
@@ -547,7 +555,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         <View style={styles.processingOverlay} pointerEvents="box-only">
           <View style={styles.processingBox}>
             <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.processingText, { color: theme.text }]}>Processing...</Text>
+            <ThemedText style={[styles.processingText, { color: theme.text }]}>Processing...</ThemedText>
           </View>
         </View>
       )}

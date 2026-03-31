@@ -799,12 +799,74 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
                       />
                     </div>
                   ) : null}
-                  <p style={{ fontSize: '13px', color: '#166534', marginBottom: '8px', wordBreak: 'break-all' }}>
-                    <strong>QR data:</strong> {approvedQrCode || '…'}
-                  </p>
-                  <p style={{ fontSize: '18px', color: '#14532d', fontWeight: 800, letterSpacing: '2px' }}>
-                    Manual Code: {approvedManualCode || 'N/A'}
-                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '12px 16px',
+                        borderRadius: '14px',
+                        background: 'rgba(255,255,255,0.75)',
+                        border: '1px solid rgba(22, 101, 52, 0.25)',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', opacity: 0.9, letterSpacing: '0.12em' }}>
+                        MANUAL CODE
+                      </div>
+                      <div style={{ fontSize: '20px', color: '#14532d', fontWeight: 900, letterSpacing: '3px' }}>
+                        {approvedManualCode || 'N/A'}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!approvedManualCode) return;
+                          try {
+                            await navigator.clipboard.writeText(approvedManualCode);
+                          } catch {
+                            // ignore
+                          }
+                        }}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(22, 101, 52, 0.25)',
+                          background: '#ffffff',
+                          cursor: approvedManualCode ? 'pointer' : 'not-allowed',
+                          fontWeight: 800,
+                          color: '#14532d',
+                        }}
+                        disabled={!approvedManualCode}
+                      >
+                        Copy code
+                      </button>
+
+                      {approvedQrCode ? (
+                        <a
+                          href={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(approvedQrCode)}`}
+                          download
+                          style={{
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            border: '1px solid rgba(22, 101, 52, 0.25)',
+                            background: '#ffffff',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                            color: '#14532d',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          Download QR
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               )}
               {approvalStatus === 'REJECTED' && (
