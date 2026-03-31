@@ -15,6 +15,8 @@ import { apiService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface StudentHistoryScreenProps {
   student: Student;
@@ -150,7 +152,7 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
         <ThemedText style={[styles.headerTitle, { color: theme.text }]}>History</ThemedText>
       </View>
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         contentContainerStyle={styles.scrollContent}
@@ -184,7 +186,7 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
             </View>
           ))
         )}
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}>

@@ -17,6 +17,8 @@ import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import GatePassQRModal from '../../components/GatePassQRModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface MyRequestsScreenProps {
   user: Staff;
@@ -215,7 +217,7 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={[styles.content, { backgroundColor: theme.background }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
         showsVerticalScrollIndicator={false}
@@ -236,7 +238,7 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         )}
         </View>
         <View style={{ height: 100 }} />
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       <SinglePassDetailsModal

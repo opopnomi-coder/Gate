@@ -13,6 +13,8 @@ import { API_CONFIG } from '../../config/api.config';
 import { useTheme } from '../../context/ThemeContext';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
+
 
 interface Notification {
   id: number;
@@ -218,7 +220,7 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
         </ScreenContentContainer>
       ) : (
         <ScreenContentContainer>
-        <FlatList
+        <VerticalFlatList
           data={notifications}
           renderItem={({ item }) => {
             const icon = getNotificationIcon(item.notificationType);

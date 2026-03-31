@@ -20,6 +20,8 @@ import { apiService } from '../../services/api';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface HODGatePassRequestScreenProps {
   user: HOD;
@@ -132,7 +134,7 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
 
           {/* User Info Card */}
@@ -236,7 +238,7 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
           </TouchableOpacity>
 
         </Animated.View>
-      </ScrollView>
+      </VerticalScrollView>
 
       {showDatePicker && (
         <DateTimePicker value={requestDate} mode="date" display="default" onChange={handleDateChange} minimumDate={new Date()} />

@@ -18,6 +18,8 @@ import RequestTimeline from '../../components/RequestTimeline';
 import Modal from 'react-native-modal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 const TypedModal = Modal as any;
 
@@ -257,7 +259,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
         </View>
 
         {/* Requests List */}
-        <ScrollView
+        <VerticalScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -366,7 +368,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
               ))}
             </Animated.View>
           )}
-        </ScrollView>
+        </VerticalScrollView>
 
         {/* QR Code Modal */}
         <QRCodeModal

@@ -24,6 +24,8 @@ import ThemedText from '../../components/ThemedText';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import { useTheme } from '../../context/ThemeContext';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface ModernScanHistoryScreenProps {
   security: SecurityPersonnel;
@@ -267,7 +269,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           </View>
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
-          <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          <VerticalScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
             <View style={styles.rangeResultsTop}>
               <ThemedText style={styles.rangeResultsSub}>
                 {fromDate?.toLocaleDateString()} — {toDate?.toLocaleDateString()}
@@ -301,7 +303,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                 ))
               )}
             </View>
-          </ScrollView>
+          </VerticalScrollView>
         </ScreenContentContainer>
         <SecurityBottomNav activeTab="history" onNavigate={onNavigate} />
       </SafeAreaView>
@@ -320,7 +322,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           <View style={styles.headerRight} />
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
+          <VerticalScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
             <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 12 }]}>Scan history date range</ThemedText>
             <View style={styles.dateTypeTabs}>
               <TouchableOpacity
@@ -376,7 +378,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                 <ThemedText style={styles.actionBtnText}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </VerticalScrollView>
         </ScreenContentContainer>
         <SecurityBottomNav activeTab="history" onNavigate={onNavigate} />
       </SafeAreaView>
@@ -435,7 +437,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
 
       {/* Search Bar */}
       <ScreenContentContainer style={{ flex: 1 }}>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -612,7 +614,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           )}
         </View>
       )}
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Scan Detail — full-screen modal */}
@@ -643,7 +645,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   </View>
                 </View>
 
-                <ScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
+                <VerticalScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
                   {selectedScan.isBulkPass ? (
                     <>
                       {/* Bulk pass profile row */}
@@ -785,7 +787,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                     </>
                   )}
                   <View style={{ height: 16 }} />
-                </ScrollView>
+                </VerticalScrollView>
 
                 {/* Footer close button */}
                 <View style={styles.fsFooter}>
@@ -826,7 +828,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   </View>
                 </View>
 
-                <ScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
+                <VerticalScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
                   {/* Profile row */}
                   <View style={styles.fsProfileRow}>
                     <View style={[styles.fsAvatar, { backgroundColor: '#F59E0B' }]}>
@@ -888,7 +890,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   </View>
 
                   <View style={{ height: 16 }} />
-                </ScrollView>
+                </VerticalScrollView>
 
                 <View style={styles.fsFooter}>
                   <TouchableOpacity style={styles.fsCloseBtn} onPress={() => setShowVehicleModal(false)}>

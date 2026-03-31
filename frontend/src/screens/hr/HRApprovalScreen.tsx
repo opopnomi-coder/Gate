@@ -17,6 +17,8 @@ import { THEME } from '../../config/api.config';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface HRApprovalScreenProps {
   user: Staff;
@@ -122,7 +124,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <VerticalScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Request Info Card */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -248,7 +250,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
             </ThemedText>
           </View>
         )}
-      </ScrollView>
+      </VerticalScrollView>
 
       {/* Fullscreen Attachment Preview Modal */}
       <Modal

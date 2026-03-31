@@ -28,6 +28,8 @@ import ErrorModal from '../../components/ErrorModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface NewHODDashboardProps {
   hod: HOD;
@@ -266,7 +268,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
 
       {/* Search Bar */}
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -417,7 +419,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
           ))
         )}
       </View>
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}

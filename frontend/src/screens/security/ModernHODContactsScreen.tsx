@@ -17,6 +17,7 @@ import { HODContact, SecurityPersonnel, ScreenName } from '../../types';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 interface HODContactsScreenProps {
   security: SecurityPersonnel;
@@ -204,7 +205,7 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
       </View>
 
       {/* HOD List */}
-      <ScrollView
+      <VerticalScrollView
         style={styles.listContainer}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -289,7 +290,7 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
             </View>
           ))
         )}
-      </ScrollView>
+      </VerticalScrollView>
 
       {/* Bottom Navigation */}
       <SecurityBottomNav activeTab="contacts" onNavigate={onNavigate} />

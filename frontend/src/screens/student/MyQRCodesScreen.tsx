@@ -13,6 +13,8 @@ import QRCode from 'react-native-qrcode-svg';
 import { Student } from '../../types';
 import { THEME } from '../../config/api.config';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface MyQRCodesScreenProps {
   user: Student;
@@ -74,7 +76,7 @@ const MyQRCodesScreen: React.FC<MyQRCodesScreenProps> = ({ user, navigation, onB
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -123,7 +125,7 @@ const MyQRCodesScreen: React.FC<MyQRCodesScreenProps> = ({ user, navigation, onB
             </View>
           ))
         )}
-      </ScrollView>
+      </VerticalScrollView>
     </SafeAreaView>
   );
 };

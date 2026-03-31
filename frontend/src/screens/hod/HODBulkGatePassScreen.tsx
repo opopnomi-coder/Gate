@@ -19,6 +19,8 @@ import { apiService } from '../../services/api';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface HODBulkGatePassScreenProps {
   user: HOD;
@@ -61,7 +63,7 @@ const Dropdown = ({ label, value, options, onSelect, placeholder }: {
         <TouchableOpacity style={dd.overlay} activeOpacity={1} onPress={() => setOpen(false)}>
           <View style={dd.sheet}>
             <ThemedText style={dd.sheetTitle}>{label}</ThemedText>
-            <ScrollView>
+            <VerticalScrollView>
               <TouchableOpacity style={dd.option} onPress={() => { onSelect(''); setOpen(false); }}>
                 <ThemedText style={dd.optionText}>All</ThemedText>
               </TouchableOpacity>
@@ -72,7 +74,7 @@ const Dropdown = ({ label, value, options, onSelect, placeholder }: {
                   {value === o && <Ionicons name="checkmark" size={18} color="#F59E0B" />}
                 </TouchableOpacity>
               ))}
-            </ScrollView>
+            </VerticalScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -283,7 +285,7 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
         <ThemedText style={s.infoBannerText}>Bulk passes — no HR approval required</ThemedText>
       </View>
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <VerticalScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* Summary */}
         <View style={s.card}>
           <View style={s.summaryRow}>
@@ -473,7 +475,7 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
           <ThemedText style={s.submitBtnText}>Submit for {totalSelected} Participant{totalSelected !== 1 ? 's' : ''}</ThemedText>
         </TouchableOpacity>
         <View style={{ height: 40 }} />
-      </ScrollView>
+      </VerticalScrollView>
 
       <SuccessModal
         visible={showSuccessModal}

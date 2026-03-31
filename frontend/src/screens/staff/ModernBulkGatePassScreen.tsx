@@ -20,6 +20,8 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import { formatDateGB, formatTime } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface ModernBulkGatePassScreenProps {
   user: Staff;
@@ -237,7 +239,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         <ThemedText style={styles.infoBannerText}>Create a gate pass for multiple students at once</ThemedText>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Include Staff toggle */}
         <View style={styles.section}>
           <TouchableOpacity
@@ -522,7 +524,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
-      </ScrollView>
+      </VerticalScrollView>
 
       <SuccessModal
         visible={showSuccessModal}

@@ -28,6 +28,8 @@ import SuccessModal from '../../components/SuccessModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface StudentHomeScreenProps {
   student: Student;
@@ -213,7 +215,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
@@ -275,7 +277,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           ))
         )}
         <View style={{ height: 100 }} />
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
@@ -311,7 +313,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               </TouchableOpacity>
             </View>
             {selectedRequest && (
-              <ScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false}>
+              <VerticalScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false}>
                 <View style={[styles.statusModalHeader, { borderBottomColor: theme.border }]}>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[styles.statusModalId, { color: theme.primary }]}>#{selectedRequest.id}</ThemedText>
@@ -322,7 +324,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                 <TouchableOpacity style={styles.closeModalButton} onPress={() => setShowDetailModal(false)}>
                   <ThemedText style={styles.closeModalButtonText}>Close Status</ThemedText>
                 </TouchableOpacity>
-              </ScrollView>
+              </VerticalScrollView>
             )}
           </View>
         </View>

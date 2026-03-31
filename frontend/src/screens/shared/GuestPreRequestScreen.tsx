@@ -21,6 +21,8 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ErrorModal from '../../components/ErrorModal';
 import { useTheme } from '../../context/ThemeContext';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 export type GuestPreRequestRole = 'STAFF' | 'HOD' | 'HR';
 
@@ -208,7 +210,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
         <View style={{ width: 40 }} />
       </View>
       <ScreenContentContainer>
-        <ScrollView
+        <VerticalScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
@@ -311,7 +313,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
             </View>
           )}
           <View style={{ height: 40 }} />
-        </ScrollView>
+        </VerticalScrollView>
       </ScreenContentContainer>
 
       <ErrorModal

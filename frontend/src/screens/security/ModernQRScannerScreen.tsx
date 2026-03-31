@@ -18,6 +18,8 @@ import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface ModernQRScannerScreenProps {
   security: SecurityPersonnel;
@@ -225,7 +227,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       </View>
 
       {!showCamera ? (
-        <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+        <VerticalScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
           {/* Scanner Type Selection */}
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Select Scan Type</ThemedText>
@@ -288,7 +290,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
               </ThemedText>
             </View>
           </View>
-        </ScrollView>
+        </VerticalScrollView>
       ) : (
         <View style={styles.cameraContainer}>
           {/* Camera View */}

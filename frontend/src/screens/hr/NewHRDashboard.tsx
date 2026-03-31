@@ -31,6 +31,8 @@ import { exportStyledPdfReport } from '../../utils/pdfReport';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import GuestPreRequestScreen from '../shared/GuestPreRequestScreen';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface NewHRDashboardProps {
   hr: HR;
@@ -343,7 +345,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       <>
       {/* Search Bar */}
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -504,7 +506,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
           ))
         )}
       </View>
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
       </>
       )}
@@ -523,7 +525,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
 
       {bottomTab === 'EXITS' && (
         <ScreenContentContainer>
-        <ScrollView
+        <VerticalScrollView
           style={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           contentContainerStyle={{ paddingBottom: 100 }}
@@ -570,7 +572,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
               ))
             )}
           </View>
-        </ScrollView>
+        </VerticalScrollView>
         </ScreenContentContainer>
       )}
 

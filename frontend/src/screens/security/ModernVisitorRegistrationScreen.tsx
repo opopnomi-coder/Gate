@@ -17,6 +17,8 @@ import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface ModernVisitorRegistrationScreenProps {
   security: SecurityPersonnel;
@@ -192,7 +194,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <VerticalScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {/* Visitor Information */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Visitor Information</ThemedText>
@@ -365,7 +367,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
             </>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </VerticalScrollView>
 
       {/* Bottom Navigation */}
       <SecurityBottomNav activeTab="visitor" onNavigate={onNavigate} />

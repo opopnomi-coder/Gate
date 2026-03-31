@@ -26,6 +26,8 @@ import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface ProfileScreenProps {
   user: any;
@@ -229,7 +231,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </TouchableOpacity>
       </View>
       <ScreenContentContainer>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} nestedScrollEnabled scrollEnabled={outerScrollEnabled} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}>
+      <VerticalScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} nestedScrollEnabled scrollEnabled={outerScrollEnabled} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}>
         <View style={styles.headerSection}>
           <View style={styles.avatarContainer}>
             <View style={[styles.avatarRing, { borderColor: theme.accent }]}>
@@ -312,7 +314,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <ThemedText style={[styles.logoutText, { color: theme.error }]}>Log Out</ThemedText>
         </TouchableOpacity>
         <View style={{ height: showBottomNav ? 100 : 40 }} />
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {showBottomNav && onTabChange && (

@@ -27,6 +27,8 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import { formatTime as fmtTime, getRelativeTimeShort } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface NewSecurityDashboardProps {
   user: SecurityPersonnel;
@@ -277,7 +279,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
       {/* Stats Cards */}
       <ScreenContentContainer style={{ flex: 1 }}>
-      <ScrollView
+      <VerticalScrollView
         style={styles.outerScroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={styles.outerScrollContent}
@@ -430,7 +432,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           ))
         )}
         <View style={{ height: 100 }} />
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}
@@ -457,7 +459,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           </View>
 
           {selectedPerson && (
-            <ScrollView style={detailStyles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={detailStyles.scrollContent}>
+            <VerticalScrollView style={detailStyles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={detailStyles.scrollContent}>
               {/* Profile Row */}
               <View style={[detailStyles.profileRow, { backgroundColor: theme.surface }]}>
                 <View style={[detailStyles.avatar, { backgroundColor: theme.primary }]}>
@@ -539,7 +541,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
               </View>
 
               <View style={{ height: 16 }} />
-            </ScrollView>
+            </VerticalScrollView>
           )}
 
           {/* Footer */}
@@ -574,7 +576,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           </View>
 
           {selectedVisitor && (
-            <ScrollView style={detailStyles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={detailStyles.scrollContent}>
+            <VerticalScrollView style={detailStyles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={detailStyles.scrollContent}>
               {/* Escalation Warning Banner */}
               <View style={[visitorDetailStyles.urgentBanner, { backgroundColor: theme.error + '15' }]}>
                 <Ionicons name="alert-circle" size={20} color={theme.error} />
@@ -630,7 +632,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
               </View>
 
               <View style={{ height: 16 }} />
-            </ScrollView>
+            </VerticalScrollView>
           )}
 
           {/* Footer with Approve/Reject buttons */}

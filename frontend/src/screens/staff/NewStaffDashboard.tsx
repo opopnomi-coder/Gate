@@ -29,6 +29,8 @@ import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface NewStaffDashboardProps {
   staff: Staff;
@@ -345,7 +347,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -508,7 +510,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           ))
         )}
       </View>
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}
@@ -625,7 +627,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               </TouchableOpacity>
             </View>
 
-            <ScrollView 
+            <VerticalScrollView 
               style={styles.qrModalContent}
               contentContainerStyle={styles.qrModalScrollContent}
               showsVerticalScrollIndicator={false}
@@ -685,7 +687,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               >
                 <ThemedText style={styles.qrCloseButtonText}>Close</ThemedText>
               </TouchableOpacity>
-            </ScrollView>
+            </VerticalScrollView>
           </View>
         </View>
       </Modal>

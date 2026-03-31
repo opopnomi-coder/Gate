@@ -17,6 +17,8 @@ import GatePassQRModal from '../../components/GatePassQRModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface HODMyRequestsScreenProps {
   user: HOD;
@@ -256,7 +258,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#F59E0B']} />
@@ -282,7 +284,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
         </View>
 
         <View style={{ height: 100 }} />
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Detail — full-screen */}

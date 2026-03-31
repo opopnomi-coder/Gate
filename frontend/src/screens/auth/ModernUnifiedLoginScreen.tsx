@@ -28,6 +28,8 @@ import { useErrorModal } from '../../hooks/useErrorModal';
 import { useSuccessModal } from '../../hooks/useSuccessModal';
 import { AppError } from '../../utils/errorHandler';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface ModernUnifiedLoginScreenProps {
   onLoginSuccess: (user: any, role: UserRole) => void;
@@ -237,7 +239,7 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <VerticalScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           {onBack && (
             <TouchableOpacity style={styles.backBtn} onPress={onBack}>
               <Ionicons name="arrow-back" size={24} color={THEME.colors.text} />
@@ -334,7 +336,7 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
               )}
             </View>
           </Animated.View>
-        </ScrollView>
+        </VerticalScrollView>
       </KeyboardAvoidingView>
 
       <Modal visible={showOTPSuccessModal} transparent animationType="fade" onRequestClose={() => setShowOTPSuccessModal(false)}>

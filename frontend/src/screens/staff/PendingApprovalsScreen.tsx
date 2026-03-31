@@ -21,6 +21,8 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface PendingApprovalsScreenProps {
   user: Staff;
@@ -166,7 +168,7 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
@@ -300,7 +302,7 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
             </TouchableOpacity>
           ))
         )}
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       <BulkDetailsModal

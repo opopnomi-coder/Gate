@@ -25,6 +25,8 @@ import { useActionLock } from '../../context/ActionLockContext';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface GatePassRequestScreenProps {
   user: Student | Staff | HOD;
@@ -173,7 +175,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
         <ThemedText style={[styles.headerTitle, { color: theme.text }]}>New Gate Pass Request</ThemedText>
         <View style={{ width: 44 }} />
       </View>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <View>
           <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
             <View style={styles.avatarContainer}>
@@ -218,7 +220,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </VerticalScrollView>
       {showDatePicker && <DateTimePicker value={requestDate} mode="date" display="default" onChange={handleDateChange} minimumDate={new Date()} />}
       {showTimePicker && <DateTimePicker value={requestDate} mode="time" display="default" onChange={handleTimeChange} />}
       <SuccessModal visible={showSuccessModal} title="Success" message="Submitted!" onClose={() => { setShowSuccessModal(false); handleGoBack(); }} />

@@ -14,6 +14,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { formatDateTime } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface EntryExitHistoryScreenProps {
   user: Student;
@@ -91,7 +93,7 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
       >
@@ -152,7 +154,7 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
             </View>
           ))
         )}
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
     </SafeAreaView>
   );

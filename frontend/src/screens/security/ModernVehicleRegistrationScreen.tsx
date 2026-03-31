@@ -17,6 +17,7 @@ import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 interface ModernVehicleRegistrationScreenProps {
   security: SecurityPersonnel;
@@ -177,7 +178,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
         <View style={styles.headerRight} />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <VerticalScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {/* Search Section */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Search Vehicle</ThemedText>
@@ -403,7 +404,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
             ))}
           </View>
         )}
-      </ScrollView>
+      </VerticalScrollView>
 
       {/* Vehicle Detail Modal */}
       <Modal
@@ -425,7 +426,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
             </View>
 
             {selectedVehicle && (
-              <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalScrollContent}>
+              <VerticalScrollView style={styles.modalContent} contentContainerStyle={styles.modalScrollContent}>
                 <View style={styles.modalVehicleIcon}>
                   <Ionicons name={getVehicleIcon(selectedVehicle.vehicleType) as any} size={48} color="#00BCD4" />
                 </View>
@@ -457,7 +458,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
                     <ThemedText style={styles.modalValue}>{formatDate(selectedVehicle.registeredAt)}</ThemedText>
                   </View>
                 </View>
-              </ScrollView>
+              </VerticalScrollView>
             )}
           </View>
         </View>

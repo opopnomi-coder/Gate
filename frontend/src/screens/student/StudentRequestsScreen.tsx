@@ -21,6 +21,8 @@ import { useErrorModal } from '../../hooks/useErrorModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface StudentRequestsScreenProps {
   student: Student;
@@ -188,7 +190,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
       </View>
 
       <ScreenContentContainer>
-      <ScrollView
+      <VerticalScrollView
         style={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         contentContainerStyle={styles.scrollContent}
@@ -203,7 +205,7 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
           filteredRequests.map(r => renderCard(r))
         )}
         </View>
-      </ScrollView>
+      </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Bottom nav */}

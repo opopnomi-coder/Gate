@@ -9,6 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import ThemedText from '../../components/ThemedText';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
+
 
 export interface Participant {
   id: string;
@@ -129,7 +131,7 @@ const ParticipantsScreen: React.FC<ParticipantsScreenProps> = ({
       )}
 
       {/* List */}
-      <FlatList
+      <VerticalFlatList
         data={filtered}
         keyExtractor={(item, i) => `${item.type}-${item.id}-${i}`}
         renderItem={renderItem}

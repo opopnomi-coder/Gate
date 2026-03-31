@@ -18,6 +18,8 @@ import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
+import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+
 
 interface VisitorRequest {
   id: number;
@@ -140,7 +142,7 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
       </View>
 
       {/* List */}
-      <ScrollView
+      <VerticalScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00BCD4']} />}
@@ -196,7 +198,7 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
             </TouchableOpacity>
           ))
         )}
-      </ScrollView>
+      </VerticalScrollView>
 
       {/* QR Modal — floating card style */}
       <Modal visible={showQRModal} animationType="fade" transparent={true} statusBarTranslucent onRequestClose={() => setShowQRModal(false)}>
