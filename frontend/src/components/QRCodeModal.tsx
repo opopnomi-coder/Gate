@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Share,
   ToastAndroid,
   Platform
 } from 'react-native';
@@ -12,7 +11,6 @@ import Modal from 'react-native-modal';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
-import RNFS from 'react-native-fs';
 import { useTheme } from '../context/ThemeContext';
 import ThemedText from './ThemedText';
 
@@ -34,7 +32,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   request,
 }) => {
   const { theme } = useTheme();
-  const qrSvgRef = React.useRef<any>(null);
 
   // Check if qrCodeData is a base64 image or a QR string
   const isBase64Image = qrCodeData?.startsWith('data:image');
@@ -42,48 +39,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   // - Bulk: GP|staffCode|studentIds||SEG:signature
   // - Single: SF/ST/VG|staffCode/studentId/null|token
   const isQRString = qrCodeData && !isBase64Image;
-
-  const getPngBase64 = React.useCallback(async (): Promise<string | null> => {
-    if (!qrCodeData) return null;
-    if (isQRString) {
-      const ref = qrSvgRef.current;
-      if (!ref?.toDataURL) return null;
-      return await new Promise((resolve) => {
-        ref.toDataURL((data: string) => resolve(data || null));
-      });
-    }
-
-    if (qrCodeData.startsWith('data:image')) {
-      const idx = qrCodeData.indexOf('base64,');
-      return idx >= 0 ? qrCodeData.slice(idx + 'base64,'.length) : null;
-    }
-
-    return qrCodeData;
-  }, [qrCodeData, isQRString]);
-
-  const writeTempPng = React.useCallback(async (): Promise<string | null> => {
-    const base64 = await getPngBase64();
-    if (!base64) return null;
-    const filename = `gatepass-qr-${Date.now()}.png`;
-    const path = `${RNFS.CachesDirectoryPath}/${filename}`;
-    await RNFS.writeFile(path, base64, 'base64');
-    return `file://${path}`;
-  }, [getPngBase64]);
-
-  const handleShare = async () => {
-    if (!qrCodeData) return;
-
-    try {
-      const url = await writeTempPng();
-      await Share.share({
-        title: 'Share Gate Pass',
-        message: `Gate Pass QR Code\nManual Entry Code: ${manualCode || 'N/A'}\nPurpose: ${request?.purpose || 'N/A'}`,
-        ...(url ? { url } : {}),
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
 
   const handleCopyManualCode = () => {
     if (!manualCode) return;
@@ -132,9 +87,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                   size={250}
                   color={theme.text}
                   backgroundColor={theme.cardBackground}
-                  getRef={(c: any) => {
-                    qrSvgRef.current = c;
-                  }}
                 />
               </View>
             ) : (
@@ -220,14 +172,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.shareButton, { backgroundColor: theme.primary }]}
-            onPress={handleShare}
-          >
-            <Ionicons name="share-outline" size={20} color="#FFFFFF" />
-            <ThemedText style={styles.shareButtonText}>Share</ThemedText>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={[
               styles.copyButton,

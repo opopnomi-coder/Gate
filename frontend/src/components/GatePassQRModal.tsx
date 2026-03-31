@@ -7,14 +7,12 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Share,
   ToastAndroid,
   Platform
 } from 'react-native';
 import Ionicons from '@react-native-vector-icons/ionicons';
 import QRCode from 'react-native-qrcode-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
-import RNFS from 'react-native-fs';
 import { useTheme } from '../context/ThemeContext';
 import ThemedText from './ThemedText';
 
@@ -46,46 +44,6 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
   validUntil = 'One time',
 }) => {
   const { theme } = useTheme();
-  const qrSvgRef = React.useRef<any>(null);
-
-  const getPngBase64 = React.useCallback(async (): Promise<string | null> => {
-    if (!qrCodeData) return null;
-    if (isQRString(qrCodeData)) {
-      const ref = qrSvgRef.current;
-      if (!ref?.toDataURL) return null;
-      return await new Promise((resolve) => {
-        ref.toDataURL((data: string) => resolve(data || null));
-      });
-    }
-    if (qrCodeData.startsWith('data:image')) {
-      const idx = qrCodeData.indexOf('base64,');
-      return idx >= 0 ? qrCodeData.slice(idx + 'base64,'.length) : null;
-    }
-    return qrCodeData;
-  }, [qrCodeData]);
-
-  const writeTempPng = React.useCallback(async (): Promise<string | null> => {
-    const base64 = await getPngBase64();
-    if (!base64) return null;
-    const filename = `gatepass-qr-${Date.now()}.png`;
-    const path = `${RNFS.CachesDirectoryPath}/${filename}`;
-    await RNFS.writeFile(path, base64, 'base64');
-    return `file://${path}`;
-  }, [getPngBase64]);
-
-  const handleShare = async () => {
-    if (!qrCodeData) return;
-    try {
-      const url = await writeTempPng();
-      await Share.share({
-        title: 'Share Gate Pass',
-        message: `Gate Pass QR Code\nManual Entry Code: ${manualCode || 'N/A'}\nValid Until: ${validUntil}\nReason: ${reason || 'Gate Pass'}`,
-        ...(url ? { url } : {}),
-      });
-    } catch (e) {
-      // silent
-    }
-  };
 
   const handleCopyManualCode = () => {
     if (!manualCode) return;
@@ -123,9 +81,6 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
                     size={220}
                     color="#000000"
                     backgroundColor="#FFFFFF"
-                    getRef={(c: any) => {
-                      qrSvgRef.current = c;
-                    }}
                   />
                 ) : (
                   <Image
@@ -168,14 +123,6 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
             </View>
 
             <View style={styles.actions}>
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: theme.primary }]}
-                onPress={handleShare}
-                disabled={!qrCodeData}
-              >
-                <Ionicons name="share-outline" size={18} color="#FFF" />
-                <ThemedText style={styles.actionTextPrimary}>Share</ThemedText>
-              </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.actionBtn,
