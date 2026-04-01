@@ -29,7 +29,6 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
 }) => {
   const translateX = useRef(new Animated.Value(0)).current;
   const startedFromEdge = useRef(false);
-  // Prevent double-trigger
   const navigating = useRef(false);
 
   const onGestureEvent = Animated.event(
@@ -38,7 +37,6 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
   );
 
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
-    // Hard block when locked or disabled
     if (!enabled || locked) {
       translateX.setValue(0);
       return;
@@ -52,6 +50,7 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
     }
 
     if (state === State.ACTIVE) {
+      // Only allow rightward swipe from edge
       if (!startedFromEdge.current || translationX < 0) {
         translateX.setValue(0);
       }
@@ -65,9 +64,10 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
 
       if (shouldNavigate) {
         navigating.current = true;
+        // Animate slide out to the right, then trigger back
         Animated.timing(translateX, {
           toValue: SCREEN_WIDTH,
-          duration: 0, // Instant transition
+          duration: 220,
           useNativeDriver: true,
         }).start(() => {
           translateX.setValue(0);
@@ -75,6 +75,7 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
           onBack();
         });
       } else {
+        // Snap back
         Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
@@ -90,7 +91,13 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
     return <>{children}</>;
   }
 
-  // Removed horizontal translation interpolation and shadow to prevent background exposure
+  // Clamp translation so it only moves right (never left)
+  const clampedTranslateX = translateX.interpolate({
+    inputRange: [0, SCREEN_WIDTH],
+    outputRange: [0, SCREEN_WIDTH],
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
 
   return (
     <PanGestureHandler
@@ -100,7 +107,12 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
       failOffsetY={[-15, 15]}
       enabled={!locked}
     >
-      <Animated.View style={styles.container}>
+      <Animated.View
+        style={[
+          styles.container,
+          { transform: [{ translateX: clampedTranslateX }] },
+        ]}
+      >
         {children}
       </Animated.View>
     </PanGestureHandler>

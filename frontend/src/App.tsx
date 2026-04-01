@@ -438,7 +438,6 @@ const App: React.FC = () => {
 
   const runExitAnimationAndClose = React.useCallback(() => {
     if (exitAnimating) return;
-    if (Platform.OS !== 'android') return;
     setExitAnimating(true);
     exitOpacity.setValue(0);
     exitTranslateY.setValue(12);
@@ -455,7 +454,7 @@ const App: React.FC = () => {
   // ── Hardware back button / gesture back ──────────────────────────────────
   const ROOT_SCREENS: ScreenName[] = [
     'HOME', 'DASHBOARD', 'STAFF_DASHBOARD', 'HOD_DASHBOARD',
-    'HR_DASHBOARD', 'SECURITY_DASHBOARD',
+    'HR_DASHBOARD', 'SECURITY_DASHBOARD', 'UNIFIED_LOGIN',
   ];
 
   const handleSwipeBack = React.useCallback(() => {
@@ -466,17 +465,14 @@ const App: React.FC = () => {
       setShowExitModal(true);
       return;
     }
-    // Product requirement: any back/swipe (not on Root) returns to Dashboard.
+    // Any back/swipe not on a root screen → go to the role's dashboard
     if (userType) navigateBack();
     else setCurrentScreen('HOME');
-  }, [currentScreen, isLoading, userType, navigateBack]);
+  }, [currentScreen, isLoading, userType]);
 
   React.useEffect(() => {
     const onBackPress = () => {
-      // Never allow back during loading
       if (isLoading) return true;
-
-      // Block back if action lock is active (checked via global ref set by ActionLockProvider)
       if ((global as any).__actionLocked) return true;
 
       if (ROOT_SCREENS.includes(currentScreen)) {
@@ -484,7 +480,7 @@ const App: React.FC = () => {
         return true;
       }
 
-      // Product requirement: any back/swipe (not on Root) returns to Dashboard.
+      // Any back press not on a root screen → go to the role's dashboard
       if (userType) navigateBack();
       else setCurrentScreen('HOME');
       return true;
@@ -492,7 +488,7 @@ const App: React.FC = () => {
 
     const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => sub.remove();
-  }, [currentScreen, userType, isLoading, navigateBack, runExitAnimationAndClose]);
+  }, [currentScreen, userType, isLoading]);
 
   const renderCurrentScreen = () => {
     console.log(`📱 RENDER: screen=${currentScreen}, userType=${userType}, isLoading=${isLoading}`);
