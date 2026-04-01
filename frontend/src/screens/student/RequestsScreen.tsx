@@ -86,6 +86,21 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
     };
   }, []);
 
+  const getRequestDate = (request: any) =>
+    request.passType === 'BULK'
+      ? (request.exitDateTime || request.createdAt || request.requestDate)
+      : (request.requestDate || request.createdAt);
+
+  const isToday = (dateValue?: string) => {
+    if (!dateValue) return false;
+    const d = new Date(dateValue);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  };
+
+  const isUsedRequest = (request: any) =>
+    request.qrUsed === true || request.status === 'USED' || request.status === 'EXITED';
+
   const loadRequests = async () => {
     if (!user?.regNo) return;
     
@@ -93,7 +108,18 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
     try {
       const response = await apiService.getStudentGatePassRequests(user.regNo);
       if (response.success && response.requests) {
-        setRequests(response.requests);
+        const todayOnly = response.requests
+          .filter((request: any) => !isUsedRequest(request))
+          .filter((request: any) => 
+            request.status === 'PENDING' || 
+            request.status === 'PENDING_STAFF' || 
+            request.status === 'PENDING_HOD' || 
+            request.status === 'PENDING_HR' || 
+            request.status === 'REJECTED' || 
+            isToday(getRequestDate(request))
+          )
+          .sort((a: any, b: any) => new Date(getRequestDate(b)).getTime() - new Date(getRequestDate(a)).getTime());
+        setRequests(todayOnly);
       }
     } catch (error) {
       console.error('Error loading requests:', error);

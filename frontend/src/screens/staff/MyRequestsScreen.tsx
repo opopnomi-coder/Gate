@@ -61,8 +61,15 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
       if (singleResult.success) combined = [...((singleResult as any).requests || singleResult.data || [])];
       if (bulkResult.success) combined = [...combined, ...(bulkResult.requests || [])];
       const todayOnly = combined
-        .filter((request) => isToday(getRequestDate(request)))
         .filter((request) => !isUsedRequest(request))
+        .filter((request) => 
+          request.status === 'PENDING' || 
+          request.status === 'PENDING_STAFF' || 
+          request.status === 'PENDING_HOD' || 
+          request.status === 'PENDING_HR' || 
+          request.status === 'REJECTED' || 
+          isToday(getRequestDate(request))
+        )
         .sort((a, b) => new Date(getRequestDate(b)).getTime() - new Date(getRequestDate(a)).getTime());
       setAllRequests(todayOnly);
     } catch (error) {
