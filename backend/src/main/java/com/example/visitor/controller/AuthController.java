@@ -681,21 +681,9 @@ public class AuthController {
             if (hod.getRole() != null && hod.getRole().toUpperCase().contains("HOD")) {
                 isActualHOD = true;
             }
-            // Check 2: name appears in students.hod column
+            // Check 2: name appears in students.hod column using shared matching
             if (!isActualHOD && hod.getHodName() != null && !hod.getHodName().isBlank()) {
-                String staffName = hod.getHodName().trim();
-                java.util.List<String> allHodNames = studentRepository.findAllDistinctHodNames();
-                for (String hodEntry : allHodNames) {
-                    if (hodEntry == null || hodEntry.isBlank()) continue;
-                    String cleaned = hodEntry.split("/")[0].trim()
-                        .replaceAll("(?i)^(dr\\.?|prof\\.?|mr\\.?|mrs\\.?|ms\\.?)\\s*", "").trim();
-                    if (cleaned.equalsIgnoreCase(staffName) ||
-                        staffName.toLowerCase().contains(cleaned.toLowerCase()) ||
-                        cleaned.toLowerCase().contains(staffName.toLowerCase())) {
-                        isActualHOD = true;
-                        break;
-                    }
-                }
+                isActualHOD = isHodByNameMatch(hod.getHodName());
             }
             if (!isActualHOD) {
                 logAuthEvent(hodCode, "HOD", "OTP_SENT", "FAILED", "Not a HOD");
@@ -1253,6 +1241,107 @@ public class AuthController {
     }
 
     /**
+     * Normalize a name for HOD comparison:
+     *  - Strip honorary titles (Dr., Prof., Mr., Mrs., Ms.)
+     *  - Remove trailing dots and periods
+     *  - Remove all non-alphanumeric characters except spaces
+     *  - Collapse multiple spaces
+     *  - Uppercase
+     */
+    private String normalizeNameForComparison(String name) {
+        if (name == null || name.isBlank()) return "";
+        String n = name.trim();
+        // Remove titles
+        n = n.replaceAll("(?i)^(dr\\.?|prof\\.?|mr\\.?|mrs\\.?|ms\\.?)\\s*", "").trim();
+        // Remove trailing dots
+        n = n.replaceAll("\\.+$", "").trim();
+        // Remove all non-alphanumeric except spaces
+        n = n.replaceAll("[^a-zA-Z0-9\\s]", " ").trim();
+        // Collapse multiple spaces
+        n = n.replaceAll("\\s+", " ").trim();
+        return n.toUpperCase();
+    }
+
+    /**
+     * Extract the HOD name from a students.hod entry like "UMA S./ASSO P".
+     * Takes only the part before "/" and normalizes it.
+     */
+    private String extractHodNameFromEntry(String hodEntry) {
+        if (hodEntry == null || hodEntry.isBlank()) return "";
+        // Take part before "/"
+        String namePart = hodEntry.contains("/") ? hodEntry.split("/")[0].trim() : hodEntry.trim();
+        return normalizeNameForComparison(namePart);
+    }
+
+    /**
+     * Check whether a staff name matches any HOD name from the students table.
+     * Uses a multi-strategy approach:
+     *   1. Exact normalized match
+     *   2. One name contains the other (handles partial name formats)
+     *   3. Token intersection: if ≥50% of the shorter name's tokens (≥2 chars) match
+     */
+    private boolean isHodByNameMatch(String rawStaffName) {
+        String staffNorm = normalizeNameForComparison(rawStaffName);
+        if (staffNorm.isEmpty()) return false;
+
+        java.util.List<String> allHodEntries = studentRepository.findAllDistinctHodNames();
+        for (String hodEntry : allHodEntries) {
+            String hodNorm = extractHodNameFromEntry(hodEntry);
+            if (hodNorm.isEmpty()) continue;
+
+            // Strategy 1: Exact match after normalization
+            if (staffNorm.equals(hodNorm)) {
+                log.info("HOD match (exact): staff='{}' hod='{}'", staffNorm, hodNorm);
+                return true;
+            }
+
+            // Strategy 2: Contains match (handles "KANAGAVALLI" vs "KANAGAVALLI N")
+            if (staffNorm.contains(hodNorm) || hodNorm.contains(staffNorm)) {
+                log.info("HOD match (contains): staff='{}' hod='{}'", staffNorm, hodNorm);
+                return true;
+            }
+
+            // Strategy 3: Token intersection (≥2 char tokens, ≥50% of shorter name's tokens match)
+            String[] staffTokens = staffNorm.split("\\s+");
+            String[] hodTokens = hodNorm.split("\\s+");
+
+            // Filter to tokens ≥ 2 chars (captures initials like "S" but not single chars from stripping)
+            java.util.Set<String> staffSet = new java.util.HashSet<>();
+            for (String t : staffTokens) { if (t.length() >= 2) staffSet.add(t); }
+            java.util.Set<String> hodSet = new java.util.HashSet<>();
+            for (String t : hodTokens) { if (t.length() >= 2) hodSet.add(t); }
+
+            if (!staffSet.isEmpty() && !hodSet.isEmpty()) {
+                // Count how many tokens from the shorter set appear in the longer set
+                java.util.Set<String> shorter = staffSet.size() <= hodSet.size() ? staffSet : hodSet;
+                java.util.Set<String> longer = staffSet.size() <= hodSet.size() ? hodSet : staffSet;
+                int matchCount = 0;
+                for (String token : shorter) {
+                    if (longer.contains(token)) matchCount++;
+                }
+                double matchRatio = (double) matchCount / shorter.size();
+                if (matchRatio >= 0.5 && matchCount >= 1) {
+                    log.info("HOD match (token {}%): staff='{}' hod='{}'",
+                             (int)(matchRatio * 100), staffNorm, hodNorm);
+                    return true;
+                }
+            }
+
+            // Strategy 4: Match on ALL tokens including single-char initials
+            // "UMA S" vs "UMA S" — if ALL tokens match regardless of length
+            java.util.Set<String> staffAllTokens = new java.util.HashSet<>(java.util.Arrays.asList(staffTokens));
+            java.util.Set<String> hodAllTokens = new java.util.HashSet<>(java.util.Arrays.asList(hodTokens));
+            if (staffAllTokens.equals(hodAllTokens)) {
+                log.info("HOD match (all-tokens): staff='{}' hod='{}'", staffNorm, hodNorm);
+                return true;
+            }
+        }
+
+        log.info("No HOD match found for staff name: '{}'", staffNorm);
+        return false;
+    }
+
+    /**
      * Detect the actual role of a staff code.
      * Returns HOD if the staff member's name appears in the students.hod column,
      * HR if their role contains "HR", otherwise STAFF.
@@ -1288,44 +1377,9 @@ public class AuthController {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }
 
-            // 2. Check students.hod column — it stores HOD name like "Dr. Kanagavalli N./AP"
-            //    Strategy: get all distinct HOD name strings, then check if the staff name
-            //    matches any of them using robust token matching
-            if (!staffName.isEmpty()) {
-                java.util.List<String> allHodNames = studentRepository.findAllDistinctHodNames();
-                for (String hodEntry : allHodNames) {
-                    if (hodEntry == null || hodEntry.isBlank()) continue;
-
-                    // Strip prefix like "Dr.", suffix like "/AP", "/HOD", etc.
-                    String cleaned = hodEntry.split("/")[0].trim()
-                        .replaceAll("(?i)^(dr\\.?|prof\\.?|mr\\.?|mrs\\.?|ms\\.?)\\s*", "").trim();
-
-                    // Strategy A: exact match (case-insensitive)
-                    if (cleaned.equalsIgnoreCase(staffName)) {
-                        return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
-                    }
-
-                    // Strategy B: staff name contains cleaned HOD name or vice versa
-                    if (staffName.toLowerCase().contains(cleaned.toLowerCase()) || 
-                        cleaned.toLowerCase().contains(staffName.toLowerCase())) {
-                        return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
-                    }
-
-                    // Strategy C: robust token matching (check if a significant word > 3 chars matches)
-                    String[] staffTokens = staffName.replaceAll("[^a-zA-Z\\s]", "").toLowerCase().split("\\s+");
-                    String[] hodTokens = cleaned.replaceAll("[^a-zA-Z\\s]", "").toLowerCase().split("\\s+");
-                    
-                    for (String sToken : staffTokens) {
-                        if (sToken.length() > 3) {
-                            for (String hToken : hodTokens) {
-                                if (sToken.equals(hToken)) {
-                                    return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
-                                }
-                            }
-                        }
-                    }
-                    }
-                }
+            // 2. Check students.hod column using shared robust matching
+            if (!staffName.isEmpty() && isHodByNameMatch(staffName)) {
+                return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }
 
             return ResponseEntity.ok(Map.of("success", true, "role", "STAFF"));
@@ -1336,3 +1390,4 @@ public class AuthController {
         }
     }
 }
+
