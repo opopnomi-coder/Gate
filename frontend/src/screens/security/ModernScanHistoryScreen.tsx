@@ -226,7 +226,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         })),
       });
       
-      notificationService.notifyDownloadSuccess(filename);
+      notificationService.notifyDownloadSuccess(filename, savedPath || undefined);
       setDownloadMessage('PDF report has been saved to your Downloads folder.');
       setShowDownloadSuccess(true);
     } catch (e: any) {
@@ -339,52 +339,70 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
           <VerticalScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-            <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 12 }]}>Scan history date range</ThemedText>
-            <View style={styles.dateTypeTabs}>
+            <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 16 }]}>Select Date Range</ThemedText>
+
+            {/* FROM / TO pill selectors */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <TouchableOpacity
-                style={[styles.dateTypeTab, selectingDateType === 'FROM' && styles.dateTypeTabActive]}
+                style={[styles.dateTypeTab, selectingDateType === 'FROM' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
                 onPress={() => setSelectingDateType('FROM')}
               >
-                <ThemedText style={[styles.dateTypeTabText, selectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>From</ThemedText>
+                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, selectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>FROM</ThemedText>
+                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, selectingDateType === 'FROM' ? { color: theme.primary } : { color: theme.text }]}>
+                  {fromDate ? fromDate.toLocaleDateString() : 'Select'}
+                </ThemedText>
               </TouchableOpacity>
+              <Ionicons name="arrow-forward" size={18} color={theme.textTertiary} />
               <TouchableOpacity
-                style={[styles.dateTypeTab, selectingDateType === 'TO' && styles.dateTypeTabActive]}
+                style={[styles.dateTypeTab, selectingDateType === 'TO' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
                 onPress={() => setSelectingDateType('TO')}
               >
-                <ThemedText style={[styles.dateTypeTabText, selectingDateType === 'TO' && styles.dateTypeTabTextActive]}>To</ThemedText>
+                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, selectingDateType === 'TO' && styles.dateTypeTabTextActive]}>TO</ThemedText>
+                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, selectingDateType === 'TO' ? { color: theme.primary } : { color: theme.text }]}>
+                  {toDate ? toDate.toLocaleDateString() : 'Select'}
+                </ThemedText>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={[styles.dateInputButton, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => setSelectingDateType('FROM')}>
-              <Ionicons name="calendar-outline" size={18} color={theme.primary} />
-              <ThemedText style={[styles.dateInputText, { color: theme.text }]}>
-                {fromDate ? fromDate.toLocaleDateString() : 'Select from date'}
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.dateInputButton, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => setSelectingDateType('TO')}>
-              <Ionicons name="calendar-outline" size={18} color={theme.primary} />
-              <ThemedText style={[styles.dateInputText, { color: theme.text }]}>
-                {toDate ? toDate.toLocaleDateString() : 'Select to date'}
-              </ThemedText>
-            </TouchableOpacity>
-
-            <View style={styles.calendarWrap}>
+            <View style={[styles.calendarWrap, { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' }]}>
               <Calendar
                 onDayPress={(day) => {
                   const selected = new Date(`${day.dateString}T00:00:00`);
-                  if (selectingDateType === 'FROM') setFromDate(selected);
-                  else setToDate(selected);
+                  if (selectingDateType === 'FROM') {
+                    setFromDate(selected);
+                    // Auto-advance to TO
+                    setSelectingDateType('TO');
+                    // Clear toDate if it's before new fromDate
+                    if (toDate && toDate < selected) setToDate(null);
+                  } else {
+                    // Block TO before FROM
+                    if (fromDate && selected < fromDate) return;
+                    setToDate(selected);
+                  }
                 }}
+                minDate={selectingDateType === 'TO' && fromDate ? fromDate.toISOString().slice(0, 10) : undefined}
                 markedDates={{
-                  ...(fromDate ? { [fromDate.toISOString().slice(0, 10)]: { selected: true, selectedColor: theme.primary } } : {}),
-                  ...(toDate ? { [toDate.toISOString().slice(0, 10)]: { selected: true, selectedColor: theme.accent || theme.secondary } } : {}),
+                  ...(fromDate ? { [fromDate.toISOString().slice(0, 10)]: { selected: true, selectedColor: theme.primary, startingDay: true } } : {}),
+                  ...(toDate ? { [toDate.toISOString().slice(0, 10)]: { selected: true, selectedColor: theme.primary, endingDay: true } } : {}),
+                  ...(fromDate && toDate ? (() => {
+                    const marks: Record<string, any> = {};
+                    const cur = new Date(fromDate);
+                    cur.setDate(cur.getDate() + 1);
+                    while (cur < toDate) {
+                      marks[cur.toISOString().slice(0, 10)] = { color: theme.primary + '33', textColor: theme.text };
+                      cur.setDate(cur.getDate() + 1);
+                    }
+                    return marks;
+                  })() : {}),
                 }}
+                markingType={fromDate && toDate ? 'period' : 'simple'}
                 theme={{
                   calendarBackground: theme.surface,
                   textSectionTitleColor: theme.textSecondary,
                   selectedDayBackgroundColor: theme.primary,
                   selectedDayTextColor: '#ffffff',
                   todayTextColor: theme.primary,
+                  todayBackgroundColor: theme.primary + '18',
                   dayTextColor: theme.text,
                   textDisabledColor: theme.textTertiary,
                   dotColor: theme.primary,
@@ -392,14 +410,25 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   arrowColor: theme.primary,
                   monthTextColor: theme.text,
                   indicatorColor: theme.primary,
+                  textDayFontWeight: '500',
+                  textMonthFontWeight: '700',
+                  textDayHeaderFontWeight: '600',
                 }}
               />
             </View>
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => setRangePickerPage(false)}>
-                <ThemedText style={styles.actionBtnText}>Cancel</ThemedText>
+              <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => {
+                setFromDate(null);
+                setToDate(null);
+                setSelectingDateType('FROM');
+              }}>
+                <ThemedText style={styles.actionBtnText}>Clear</ThemedText>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.actionBtn, styles.applyBtn]} onPress={applyDateRange}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.applyBtn, { opacity: fromDate && toDate ? 1 : 0.5 }]}
+                disabled={!fromDate || !toDate}
+                onPress={applyDateRange}
+              >
                 <ThemedText style={styles.actionBtnText}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
