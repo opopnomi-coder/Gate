@@ -282,7 +282,6 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               )}
             </TouchableOpacity>
           ) : (
-            /* Pass generated — show share buttons; QR shown in floating modal */
             <View style={styles.passReadyCard}>
               <View style={[styles.passReadyIcon, { backgroundColor: theme.success + '20' }]}>
                 <Ionicons name="checkmark-circle" size={32} color={theme.success} />
@@ -293,23 +292,9 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               </ThemedText>
               <TouchableOpacity style={[styles.viewQRBtn, { backgroundColor: theme.primary }]} onPress={() => setShowQRModal(true)}>
                 <Ionicons name="qr-code-outline" size={18} color="#fff" />
-                <ThemedText style={styles.viewQRBtnText}>View QR Code</ThemedText>
+                <ThemedText style={styles.viewQRBtnText}>View &amp; Share QR</ThemedText>
               </TouchableOpacity>
-              <View style={styles.shareRow}>
-                <TouchableOpacity style={styles.waBtnNew} onPress={shareWhatsApp}>
-                  <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
-                  <ThemedText style={styles.waBtnNewText}>WhatsApp</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.shareBtnNew, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={shareGeneric}>
-                  <Ionicons name="share-outline" size={18} color={theme.primary} />
-                  <ThemedText style={[styles.shareBtnNewText, { color: theme.primary }]}>Share</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.copyBtnNew, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={copyManual}>
-                  <Ionicons name="copy-outline" size={18} color={theme.text} />
-                  <ThemedText style={[styles.copyBtnNewText, { color: theme.text }]}>Copy</ThemedText>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity style={[styles.doneBtnNew, { backgroundColor: theme.inputBackground }]} onPress={onBack}>
+              <TouchableOpacity style={[styles.doneBtnNew, { backgroundColor: theme.inputBackground, marginTop: 8 }]} onPress={onBack}>
                 <ThemedText style={[styles.doneBtnNewText, { color: theme.textSecondary }]}>Done</ThemedText>
               </TouchableOpacity>
             </View>
@@ -318,7 +303,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
         </VerticalScrollView>
       </ScreenContentContainer>
 
-      {/* Floating QR Modal — same as student/staff */}
+      {/* Floating QR Modal — share buttons inside */}
       <GatePassQRModal
         visible={showQRModal}
         onClose={() => setShowQRModal(false)}
@@ -328,6 +313,8 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
         manualCode={manualCode}
         reason="Pre-registered Guest Pass"
         validUntil="One time"
+        showShare={true}
+        visitorName={visitorName}
       />
 
       <ErrorModal

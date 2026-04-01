@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,31 +7,33 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  ToastAndroid,
-  Platform
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import QRCode from 'react-native-qrcode-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
+import RNFS from 'react-native-fs';
+import Share from 'react-native-share';
 import { useTheme } from '../context/ThemeContext';
 import ThemedText from './ThemedText';
 
 interface GatePassQRModalProps {
   visible: boolean;
   onClose: () => void;
-  // Person info shown at top
   personName: string;
-  personId: string; // regNo / staffCode / hodCode
-  // QR data
+  personId: string;
   qrCodeData: string | null;
   manualCode?: string | null;
-  // Footer details
   reason?: string;
-  validUntil?: string; // defaults to "One time"
+  validUntil?: string;
+  /** If true, show share buttons inside the modal (for guest pre-register) */
+  showShare?: boolean;
+  visitorName?: string;
 }
 
 const isQRString = (val: string) =>
-  val.startsWith('GP|') || val.startsWith('ST|') || val.startsWith('SF|') || val.startsWith('VG|') || val.startsWith('HD|');
+  val.startsWith('GP|') || val.startsWith('ST|') || val.startsWith('SF|') ||
+  val.startsWith('VG|') || val.startsWith('HD|');
 
 const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
   visible,
@@ -42,9 +44,59 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
   manualCode,
   reason,
   validUntil = 'One time',
+  showShare = false,
+  visitorName,
 }) => {
   const { theme } = useTheme();
+  const qrRef = useRef<any>(null);
 
+  const exportQrPng = async (): Promise<string | null> => {
+    if (!qrRef.current?.toDataURL) return null;
+    const base64 = await new Promise<string | null>((resolve) => {
+      qrRef.current.toDataURL((data: string) => resolve(data || null), { width: 720, height: 720 });
+    });
+    if (!base64) return null;
+    const path = `${RNFS.CachesDirectoryPath}/guest-qr-${Date.now()}.png`;
+    await RNFS.writeFile(path, base64, 'base64');
+    return `file://${path}`;
+  };
+
+  const shareMessage = `RIT Gate — Guest pass\nName: ${visitorName || personName}\nManual code: ${manualCode || ''}\nShow this QR at the security gate.`;
+
+  const handleShare = async () => {
+    try {
+      const url = await exportQrPng();
+      await Share.open({
+        title: 'Guest Gate Pass',
+        message: shareMessage,
+        url: url || undefined,
+        type: url ? 'image/png' : 'text/plain',
+      });
+    } catch {
+      // user cancelled or error — ignore
+    }
+  };
+
+  const handleWhatsApp = async () => {
+    try {
+      const url = await exportQrPng();
+      // Try WhatsApp-specific share first
+      await Share.shareSingle({
+        title: 'Guest Gate Pass',
+        message: shareMessage,
+        url: url || undefined,
+        social: Share.Social.WHATSAPP as any,
+        type: url ? 'image/png' : 'text/plain',
+      });
+    } catch {
+      // Fallback to generic share if WhatsApp not available
+      await handleShare();
+    }
+  };
+
+  const handleCopy = () => {
+    if (manualCode) Clipboard.setString(manualCode);
+  };
 
   return (
     <Modal
@@ -69,7 +121,7 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
             <ThemedText style={[styles.personId, { color: theme.textSecondary }]}>{personId}</ThemedText>
 
             {/* QR Code */}
-            <View style={[styles.qrCard, { backgroundColor: theme.surface }]}>
+            <View style={[styles.qrCard, { backgroundColor: '#FFFFFF' }]}>
               {qrCodeData ? (
                 isQRString(qrCodeData) ? (
                   <QRCode
@@ -77,6 +129,7 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
                     size={220}
                     color="#000000"
                     backgroundColor="#FFFFFF"
+                    getRef={(c: any) => { qrRef.current = c; }}
                   />
                 ) : (
                   <Image
@@ -101,16 +154,13 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
               </View>
             ) : null}
 
-            {/* Scan instruction */}
-            <ThemedText style={[styles.scanText, { color: theme.textTertiary }]}>SCAN AT MAIN GATE EXIT</ThemedText>
+            <ThemedText style={[styles.scanText, { color: theme.textTertiary }]}>SCAN AT MAIN GATE</ThemedText>
 
-            {/* Details card */}
+            {/* Details */}
             <View style={[styles.detailsCard, { backgroundColor: theme.inputBackground }]}>
               <View style={styles.detailRow}>
                 <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
-                <ThemedText style={[styles.detailValue, { color: theme.text }]} numberOfLines={2}>
-                  {reason || 'Gate Pass'}
-                </ThemedText>
+                <ThemedText style={[styles.detailValue, { color: theme.text }]} numberOfLines={2}>{reason || 'Gate Pass'}</ThemedText>
               </View>
               <View style={styles.detailRow}>
                 <ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>Valid Until:</ThemedText>
@@ -118,8 +168,23 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
               </View>
             </View>
 
-            <View style={styles.actions}>
-            </View>
+            {/* Share buttons — only shown for guest pre-register */}
+            {showShare && (
+              <View style={styles.shareSection}>
+                <TouchableOpacity style={[styles.shareBtn, { backgroundColor: '#25D366' }]} onPress={handleWhatsApp}>
+                  <Ionicons name="logo-whatsapp" size={18} color="#fff" />
+                  <ThemedText ignoreGradient style={styles.shareBtnText}>WhatsApp</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.shareBtn, { backgroundColor: theme.primary }]} onPress={handleShare}>
+                  <Ionicons name="share-outline" size={18} color="#fff" />
+                  <ThemedText ignoreGradient style={styles.shareBtnText}>Share</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.shareBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={handleCopy}>
+                  <Ionicons name="copy-outline" size={18} color={theme.text} />
+                  <ThemedText ignoreGradient style={[styles.shareBtnText, { color: theme.text }]}>Copy Code</ThemedText>
+                </TouchableOpacity>
+              </View>
+            )}
           </ScrollView>
         </View>
       </View>
@@ -139,7 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: '100%',
     maxWidth: 360,
-    maxHeight: '88%',
+    maxHeight: '90%',
     overflow: 'hidden',
   },
   header: {
@@ -151,36 +216,11 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  body: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 24,
-  },
-  personName: {
-    fontSize: 17,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  personId: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 4,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
+  title: { fontSize: 18, fontWeight: '800' },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  body: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24 },
+  personName: { fontSize: 17, fontWeight: '800', textAlign: 'center', letterSpacing: 0.5 },
+  personId: { fontSize: 13, fontWeight: '600', marginTop: 4, marginBottom: 16, textAlign: 'center' },
   qrCard: {
     borderRadius: 16,
     padding: 16,
@@ -193,21 +233,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  qrImage: {
-    width: 220,
-    height: 220,
-  },
-  qrLoading: {
-    width: 220,
-    height: 220,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  qrLoadingText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  qrImage: { width: 220, height: 220 },
+  qrLoading: { width: 220, height: 220, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  qrLoadingText: { fontSize: 14, fontWeight: '500' },
   manualBox: {
     borderWidth: 1.5,
     borderStyle: 'dashed',
@@ -218,52 +246,17 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 12,
   },
-  manualLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 5,
-  },
-  manualValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    letterSpacing: 6,
-  },
-  scanText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginBottom: 14,
-  },
-  detailsCard: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: '100%',
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  detailLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    flex: 1,
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '800',
-    flex: 2,
-    textAlign: 'right',
-  },
-  actions: {
-    marginTop: 14,
-    width: '100%',
-    flexDirection: 'row',
-    gap: 10,
-  },
+  manualLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 5 },
+  manualValue: { fontSize: 28, fontWeight: '700', letterSpacing: 6 },
+  scanText: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 14 },
+  detailsCard: { borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, width: '100%', gap: 8 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  detailLabel: { fontSize: 14, fontWeight: '500', flex: 1 },
+  detailValue: { fontSize: 14, fontWeight: '800', flex: 2, textAlign: 'right' },
+  // Share section inside modal
+  shareSection: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 16, width: '100%', justifyContent: 'center' },
+  shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 11, paddingHorizontal: 16, borderRadius: 12 },
+  shareBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 });
 
 export default GatePassQRModal;
