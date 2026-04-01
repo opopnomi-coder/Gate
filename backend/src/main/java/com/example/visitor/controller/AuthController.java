@@ -1243,11 +1243,6 @@ public class AuthController {
                 return ResponseEntity.ok(Map.of("success", true, "role", "STUDENT"));
             }
 
-            // Check HOD table directly first — most reliable
-            if (hodRepository.findByHodCode(code).isPresent()) {
-                return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
-            }
-
             // Check staff table
             Optional<Staff> staffOpt = staffRepository.findByStaffCode(code);
             if (staffOpt.isEmpty()) {
@@ -1255,37 +1250,57 @@ public class AuthController {
             }
 
             Staff staff = staffOpt.get();
-            String staffName = staff.getStaffName();
-            String role = staff.getRole() != null ? staff.getRole() : "";
+            String staffName = staff.getStaffName() != null ? staff.getStaffName().trim() : "";
+            String role = staff.getRole() != null ? staff.getRole().toUpperCase() : "";
 
-            // Check if HR
-            if (role.toUpperCase().contains("HR")) {
+            // 1. Check role field directly
+            if (role.contains("HR")) {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HR"));
             }
-
-            // Check if HOD by role field
-            if (role.toUpperCase().contains("HOD")) {
+            if (role.contains("HOD")) {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }
 
-            // Check if HOD — name appears in students.hod column
-            java.util.List<String> hodNames = studentRepository.findHodNamesByDepartment(staff.getDepartment());
-            for (String hodName : hodNames) {
-                if (hodName != null && !hodName.isBlank()) {
-                    String cleaned = hodName.split("/")[0].trim().replaceAll("(?i)^dr\\.?\\s*", "").trim();
-                    if (cleaned.equalsIgnoreCase(staffName) || staffName.toLowerCase().contains(cleaned.toLowerCase()) || cleaned.toLowerCase().contains(staffName.toLowerCase())) {
-                        return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
-                    }
-                }
-            }
+            // 2. Check students.hod column — it stores HOD name like "Dr. Kanagavalli N./AP"
+            //    Strategy: get all distinct HOD name strings, then check if the staff name
+            //    matches any of them using multiple fuzzy strategies
+            if (!staffName.isEmpty()) {
+                java.util.List<String> allHodNames = studentRepository.findAllDistinctHodNames();
+                for (String hodEntry : allHodNames) {
+                    if (hodEntry == null || hodEntry.isBlank()) continue;
 
-            // Also check all departments — one person can be HOD for multiple depts
-            java.util.List<String> allHodNames = studentRepository.findAllDistinctHodNames();
-            for (String hodName : allHodNames) {
-                if (hodName != null && !hodName.isBlank()) {
-                    String cleaned = hodName.split("/")[0].trim().replaceAll("(?i)^dr\\.?\\s*", "").trim();
+                    // Strip prefix like "Dr.", suffix like "/AP", "/HOD", etc.
+                    String cleaned = hodEntry.split("/")[0].trim()
+                        .replaceAll("(?i)^(dr\\.?|prof\\.?|mr\\.?|mrs\\.?|ms\\.?)\\s*", "").trim();
+
+                    // Strategy A: exact match (case-insensitive)
                     if (cleaned.equalsIgnoreCase(staffName)) {
                         return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
+                    }
+
+                    // Strategy B: staff name contains cleaned HOD name
+                    if (staffName.toLowerCase().contains(cleaned.toLowerCase())) {
+                        return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
+                    }
+
+                    // Strategy C: cleaned HOD name contains staff name
+                    if (cleaned.toLowerCase().contains(staffName.toLowerCase())) {
+                        return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
+                    }
+
+                    // Strategy D: match on last name (last word of staff name vs last word of cleaned)
+                    String[] staffParts = staffName.split("\\s+");
+                    String[] hodParts = cleaned.split("\\s+");
+                    if (staffParts.length > 0 && hodParts.length > 0) {
+                        String staffLast = staffParts[staffParts.length - 1];
+                        String hodLast = hodParts[hodParts.length - 1];
+                        // Only match on last name if it's meaningful (>2 chars) and first name also partially matches
+                        if (staffLast.length() > 2 && staffLast.equalsIgnoreCase(hodLast)) {
+                            // Also check first name initial matches
+                            if (staffParts[0].charAt(0) == hodParts[0].charAt(0)) {
+                                return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
+                            }
+                        }
                     }
                 }
             }
