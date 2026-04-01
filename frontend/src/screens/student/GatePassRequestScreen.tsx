@@ -172,7 +172,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={[styles.header, { backgroundColor: theme.surface }]}>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={handleGoBack}><Ionicons name="arrow-back" size={24} color={theme.text} /></TouchableOpacity>
-        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>New Gate Pass Request</ThemedText>
+        <ThemedText ignoreGradient style={[styles.headerTitle, { color: theme.text }]}>New Gate Pass Request</ThemedText>
         <View style={{ width: 44 }} />
       </View>
       <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
@@ -183,8 +183,8 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
                 <ThemedText ignoreGradient style={[styles.avatarText, { color: '#FFFFFF' }]}>{userInfo.firstLetter}</ThemedText>
               </View>
               <View>
-                <ThemedText style={[styles.userName, { color: theme.text }]}>{userInfo.fullName}</ThemedText>
-                <ThemedText style={[styles.userDetail, { color: theme.textSecondary }]}>Dept: {user?.department || 'AIDS'}</ThemedText>
+                <ThemedText ignoreGradient style={[styles.userName, { color: theme.text }]}>{userInfo.fullName}</ThemedText>
+                <ThemedText ignoreGradient style={[styles.userDetail, { color: theme.textSecondary }]}>Dept: {user?.department || 'AIDS'}</ThemedText>
               </View>
             </View>
             <View style={[styles.activeBadge, { backgroundColor: theme.success }]}>
@@ -192,30 +192,30 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
             </View>
           </View>
           <View style={styles.formSection}>
-            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>DATE & TIME</ThemedText>
+            <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>DATE & TIME</ThemedText>
             <View style={styles.row}>
-              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowDatePicker(true)}><Ionicons name="calendar-outline" size={22} color={theme.primary} /><ThemedText style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleDateString()}</ThemedText></TouchableOpacity>
-              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowTimePicker(true)}><Ionicons name="time-outline" size={22} color={theme.primary} /><ThemedText style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase()}</ThemedText></TouchableOpacity>
+              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowDatePicker(true)}><Ionicons name="calendar-outline" size={22} color={theme.primary} /><ThemedText ignoreGradient style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleDateString()}</ThemedText></TouchableOpacity>
+              <TouchableOpacity style={[styles.selector, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={() => setShowTimePicker(true)}><Ionicons name="time-outline" size={22} color={theme.primary} /><ThemedText ignoreGradient style={[styles.selectorText, { color: theme.text }]}>{requestDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase()}</ThemedText></TouchableOpacity>
             </View>
           </View>
           <View style={styles.formSection}>
-            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>PURPOSE</ThemedText>
-            <TextInput style={[styles.purposeInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]} placeholder="Purpose" value={purpose} onChangeText={setPurpose} />
+            <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>PURPOSE</ThemedText>
+            <TextInput style={[styles.purposeInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]} placeholder="Purpose" placeholderTextColor={theme.textTertiary} value={purpose} onChangeText={setPurpose} />
           </View>
           <View style={styles.formSection}>
-            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>REASON</ThemedText>
-            <TextInput style={[styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]} placeholder="Reason" multiline value={reason} onChangeText={setReason} />
+            <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>REASON</ThemedText>
+            <TextInput style={[styles.textArea, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]} placeholder="Reason" placeholderTextColor={theme.textTertiary} multiline value={reason} onChangeText={setReason} />
           </View>
           <View style={styles.formSection}>
-            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>ATTACHMENT</ThemedText>
-            <TouchableOpacity style={[styles.uploadBtn, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]} onPress={pickDocument}><Ionicons name="attach-outline" size={22} color={theme.primary} /><ThemedText style={[styles.uploadText, { color: theme.textSecondary }]}>{attachment ? attachment.name : 'Attach image or PDF'}</ThemedText></TouchableOpacity>
+            <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>ATTACHMENT</ThemedText>
+            <TouchableOpacity style={[styles.uploadBtn, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]} onPress={pickDocument}><Ionicons name="attach-outline" size={22} color={theme.primary} /><ThemedText ignoreGradient style={[styles.uploadText, { color: theme.textSecondary }]}>{attachment ? attachment.name : 'Attach image or PDF'}</ThemedText></TouchableOpacity>
             {attachment && (
               isImageAttachment ? (
                 <Image source={{ uri: attachment.base64Uri || attachment.uri }} style={styles.attachmentPreview} resizeMode="cover" />
               ) : (
                 <TouchableOpacity style={[styles.filePreview, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => Linking.openURL(attachment.uri || attachment.base64Uri)}>
                   <Ionicons name="document-text-outline" size={20} color={theme.primary} />
-                  <ThemedText style={[styles.filePreviewText, { color: theme.text }]} numberOfLines={1}>Tap to preview {attachment.name}</ThemedText>
+                  <ThemedText ignoreGradient style={[styles.filePreviewText, { color: theme.text }]} numberOfLines={1}>Tap to preview {attachment.name}</ThemedText>
                   <Ionicons name="open-outline" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               )
@@ -223,7 +223,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
           </View>
           <TouchableOpacity style={[styles.submitBtn, isLocked && { opacity: 0.7 }]} onPress={handleSubmit} disabled={isLocked}>
             <LinearGradient colors={theme.gradients.primary as [string, string, ...string[]]} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <View style={styles.btnContent}><Ionicons name="send" size={20} color="#FFF" /><ThemedText style={styles.submitText}>SUBMIT REQUEST</ThemedText></View>
+              <View style={styles.btnContent}><Ionicons name="send" size={20} color="#FFF" /><ThemedText ignoreGradient style={styles.submitText}>SUBMIT REQUEST</ThemedText></View>
             </LinearGradient>
           </TouchableOpacity>
         </View>

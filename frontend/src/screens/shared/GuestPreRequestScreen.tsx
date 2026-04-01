@@ -203,7 +203,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <TouchableOpacity style={[styles.backBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={onBack}>
@@ -218,11 +218,11 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false} decelerationRate="normal"
         >
-          <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
+          <ThemedText ignoreGradient style={[styles.hint, { color: theme.textSecondary }]}>
             Creates an approved visitor pass with QR and manual code (no waiting). Share with your guest.
           </ThemedText>
           {creatorName ? (
-            <ThemedText style={[styles.subHint, { color: theme.textTertiary }]}>Logged in as {creatorName} ({creatorRole})</ThemedText>
+            <ThemedText ignoreGradient style={[styles.subHint, { color: theme.textTertiary }]}>Logged in as {creatorName} ({creatorRole})</ThemedText>
           ) : null}
 
           {loadingCreator ? (
@@ -233,11 +233,11 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
           ) : (
             <>
               <View style={[styles.meetCard, { borderColor: theme.border, backgroundColor: theme.inputBackground }]}>
-                <ThemedText style={[styles.meetLabel, { color: theme.textTertiary }]}>Person to meet</ThemedText>
-                <ThemedText style={[styles.meetValue, { color: theme.text }]}>{creatorDisplayName || creatorName || 'Creator'}</ThemedText>
+                <ThemedText ignoreGradient style={[styles.meetLabel, { color: theme.textTertiary }]}>Person to meet</ThemedText>
+                <ThemedText ignoreGradient style={[styles.meetValue, { color: theme.text }]}>{creatorDisplayName || creatorName || 'Creator'}</ThemedText>
               </View>
 
-              <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Number of people *</ThemedText>
+              <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>Number of people *</ThemedText>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={numberOfPeople}
@@ -247,7 +247,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
                 placeholderTextColor={theme.textTertiary}
               />
 
-              <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Guest name *</ThemedText>
+              <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>Guest name *</ThemedText>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={visitorName}
@@ -257,7 +257,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
                 autoCapitalize="words"
               />
 
-              <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Phone number *</ThemedText>
+              <ThemedText ignoreGradient style={[styles.label, { color: theme.textSecondary }]}>Phone number *</ThemedText>
               <TextInput
                 style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
                 value={phone}
@@ -278,7 +278,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               {submitting ? (
                 <ActivityIndicator color={theme.textInverse} />
               ) : (
-                <ThemedText style={[styles.primaryBtnText, { color: theme.textInverse }]}>Register &amp; generate pass</ThemedText>
+            <ThemedText ignoreGradient style={[styles.primaryBtnText, { color: theme.textInverse }]}>Register &amp; generate pass</ThemedText>
               )}
             </TouchableOpacity>
           ) : (
@@ -286,16 +286,16 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               <View style={[styles.passReadyIcon, { backgroundColor: theme.success + '20' }]}>
                 <Ionicons name="checkmark-circle" size={32} color={theme.success} />
               </View>
-              <ThemedText style={[styles.passReadyTitle, { color: theme.text }]}>Pass Generated!</ThemedText>
-              <ThemedText style={[styles.passReadySub, { color: theme.textSecondary }]}>
-                Manual code: <ThemedText style={[styles.passReadyCode, { color: theme.primary }]}>{manualCode}</ThemedText>
+              <ThemedText ignoreGradient style={[styles.passReadyTitle, { color: theme.text }]}>Pass Generated!</ThemedText>
+              <ThemedText ignoreGradient style={[styles.passReadySub, { color: theme.textSecondary }]}>
+                Manual code: <ThemedText ignoreGradient style={[styles.passReadyCode, { color: theme.primary }]}>{manualCode}</ThemedText>
               </ThemedText>
               <TouchableOpacity style={[styles.viewQRBtn, { backgroundColor: theme.primary }]} onPress={() => setShowQRModal(true)}>
                 <Ionicons name="qr-code-outline" size={18} color="#fff" />
-                <ThemedText style={styles.viewQRBtnText}>View &amp; Share QR</ThemedText>
+                <ThemedText ignoreGradient style={styles.viewQRBtnText}>View &amp; Share QR</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.doneBtnNew, { backgroundColor: theme.inputBackground, marginTop: 8 }]} onPress={onBack}>
-                <ThemedText style={[styles.doneBtnNewText, { color: theme.textSecondary }]}>Done</ThemedText>
+                <ThemedText ignoreGradient style={[styles.doneBtnNewText, { color: theme.textSecondary }]}>Done</ThemedText>
               </TouchableOpacity>
             </View>
           )}
@@ -329,7 +329,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f9fafb' },
+  safe: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
