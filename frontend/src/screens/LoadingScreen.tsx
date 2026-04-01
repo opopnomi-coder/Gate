@@ -260,13 +260,13 @@ const LoadingScreen: React.FC = () => {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: #F8FAFC }]}>
+    <View style={[styles.container, { backgroundColor: "#F8FAFC" }]}>
       <StatusBar barStyle={'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Background gradient layers */}
-      <View style={[styles.bgLayer1, { backgroundColor: #EFF6FF }]} />
-      <View style={[styles.bgLayer2, { backgroundColor: #FFFFFF }]} />
-      <View style={[styles.bgLayer3, { backgroundColor: #1D4ED818 }]} />
+      <View style={[styles.bgLayer1, { backgroundColor: "#EFF6FF" }]} />
+      <View style={[styles.bgLayer2, { backgroundColor: "#FFFFFF" }]} />
+      <View style={[styles.bgLayer3, { backgroundColor: "#1D4ED818" }]} />
 
       {/* Floating ambient dots */}
       <FloatingDot x={W * 0.08} y={H * 0.12} delay={0}    size={6} />
@@ -287,7 +287,7 @@ const LoadingScreen: React.FC = () => {
         </View>
 
         {/* Glow halo */}
-        <Animated.View style={[styles.glowHalo, { opacity: glowOpacity, backgroundColor: #1D4ED838 }]} />
+        <Animated.View style={[styles.glowHalo, { opacity: glowOpacity, backgroundColor: "#1D4ED838" }]} />
 
         {/* Logo container with scan line */}
         <Animated.View
@@ -296,8 +296,8 @@ const LoadingScreen: React.FC = () => {
             {
               opacity: logoOpacity,
               transform: [{ scale: logoScale }],
-              borderColor: #1D4ED859,
-              backgroundColor: #1D4ED80F,
+              borderColor: "#1D4ED859",
+              backgroundColor: "#1D4ED80F",
             },
           ]}
         >
@@ -310,7 +310,7 @@ const LoadingScreen: React.FC = () => {
           <Animated.View
             style={[
               styles.scanLine,
-              { transform: [{ translateY: scanY }], backgroundColor: #0EA5E98C },
+              { transform: [{ translateY: scanY }], backgroundColor: "#0EA5E98C" },
             ]}
           />
         </Animated.View>
@@ -346,7 +346,7 @@ const LoadingScreen: React.FC = () => {
         {/* Divider dots */}
         <Animated.View style={[styles.dotRow, { opacity: subOpacity }]}>
           {[0, 1, 2].map(i => (
-            <View key={i} style={[styles.dividerDot, { backgroundColor: #1D4ED880 }]} />
+            <View key={i} style={[styles.dividerDot, { backgroundColor: "#1D4ED880" }]} />
           ))}
         </Animated.View>
       </View>
@@ -354,7 +354,7 @@ const LoadingScreen: React.FC = () => {
       {/* Bottom section */}
       <View style={styles.bottom}>
         {/* Progress bar */}
-        <View style={[styles.progressTrack, { backgroundColor: #E2E8F0 }]}>
+        <View style={[styles.progressTrack, { backgroundColor: "#E2E8F0" }]}>
           <Animated.View style={[styles.progressFill, { width: progressWidth, backgroundColor: "#1D4ED8" }]}>
             {/* Shimmer on progress bar */}
             <View style={styles.progressShimmer} />
@@ -363,7 +363,7 @@ const LoadingScreen: React.FC = () => {
 
         <Animated.View style={[styles.badge, { opacity: badgeOpacity }]}>
           <View style={[styles.badgeDot, { backgroundColor: "#1D4ED8" }]} />
-          <ThemedText style={[styles.badgeText, { color: #1D4ED8B3 }]}>SECURE CONNECTION</ThemedText>
+          <ThemedText style={[styles.badgeText, { color: "#1D4ED8B3" }]}>SECURE CONNECTION</ThemedText>
           <View style={[styles.badgeDot, { backgroundColor: "#1D4ED8" }]} />
         </Animated.View>
       </View>
