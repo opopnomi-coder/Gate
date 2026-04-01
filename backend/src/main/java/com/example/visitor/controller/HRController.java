@@ -32,6 +32,9 @@ public class HRController {
     private final VisitorRepository visitorRepository;
     private final VisitorRequestService visitorRequestService;
     private final com.example.visitor.repository.RailwayExitLogRepository railwayExitLogRepository;
+    private final com.example.visitor.repository.StudentRepository studentRepository;
+    private final com.example.visitor.repository.StaffRepository staffRepository;
+    private final com.example.visitor.repository.HODRepository hodRepository;
     
     // ==================== HR APPROVAL ENDPOINTS ====================
     
@@ -432,7 +435,32 @@ public class HRController {
                 map.put("id", e.getId());
                 map.put("userType", e.getUserType());
                 map.put("userId", e.getUserId());
-                map.put("name", e.getPersonName());
+
+                // Resolve name from student/staff/HOD tables if personName is missing
+                String resolvedName = e.getPersonName();
+                if (resolvedName == null || resolvedName.isBlank() || resolvedName.startsWith("Visitor-")) {
+                    String uid = e.getUserId();
+                    String utype = e.getUserType() != null ? e.getUserType().toUpperCase() : "";
+                    if (uid != null && !uid.isBlank()) {
+                        try {
+                            if ("STUDENT".equals(utype)) {
+                                resolvedName = studentRepository.findByRegNo(uid)
+                                    .map(s -> s.getFullName()).orElse(uid);
+                            } else if ("STAFF".equals(utype) || "HOD".equals(utype)) {
+                                resolvedName = staffRepository.findByStaffCode(uid)
+                                    .map(s -> s.getStaffName()).orElse(null);
+                                if (resolvedName == null) {
+                                    resolvedName = hodRepository.findByHodCode(uid)
+                                        .map(h -> h.getHodName()).orElse(uid);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            resolvedName = uid;
+                        }
+                    }
+                }
+
+                map.put("name", resolvedName != null ? resolvedName : e.getUserId());
                 map.put("department", e.getDepartment());
                 map.put("purpose", e.getPurpose());
                 map.put("exitTime", e.getExitTime());
