@@ -1,7 +1,5 @@
 import React, { Component, ReactNode } from 'react';
-import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import ThemedText from './ThemedText';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
 interface Props {
   children: ReactNode;
@@ -37,15 +35,15 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <View style={styles.container}>
           <View style={styles.iconWrap}>
-            <Ionicons name="warning-outline" size={48} color="#EF4444" />
+            <Text style={{ fontSize: 40 }}>⚠️</Text>
           </View>
-          <ThemedText style={styles.title}>Something went wrong</ThemedText>
-          <ThemedText style={styles.subtitle}>The app encountered an unexpected error.</ThemedText>
+          <Text style={styles.title}>Something went wrong</Text>
+          <Text style={styles.subtitle}>The app encountered an unexpected error.</Text>
           <ScrollView style={styles.errorBox} contentContainerStyle={{ padding: 12 }}>
-            <ThemedText style={styles.errorText}>{this.state.error}</ThemedText>
+            <Text style={styles.errorText}>{this.state.error}</Text>
           </ScrollView>
           <TouchableOpacity style={styles.btn} onPress={this.handleReset}>
-            <ThemedText style={styles.btnText}>Go Back to Home</ThemedText>
+            <Text style={styles.btnText}>Go Back to Home</Text>
           </TouchableOpacity>
         </View>
       );
