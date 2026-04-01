@@ -168,28 +168,29 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
     setLoading(true);
     setLoadingMessage('Connecting...');
     try {
-      // For staff-pattern IDs, ask backend for the real role (HOD/HR/STAFF all look the same)
       let role = detectUserRole(effectiveUserId);
-      if (role === 'STAFF') {
-        role = await apiService.detectRole(effectiveUserId);
-      }
 
-      // Extra safety: if detectRole still returns STAFF, try HOD OTP first.
-      // If HOD OTP send succeeds → it's a HOD. This handles name-mismatch edge cases.
+      // For staff-pattern IDs (HOD/HR/STAFF all look the same from the ID alone),
+      // try HOD OTP first — backend now validates the person is actually a HOD.
+      // If HOD OTP succeeds → HOD. If it fails (403/404) → ask backend detectRole.
       if (role === 'STAFF') {
         try {
           const hodTry = await apiService.sendHODOTP(effectiveUserId);
           if (hodTry.success) {
-            role = 'HOD';
+            // Confirmed HOD
             setUserId(effectiveUserId);
             setMaskedEmail(hodTry.maskedEmail || hodTry.email || 'm***@institution.edu');
-            setDetectedRole(role);
-            resolvedRoleRef.current = role;
+            setDetectedRole('HOD');
+            resolvedRoleRef.current = 'HOD';
             setOtpTimer(120);
             setShowOTPSuccessModal(true);
             return;
           }
+          // HOD OTP failed (not a HOD) — fall through to detectRole
         } catch (_) {}
+
+        // Ask backend for the real role (HR vs STAFF)
+        role = await apiService.detectRole(effectiveUserId);
       }
 
       const response = await apiService.sendOTP(effectiveUserId, role);
@@ -197,7 +198,7 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
         setUserId(effectiveUserId);
         setMaskedEmail(response.maskedEmail || response.email || 'm***@institution.edu');
         setDetectedRole(role);
-        resolvedRoleRef.current = role; // persist for verifyOTP
+        resolvedRoleRef.current = role;
         setOtpTimer(120);
         setShowOTPSuccessModal(true);
       } else {

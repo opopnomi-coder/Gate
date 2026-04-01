@@ -268,7 +268,8 @@ public class GatePassRequestService {
             request.setHodRemark(hodRemark.trim());
         }
         
-        boolean requiresHrAfterHod = "STAFF".equals(request.getUserType()) || "HOD".equals(request.getUserType());
+        boolean requiresHrAfterHod = ("STAFF".equals(request.getUserType()) || "HOD".equals(request.getUserType()))
+            && !"BULK".equals(request.getPassType()); // Bulk passes: HOD approval is final (QR generated immediately)
         if (request.getStaffApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
             if (requiresHrAfterHod) {
                 if (request.getAssignedHrCode() == null || request.getAssignedHrCode().isBlank()) {
@@ -281,14 +282,9 @@ public class GatePassRequestService {
                 request.setStatus(GatePassRequest.RequestStatus.PENDING_HR);
                 request.setHrApproval(GatePassRequest.ApprovalStatus.PENDING);
             } else {
-                // Only students receive a QR immediately after HOD. Staff and HOD passes always need HR first.
-                if (!"STUDENT".equals(request.getUserType())) {
-                    throw new IllegalStateException(
-                        "Staff and HOD gate passes require HR approval before a QR can be issued; request should be pending HR.");
-                }
+                // Student single passes and ALL bulk passes: approved after HOD, generate QR now
                 request.setStatus(GatePassRequest.RequestStatus.APPROVED);
                 
-                // Generate QR code after HOD approval (student flow only)
                 if ("BULK".equals(request.getPassType())) {
                     log.info("Generating QR code for approved bulk pass request {}", requestId);
                     try {

@@ -674,6 +674,33 @@ public class AuthController {
             }
             
             HOD hod = hodOpt.get();
+
+            // Validate this person is actually a HOD (not just any staff member)
+            boolean isActualHOD = false;
+            // Check 1: role field contains HOD
+            if (hod.getRole() != null && hod.getRole().toUpperCase().contains("HOD")) {
+                isActualHOD = true;
+            }
+            // Check 2: name appears in students.hod column
+            if (!isActualHOD && hod.getHodName() != null && !hod.getHodName().isBlank()) {
+                String staffName = hod.getHodName().trim();
+                java.util.List<String> allHodNames = studentRepository.findAllDistinctHodNames();
+                for (String hodEntry : allHodNames) {
+                    if (hodEntry == null || hodEntry.isBlank()) continue;
+                    String cleaned = hodEntry.split("/")[0].trim()
+                        .replaceAll("(?i)^(dr\\.?|prof\\.?|mr\\.?|mrs\\.?|ms\\.?)\\s*", "").trim();
+                    if (cleaned.equalsIgnoreCase(staffName) ||
+                        staffName.toLowerCase().contains(cleaned.toLowerCase()) ||
+                        cleaned.toLowerCase().contains(staffName.toLowerCase())) {
+                        isActualHOD = true;
+                        break;
+                    }
+                }
+            }
+            if (!isActualHOD) {
+                logAuthEvent(hodCode, "HOD", "OTP_SENT", "FAILED", "Not a HOD");
+                return ResponseEntity.status(403).body(createErrorResponse("This account is not registered as HOD"));
+            }
             
             // Generate and store OTP with BCrypt hashing
             String otp = generateOTP();

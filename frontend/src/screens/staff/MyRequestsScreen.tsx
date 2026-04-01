@@ -248,9 +248,21 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         onViewQR={(req) => handleViewQR(req, false)}
         timelineSteps={selectedRequest ? (() => {
           const s = selectedRequest.status;
+          const isBulk = selectedRequest.passType === 'BULK';
           const approved = s === 'APPROVED';
           const rejected = s === 'REJECTED';
           const hodDone = s === 'PENDING_HR' || approved || rejected;
+          if (isBulk) {
+            // Bulk passes: HOD approval is final
+            return [
+              { label: 'Request Submitted', status: 'done' as const },
+              {
+                label: 'HOD Approval',
+                status: approved ? 'done' as const : rejected ? 'rejected' as const : 'pending' as const,
+                remark: selectedRequest.hodRemark || selectedRequest.rejectionReason,
+              },
+            ];
+          }
           return [
             { label: 'Request Submitted', status: 'done' as const },
             {
