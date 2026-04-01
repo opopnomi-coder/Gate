@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  BackHandler,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { API_CONFIG } from '../../config/api.config';
 import { useTheme } from '../../context/ThemeContext';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
-import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface Notification {
@@ -107,6 +107,16 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
     fetchNotifications();
   }, [userId, userType]);
 
+  // Hardware back button support
+  useEffect(() => {
+    if (!onBack) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [onBack]);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchNotifications();
@@ -161,25 +171,12 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['left', 'right', 'bottom']}>
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.surface,
-            borderBottomColor: theme.border,
-            paddingTop: Math.max(12, insets.top + 8),
-          },
-        ]}
-      >
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity
             onPress={onBack}
-            disabled={!onBack}
-            style={[
-              styles.iconButton,
-              { backgroundColor: theme.inputBackground, opacity: onBack ? 1 : 0.6 },
-            ]}
+            style={[styles.iconButton, { backgroundColor: theme.inputBackground }]}
           >
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
@@ -192,80 +189,76 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={markAllAsRead}
-              style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}
-            >
+            <TouchableOpacity onPress={markAllAsRead} style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}>
               <Ionicons name="checkmark-done-outline" size={20} color={theme.primary} />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={clearAllNotifications}
-              style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}
-            >
+            <TouchableOpacity onPress={clearAllNotifications} style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}>
               <Ionicons name="trash-outline" size={20} color={theme.error} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      {notifications.length === 0 ? (
-        <ScreenContentContainer>
-        <View style={styles.emptyContainer}>
-          <Ionicons name="notifications-off-outline" size={64} color={theme.border} />
-          <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No notifications yet</ThemedText>
-          <ThemedText style={[styles.emptySubtext, { color: theme.textTertiary }]}>
-            You'll see your latest notifications here
-          </ThemedText>
-        </View>
-        </ScreenContentContainer>
-      ) : (
-        <ScreenContentContainer>
-        <VerticalFlatList
-          data={notifications}
-          renderItem={({ item }) => {
-            const icon = getNotificationIcon(item.notificationType);
-            return (
-              <TouchableOpacity
-                style={[
-                  styles.notificationCard,
-                  { backgroundColor: theme.cardBackground },
-                  !item.isRead && { backgroundColor: theme.primary + '12', borderLeftWidth: 3, borderLeftColor: theme.primary },
-                ]}
-                onPress={() => !item.isRead && markAsRead(item.id)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceHighlight }]}>
-                  <Ionicons name={icon.name as any} size={24} color={icon.color} />
-                </View>
-                <View style={styles.contentContainer}>
-                  <View style={styles.cardHeaderRow}>
-                    <ThemedText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
-                      {item.title}
-                    </ThemedText>
-                    {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />}
+      <ScreenContentContainer>
+        {notifications.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="notifications-off-outline" size={64} color={theme.border} />
+            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No notifications yet</ThemedText>
+            <ThemedText style={[styles.emptySubtext, { color: theme.textTertiary }]}>
+              You'll see your latest notifications here
+            </ThemedText>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            renderItem={({ item }) => {
+              const icon = getNotificationIcon(item.notificationType);
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.notificationCard,
+                    { backgroundColor: theme.cardBackground },
+                    !item.isRead && { backgroundColor: theme.primary + '12', borderLeftWidth: 3, borderLeftColor: theme.primary },
+                  ]}
+                  onPress={() => !item.isRead && markAsRead(item.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.iconContainer, { backgroundColor: theme.surfaceHighlight }]}>
+                    <Ionicons name={icon.name as any} size={24} color={icon.color} />
                   </View>
-                  <ThemedText style={[styles.message, { color: theme.textSecondary }]} numberOfLines={2}>
-                    {item.message}
-                  </ThemedText>
-                  <ThemedText style={[styles.timestamp, { color: theme.textTertiary }]}>
-                    {formatTimestamp(item.timestamp)}
-                  </ThemedText>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[theme.primary]}
-            />
-          }
-        />
-        </ScreenContentContainer>
-      )}
+                  <View style={styles.contentContainer}>
+                    <View style={styles.cardHeaderRow}>
+                      <ThemedText style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+                        {item.title}
+                      </ThemedText>
+                      {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: theme.primary }]} />}
+                    </View>
+                    <ThemedText style={[styles.message, { color: theme.textSecondary }]} numberOfLines={3}>
+                      {item.message}
+                    </ThemedText>
+                    <ThemedText style={[styles.timestamp, { color: theme.textTertiary }]}>
+                      {formatTimestamp(item.timestamp)}
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            decelerationRate="normal"
+            nestedScrollEnabled={false}
+            keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[theme.primary]}
+              />
+            }
+          />
+        )}
+      </ScreenContentContainer>
     </SafeAreaView>
   );
 }
@@ -274,7 +267,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: 16 },
-  header: { paddingHorizontal: 18, paddingBottom: 14, borderBottomWidth: 1 },
+  header: { paddingHorizontal: 18, paddingVertical: 14, borderBottomWidth: 1 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   iconButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   headerTitleWrap: { flex: 1, paddingHorizontal: 4 },

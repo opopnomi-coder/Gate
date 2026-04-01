@@ -141,6 +141,7 @@ const SecurityDashboardContainer: React.FC<SecurityDashboardContainerProps> = ({
         <NotificationsScreen
           userId={security.securityId}
           userType="security"
+          onBack={pop}
         />
       );
     default:
