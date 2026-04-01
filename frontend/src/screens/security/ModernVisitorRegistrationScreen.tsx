@@ -293,11 +293,12 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
               <Picker
                 selectedValue={role}
                 onValueChange={(value) => setRole(value)}
-                style={[styles.picker, { color: theme.text }]}
-                dropdownIconColor={theme.text}
+                style={styles.picker}
+                dropdownIconColor={theme.primary}
+                mode="dropdown"
               >
-                <Picker.Item label="Visitor" value="VISITOR" color={theme.text} />
-                <Picker.Item label="Vendor" value="VENDOR" color={theme.text} />
+                <Picker.Item label="Visitor" value="VISITOR" color="#1F2937" style={{ backgroundColor: '#FFFFFF', fontSize: 16 }} />
+                <Picker.Item label="Vendor" value="VENDOR" color="#1F2937" style={{ backgroundColor: '#FFFFFF', fontSize: 16 }} />
               </Picker>
             </View>
           </View>
@@ -309,12 +310,13 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
               <Picker
                 selectedValue={selectedDepartment}
                 onValueChange={setSelectedDepartment}
-                style={[styles.picker, { color: theme.text }]}
-                dropdownIconColor={theme.text}
+                style={styles.picker}
+                dropdownIconColor={theme.primary}
+                mode="dropdown"
               >
-                <Picker.Item label="Select Department" value="" color={theme.textTertiary} />
+                <Picker.Item label="Select Department" value="" color="#94A3B8" style={{ backgroundColor: '#FFFFFF', fontSize: 16 }} />
                 {departments.map(dept => (
-                  <Picker.Item key={dept.id} label={dept.name} value={dept.id.toString()} color={theme.text} />
+                  <Picker.Item key={dept.id} label={dept.name} value={dept.id.toString()} color="#1F2937" style={{ backgroundColor: '#FFFFFF', fontSize: 16 }} />
                 ))}
               </Picker>
             </View>
@@ -327,13 +329,14 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
               <Picker
                 selectedValue={selectedStaff}
                 onValueChange={setSelectedStaff}
-                style={[styles.picker, { color: theme.text }]}
+                style={styles.picker}
                 enabled={!!selectedDepartment}
-                dropdownIconColor={theme.text}
+                dropdownIconColor={theme.primary}
+                mode="dropdown"
               >
-                <Picker.Item label="Select Staff" value="" color={theme.textTertiary} />
+                <Picker.Item label="Select Staff" value="" color="#94A3B8" style={{ backgroundColor: '#FFFFFF', fontSize: 16 }} />
                 {staffMembers.map(staff => (
-                  <Picker.Item key={staff.id} label={staff.name} value={staff.id.toString()} color={theme.text} />
+                  <Picker.Item key={staff.id} label={staff.name} value={staff.id.toString()} color="#1F2937" style={{ backgroundColor: '#FFFFFF', fontSize: 16 }} />
                 ))}
               </Picker>
             </View>
@@ -487,7 +490,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     color: '#1F2937',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   textAreaContainer: {
     flexDirection: 'row',
