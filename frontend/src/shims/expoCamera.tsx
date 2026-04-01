@@ -1,8 +1,6 @@
 import React from 'react';
-import { PermissionsAndroid, Platform, ViewStyle, View, StyleSheet } from 'react-native';
-import { Camera } from 'react-native-camera-kit';
-
-type CameraFacing = 'front' | 'back';
+import { PermissionsAndroid, Platform, ViewStyle, StyleSheet } from 'react-native';
+import { Camera as RNCameraKit } from 'react-native-camera-kit';
 
 export const CameraModule = {
   async requestCameraPermissionsAsync(): Promise<{ status: 'granted' | 'denied' }> {
@@ -16,20 +14,27 @@ export const CameraModule = {
 
 type CameraViewProps = {
   style?: ViewStyle;
-  facing?: CameraFacing;
+  facing?: 'front' | 'back';
   onBarcodeScanned?: (event: { data: string }) => void;
   barcodeScannerSettings?: { barcodeTypes?: string[] };
   children?: React.ReactNode;
 };
 
-export const CameraView: React.FC<CameraViewProps> = ({ style, facing = 'back', onBarcodeScanned, children }) => {
+export const CameraView: React.FC<CameraViewProps> = ({
+  style,
+  facing = 'back',
+  onBarcodeScanned,
+  barcodeScannerSettings,
+  children,
+}) => {
   return (
-    <View style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <Camera
-        style={StyleSheet.absoluteFill}
+    <>
+      <RNCameraKit
+        style={[StyleSheet.absoluteFill, style]}
         cameraType={facing as any}
         scanBarcode
         showFrame={false}
+        allowedBarcodeTypes={barcodeScannerSettings?.barcodeTypes as any}
         onReadCode={(event: any) => {
           const data = event?.nativeEvent?.codeStringValue;
           if (data && onBarcodeScanned) {
@@ -38,7 +43,7 @@ export const CameraView: React.FC<CameraViewProps> = ({ style, facing = 'back', 
         }}
       />
       {children}
-    </View>
+    </>
   );
 };
 
