@@ -912,7 +912,7 @@ const App: React.FC = () => {
     }
   };
 
-  const isRootScreen = ROOT_SCREENS.includes(currentScreen) || currentScreen === 'UNIFIED_LOGIN';
+  const isRootScreen = EXIT_SCREENS.includes(currentScreen);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
