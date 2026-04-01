@@ -113,8 +113,9 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
     if (!qrCode) return null;
     const ref = qrSvgRef.current;
     if (!ref?.toDataURL) return null;
+    // Export at 4x scale (720px) for high-quality sharing
     const base64 = await new Promise<string | null>((resolve) => {
-      ref.toDataURL((data: string) => resolve(data || null));
+      ref.toDataURL((data: string) => resolve(data || null), { width: 720, height: 720 });
     });
     if (!base64) return null;
     const filename = `visitor-qr-${Date.now()}.png`;
@@ -284,8 +285,8 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               <View style={[styles.qrWrap, { backgroundColor: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }]}>
                 <QRCode
                   value={qrCode}
-                  size={180}
-                  color="#0B1220"
+                  size={220}
+                  color="#000000"
                   backgroundColor="#FFFFFF"
                   getRef={(c: any) => {
                     qrSvgRef.current = c;
@@ -388,10 +389,11 @@ const styles = StyleSheet.create({
   resultTitle: { fontSize: 18, fontWeight: '800', marginBottom: 8 },
   qrWrap: {
     alignSelf: 'center',
-    padding: 12,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1,
     marginBottom: 14,
+    backgroundColor: '#FFFFFF',
   },
   manualBig: { fontSize: 20, fontWeight: '800', letterSpacing: 2, marginBottom: 16 },
   resultActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 },
