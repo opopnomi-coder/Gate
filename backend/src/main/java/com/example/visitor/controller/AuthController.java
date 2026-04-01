@@ -1290,7 +1290,7 @@ public class AuthController {
 
             // 2. Check students.hod column — it stores HOD name like "Dr. Kanagavalli N./AP"
             //    Strategy: get all distinct HOD name strings, then check if the staff name
-            //    matches any of them using multiple fuzzy strategies
+            //    matches any of them using robust token matching
             if (!staffName.isEmpty()) {
                 java.util.List<String> allHodNames = studentRepository.findAllDistinctHodNames();
                 for (String hodEntry : allHodNames) {
@@ -1305,29 +1305,25 @@ public class AuthController {
                         return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
                     }
 
-                    // Strategy B: staff name contains cleaned HOD name
-                    if (staffName.toLowerCase().contains(cleaned.toLowerCase())) {
+                    // Strategy B: staff name contains cleaned HOD name or vice versa
+                    if (staffName.toLowerCase().contains(cleaned.toLowerCase()) || 
+                        cleaned.toLowerCase().contains(staffName.toLowerCase())) {
                         return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
                     }
 
-                    // Strategy C: cleaned HOD name contains staff name
-                    if (cleaned.toLowerCase().contains(staffName.toLowerCase())) {
-                        return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
-                    }
-
-                    // Strategy D: match on last name (last word of staff name vs last word of cleaned)
-                    String[] staffParts = staffName.split("\\s+");
-                    String[] hodParts = cleaned.split("\\s+");
-                    if (staffParts.length > 0 && hodParts.length > 0) {
-                        String staffLast = staffParts[staffParts.length - 1];
-                        String hodLast = hodParts[hodParts.length - 1];
-                        // Only match on last name if it's meaningful (>2 chars) and first name also partially matches
-                        if (staffLast.length() > 2 && staffLast.equalsIgnoreCase(hodLast)) {
-                            // Also check first name initial matches
-                            if (staffParts[0].charAt(0) == hodParts[0].charAt(0)) {
-                                return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
+                    // Strategy C: robust token matching (check if a significant word > 3 chars matches)
+                    String[] staffTokens = staffName.replaceAll("[^a-zA-Z\\s]", "").toLowerCase().split("\\s+");
+                    String[] hodTokens = cleaned.replaceAll("[^a-zA-Z\\s]", "").toLowerCase().split("\\s+");
+                    
+                    for (String sToken : staffTokens) {
+                        if (sToken.length() > 3) {
+                            for (String hToken : hodTokens) {
+                                if (sToken.equals(hToken)) {
+                                    return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
+                                }
                             }
                         }
+                    }
                     }
                 }
             }

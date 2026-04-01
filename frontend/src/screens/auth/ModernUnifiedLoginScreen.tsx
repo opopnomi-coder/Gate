@@ -259,54 +259,54 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
           <Animated.View style={[styles.mainContent, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.hero}>
               <View style={styles.logoCont}><Image source={require('../../../assets/rit-logo.png')} style={styles.logo} /></View>
-              <ThemedText style={styles.mainTitle}>RIT GATE</ThemedText>
-              <ThemedText style={styles.heroSubtitle}>Secure Access Control System</ThemedText>
+              <ThemedText ignoreGradient style={styles.mainTitle}>RIT GATE</ThemedText>
+              <ThemedText ignoreGradient style={styles.heroSubtitle}>Secure Access Control System</ThemedText>
               <View style={styles.featureRow}>
                 <View style={styles.featurePill}>
                   <Ionicons name="finger-print-outline" size={14} color="#0F172A" />
-                  <ThemedText style={styles.featureText}>Biometric</ThemedText>
+                  <ThemedText ignoreGradient style={styles.featureText}>Biometric</ThemedText>
                 </View>
                 <View style={styles.featurePill}>
                   <Ionicons name="qr-code-outline" size={14} color="#0F172A" />
-                  <ThemedText style={styles.featureText}>Badge Scan</ThemedText>
+                  <ThemedText ignoreGradient style={styles.featureText}>Badge Scan</ThemedText>
                 </View>
                 <View style={styles.featurePill}>
                   <Ionicons name="flash-outline" size={14} color="#0F172A" />
-                  <ThemedText style={styles.featureText}>Instant</ThemedText>
+                  <ThemedText ignoreGradient style={styles.featureText}>Instant</ThemedText>
                 </View>
               </View>
             </View>
             <View style={styles.loginCard}>
-              <ThemedText style={styles.cardTitle}>{otpSent ? 'Verify Identity' : 'Welcome Back'}</ThemedText>
-              <ThemedText style={styles.cardSubtitle}>
+              <ThemedText ignoreGradient style={styles.cardTitle}>{otpSent ? 'Verify Identity' : 'Welcome Back'}</ThemedText>
+              <ThemedText ignoreGradient style={styles.cardSubtitle}>
                 {otpSent ? 'Enter the one-time password sent to your email.' : 'Sign in with your institute credential.'}
               </ThemedText>
             
               {!otpSent ? (
                <View style={{ width: '100%', alignItems: 'center' }}>
                 <View style={styles.inputWrap}>
-                  <ThemedText style={styles.label}>IDENTIFICATION</ThemedText>
+                  <ThemedText ignoreGradient style={styles.label}>IDENTIFICATION</ThemedText>
                   <TextInput style={styles.input} placeholder="Security ID / Staff ID / Roll No" placeholderTextColor="#94A3B8" value={userId} onChangeText={setUserId} autoCapitalize="none" editable={!loading} />
                 </View>
                 <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={() => handleSendOTP()} disabled={loading}>
                   {loading ? (
                     <View style={styles.loaderWrap}>
                        <ActivityIndicator color="#FFF" size="small" />
-                       <ThemedText style={styles.loaderTxt}>{loadingMessage}</ThemedText>
+                       <ThemedText ignoreGradient style={styles.loaderTxt}>{loadingMessage}</ThemedText>
                     </View>
-                  ) : <ThemedText style={styles.btnTxt}>Continue</ThemedText>}
+                  ) : <ThemedText ignoreGradient style={styles.btnTxt}>Continue</ThemedText>}
                 </TouchableOpacity>
-                <View style={styles.divider}><View style={styles.line} /><ThemedText style={styles.divTxt}>OR</ThemedText><View style={styles.line} /></View>
+                <View style={styles.divider}><View style={styles.line} /><ThemedText ignoreGradient style={styles.divTxt}>OR</ThemedText><View style={styles.line} /></View>
                 <TouchableOpacity style={styles.qrBtn} onPress={() => setShowQRScanner(true)}>
                   <View style={styles.qrIcon}><Ionicons name="qr-code-outline" size={24} color="#1E293B" /></View>
-                  <ThemedText style={styles.qrTxt}>Scan QR Code</ThemedText>
+                  <ThemedText ignoreGradient style={styles.qrTxt}>Scan QR Code</ThemedText>
                   <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
                 </TouchableOpacity>
               </View>
               ) : (
                 <View style={{ width: '100%', alignItems: 'center' }}>
                     <View style={styles.inputWrap}>
-                      <ThemedText style={styles.label}>VERIFICATION CODE</ThemedText>
+                      <ThemedText ignoreGradient style={styles.label}>VERIFICATION CODE</ThemedText>
                       <View style={styles.otpBoxRow}>
                         {otpDigits.map((digit, i) => (
                           <TextInput
@@ -328,20 +328,20 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
                           />
                         ))}
                       </View>
-                      <ThemedText style={styles.otpSubText}>Sent to {maskedEmail}</ThemedText>
+                      <ThemedText ignoreGradient style={styles.otpSubText}>Sent to {maskedEmail}</ThemedText>
                     </View>
 
                     <View style={styles.otpActions}>
                       {otpTimer > 0 ? (
-                        <ThemedText style={styles.timerTxt}>Resend in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</ThemedText>
+                        <ThemedText ignoreGradient style={styles.timerTxt}>Resend in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</ThemedText>
                       ) : (
-                        <TouchableOpacity onPress={handleResendOTP}><ThemedText style={styles.resendLink}>Resend OTP</ThemedText></TouchableOpacity>
+                        <TouchableOpacity onPress={handleResendOTP}><ThemedText ignoreGradient style={styles.resendLink}>Resend OTP</ThemedText></TouchableOpacity>
                       )}
-                      <TouchableOpacity onPress={() => setOtpSent(false)}><ThemedText style={styles.changeId}>Change ID</ThemedText></TouchableOpacity>
+                      <TouchableOpacity onPress={() => setOtpSent(false)}><ThemedText ignoreGradient style={styles.changeId}>Change ID</ThemedText></TouchableOpacity>
                     </View>
 
                     <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleVerifyOTP} disabled={loading}>
-                      {loading ? <ActivityIndicator color="#FFF" /> : <ThemedText style={styles.btnTxt}>Verify & Login</ThemedText>}
+                      {loading ? <ActivityIndicator color="#FFF" /> : <ThemedText ignoreGradient style={styles.btnTxt}>Verify & Login</ThemedText>}
                     </TouchableOpacity>
                 </View>
               )}
@@ -357,10 +357,10 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
               <View style={styles.modalIcon}><Ionicons name="shield-checkmark" size={32} color="#FFFFFF" /></View>
               <TouchableOpacity style={styles.modalClose} onPress={() => setShowOTPSuccessModal(false)}><Ionicons name="close" size={24} color="#64748B" /></TouchableOpacity>
             </View>
-            <ThemedText style={styles.modalTitle}>OTP Sent</ThemedText>
-            <ThemedText style={styles.modalSub}>A 6-digit code has been sent to <ThemedText style={styles.emailHighlight}>{maskedEmail}</ThemedText></ThemedText>
+            <ThemedText ignoreGradient style={styles.modalTitle}>OTP Sent</ThemedText>
+            <ThemedText ignoreGradient style={styles.modalSub}>A 6-digit code has been sent to <ThemedText ignoreGradient style={styles.emailHighlight}>{maskedEmail}</ThemedText></ThemedText>
             <TouchableOpacity style={styles.verifyBtn} onPress={() => { setShowOTPSuccessModal(false); setOtpSent(true); }}>
-              <ThemedText style={styles.verifyTxt}>Enter Code</ThemedText>
+              <ThemedText ignoreGradient style={styles.verifyTxt}>Enter Code</ThemedText>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -381,17 +381,17 @@ const styles = StyleSheet.create({
   hero: { width: '100%', alignItems: 'center', marginBottom: 16 },
   logoCont: { marginBottom: 10 },
   logo: { width: 120, height: 120, borderRadius: 60 },
-  mainTitle: { fontSize: 36, fontWeight: '900', color: '#0F172A', letterSpacing: 2 },
-  heroSubtitle: { fontSize: 12, color: '#64748B', marginTop: 6, marginBottom: 12, letterSpacing: 1.3, textTransform: 'uppercase' },
+  mainTitle: { fontSize: 36, fontWeight: '900', color: '#000000', letterSpacing: 2 },
+  heroSubtitle: { fontSize: 12, color: '#000000', marginTop: 6, marginBottom: 12, letterSpacing: 1.3, textTransform: 'uppercase' },
   featureRow: { flexDirection: 'row', gap: 8, width: '100%', justifyContent: 'center' },
   featurePill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
-  featureText: { fontSize: 11, color: '#334155', fontWeight: '700' },
+  featureText: { fontSize: 11, color: '#000000', fontWeight: '700' },
   loginCard: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#E2E8F0', padding: 18, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 18, elevation: 6 },
-  cardTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', marginBottom: 4 },
-  cardSubtitle: { fontSize: 13, color: '#64748B', marginBottom: 16 },
+  cardTitle: { fontSize: 24, fontWeight: '800', color: '#000000', marginBottom: 4 },
+  cardSubtitle: { fontSize: 13, color: '#000000', marginBottom: 16 },
   inputWrap: { width: '100%', marginBottom: 20 },
-  label: { fontSize: 11, fontWeight: '800', color: '#64748B', letterSpacing: 1, marginBottom: 8 },
-  input: { width: '100%', height: 56, backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, fontSize: 16, color: '#1E293B', borderWidth: 1, borderColor: '#E2E8F0' },
+  label: { fontSize: 11, fontWeight: '800', color: '#000000', letterSpacing: 1, marginBottom: 8 },
+  input: { width: '100%', height: 56, backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, fontSize: 16, color: '#000000', borderWidth: 1, borderColor: '#E2E8F0' },
   btn: { width: '100%', height: 58, backgroundColor: '#1E293B', borderRadius: 16, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
   btnTxt: { color: '#FFF', fontSize: 17, fontWeight: '700' },
   btnDisabled: { opacity: 0.7 },
@@ -399,21 +399,21 @@ const styles = StyleSheet.create({
   loaderTxt: { color: '#FFF', fontSize: 14, fontWeight: '600' },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 32 },
   line: { flex: 1, height: 1, backgroundColor: '#E2E8F0' },
-  divTxt: { marginHorizontal: 16, color: '#94A3B8', fontWeight: '700', fontSize: 12 },
+  divTxt: { marginHorizontal: 16, color: '#000000', fontWeight: '700', fontSize: 12 },
   qrBtn: { width: '100%', flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#F8FAFC', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' },
   qrIcon: { width: 44, height: 44, backgroundColor: '#FFF', borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  qrTxt: { flex: 1, fontSize: 16, fontWeight: '700', color: '#1E293B' },
+  qrTxt: { flex: 1, fontSize: 16, fontWeight: '700', color: '#000000' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalBox: { width: '100%', maxWidth: 360, backgroundColor: '#FFF', borderRadius: 32, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.2, shadowRadius: 40, elevation: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   modalIcon: { width: 62, height: 62, borderRadius: 20, backgroundColor: '#1E293B', justifyContent: 'center', alignItems: 'center' },
   modalClose: { width: 36, height: 36, backgroundColor: '#F1F5F9', borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
-  modalTitle: { fontSize: 24, fontWeight: '800', color: '#1E293B', marginBottom: 8 },
-  modalSub: { fontSize: 14, color: '#64748B', lineHeight: 20, marginBottom: 24 },
-  emailHighlight: { color: '#1E293B', fontWeight: '800' },
+  modalTitle: { fontSize: 24, fontWeight: '800', color: '#000000', marginBottom: 8 },
+  modalSub: { fontSize: 14, color: '#000000', lineHeight: 20, marginBottom: 24 },
+  emailHighlight: { color: '#000000', fontWeight: '800' },
   verifyBtn: { width: '100%', height: 58, backgroundColor: '#1E293B', borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   verifyTxt: { color: '#FFF', fontSize: 16, fontWeight: '800' },
-  otpSubText: { fontSize: 12, color: '#94A3B8', marginTop: 10, textAlign: 'center' },
+  otpSubText: { fontSize: 12, color: '#000000', marginTop: 10, textAlign: 'center' },
   otpBoxRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 4 },
   otpBox: {
     flex: 1,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     fontSize: 28,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#000000',
     textAlign: 'center',
   },
   otpBoxFilled: {
@@ -436,9 +436,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   otpActions: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 32, paddingHorizontal: 4 },
-  timerTxt: { fontSize: 13, color: '#64748B', fontWeight: '600' },
-  resendLink: { fontSize: 13, color: '#1E293B', fontWeight: '700', textDecorationLine: 'underline' },
-  changeId: { fontSize: 13, color: '#64748B', fontWeight: '600' },
+  timerTxt: { fontSize: 13, color: '#000000', fontWeight: '600' },
+  resendLink: { fontSize: 13, color: '#000000', fontWeight: '700', textDecorationLine: 'underline' },
+  changeId: { fontSize: 13, color: '#000000', fontWeight: '600' },
 });
 
 export default ModernUnifiedLoginScreen;

@@ -125,7 +125,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           requestDate: req.createdAt,
           originalId: req.requestId,
         }));
-        
+
         allRequests = [...allRequests, ...visitorReqs];
       }
 
@@ -136,7 +136,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
         const dateB = new Date(b.requestDate || b.createdAt).getTime();
         const dateA = new Date(a.requestDate || a.createdAt).getTime();
         if (dateB !== dateA) return dateB - dateA;
-        
+
         // Extract numeric part of ID for robust sorting (e.g., "GP-47" -> 47)
         const idB = parseInt(b.id?.toString().split('-')[1]) || 0;
         const idA = parseInt(a.id?.toString().split('-')[1]) || 0;
@@ -144,17 +144,17 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       });
 
       setRequests(uniqueRequests);
-      
+
       // Calculate stats from ALL requests assigned to staff (student gate pass + visitor requests, exclude staff's own requests)
-      const assignedPending = uniqueRequests.filter((r: any) => 
+      const assignedPending = uniqueRequests.filter((r: any) =>
         !r.isOwnRequest && (
-          r.status === 'PENDING_STAFF' || 
+          r.status === 'PENDING_STAFF' ||
           (r.requestType === 'VISITOR' && (r.staffApproval === 'PENDING' || r.staffApproval === 'PENDING_STAFF'))
         )
       ).length;
       const assignedApproved = uniqueRequests.filter((r: any) => !r.isOwnRequest && r.staffApproval === 'APPROVED').length;
       const assignedRejected = uniqueRequests.filter((r: any) => !r.isOwnRequest && r.staffApproval === 'REJECTED').length;
-      
+
       setStats({
         pending: assignedPending,
         approved: assignedApproved,
@@ -186,7 +186,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
     let matchesTab = false;
     if (activeTab === 'PENDING') {
       // Gate pass requests waiting for staff approval OR visitor requests still pending
-      matchesTab = request.status === 'PENDING_STAFF' || 
+      matchesTab = request.status === 'PENDING_STAFF' ||
         (request.requestType === 'VISITOR' && (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF'));
     } else if (activeTab === 'APPROVED') {
       matchesTab = request.staffApproval === 'APPROVED';
@@ -279,7 +279,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           ? response.qrCode
           : `data:image/png;base64,${response.qrCode}`;
         setQrCodeData(qrCodeWithPrefix);
-        
+
         // Get manual entry code from response (works for both single and bulk passes)
         if (response.manualCode) {
           setManualEntryCode(response.manualCode);
@@ -334,7 +334,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}
             onPress={() => onNavigate('NOTIFICATIONS')}
           >
@@ -347,168 +347,168 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       </View>
 
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false} decelerationRate="normal"
-      >
-      {/* Search Input */}
-      <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
-        <Ionicons name="search" size={20} color={theme.textTertiary} />
-        <TextInput
-          style={[styles.searchInput, { color: theme.text }]}
-          placeholder="Search requests..."
-          placeholderTextColor={theme.textTertiary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* Stats Tabs */}
-      <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
-        <TouchableOpacity
-          style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]}
-          onPress={() => setActiveTab('PENDING')}
+        <VerticalScrollView
+          style={styles.content}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false} decelerationRate="normal"
         >
-          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>
-            PENDING
-          </ThemedText>
-          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>
-            {stats.pending}
-          </ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]}
-          onPress={() => setActiveTab('APPROVED')}
-        >
-          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>
-            APPROVED
-          </ThemedText>
-          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>
-            {stats.approved}
-          </ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]}
-          onPress={() => setActiveTab('REJECTED')}
-        >
-          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>
-            REJECTED
-          </ThemedText>
-          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>
-            {stats.rejected}
-          </ThemedText>
-        </TouchableOpacity>
-      </View>
-
-      {/* Request List */}
-      <View style={styles.scrollContent}>
-        {filteredRequests.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+          {/* Search Input */}
+          <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
+            <Ionicons name="search" size={20} color={theme.textTertiary} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.text }]}
+              placeholder="Search requests..."
+              placeholderTextColor={theme.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
-        ) : (
-          filteredRequests.map((request) => (
+
+          {/* Stats Tabs */}
+          <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
             <TouchableOpacity
-              key={request.id}
-              style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
-              onPress={() => {
-                setSelectedRequest(request);
-                setShowDetailModal(true);
-              }}
+              style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]}
+              onPress={() => setActiveTab('PENDING')}
             >
-              <View style={styles.cardTopRow}>
-                <View style={[styles.avatarContainer, { backgroundColor: request.requestType === 'VISITOR' ? theme.surfaceHighlight : theme.surfaceHighlight }]}>
-                  <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
-                    {getInitials(request.studentName || 'ST')}
-                  </ThemedText>
-                </View>
-                
-                <View style={styles.headerMainInfo}>
-                  <View style={styles.nameRow}>
-                    <ThemedText ignoreGradient style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                      {request.studentName || 'Unknown'}
-                    </ThemedText>
-                    {request.requestType === 'VISITOR' ? (
-                      <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                        <ThemedText ignoreGradient style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
+              <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>
+                PENDING
+              </ThemedText>
+              <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>
+                {stats.pending}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]}
+              onPress={() => setActiveTab('APPROVED')}
+            >
+              <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>
+                APPROVED
+              </ThemedText>
+              <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>
+                {stats.approved}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]}
+              onPress={() => setActiveTab('REJECTED')}
+            >
+              <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>
+                REJECTED
+              </ThemedText>
+              <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>
+                {stats.rejected}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          {/* Request List */}
+          <View style={styles.scrollContent}>
+            {filteredRequests.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+              </View>
+            ) : (
+              filteredRequests.map((request) => (
+                <TouchableOpacity
+                  key={request.id}
+                  style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+                  onPress={() => {
+                    setSelectedRequest(request);
+                    setShowDetailModal(true);
+                  }}
+                >
+                  <View style={styles.cardTopRow}>
+                    <View style={[styles.avatarContainer, { backgroundColor: request.requestType === 'VISITOR' ? theme.surfaceHighlight : theme.surfaceHighlight }]}>
+                      <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
+                        {getInitials(request.studentName || 'ST')}
+                      </ThemedText>
+                    </View>
+
+                    <View style={styles.headerMainInfo}>
+                      <View style={styles.nameRow}>
+                        <ThemedText ignoreGradient style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                          {request.studentName || 'Unknown'}
+                        </ThemedText>
+                        {request.requestType === 'VISITOR' ? (
+                          <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
+                            <ThemedText ignoreGradient style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
+                          </View>
+                        ) : (
+                          <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
+                            <ThemedText ignoreGradient style={[styles.passTypePillText, { color: theme.text }]}>
+                              {request.passType === 'BULK' ? 'Bulk Gatepass' : 'Single Gatepass'}
+                            </ThemedText>
+                          </View>
+                        )}
                       </View>
-                    ) : (
-                      <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                        <ThemedText ignoreGradient style={[styles.passTypePillText, { color: theme.text }]}>
-                          {request.passType === 'BULK' ? 'Bulk Gatepass' : 'Single Gatepass'}
+                      <ThemedText ignoreGradient style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                        {request.requestType === 'VISITOR'
+                          ? `Visitor • ${request.visitorPhone || ''}`
+                          : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
+                      </ThemedText>
+                    </View>
+
+                    <View style={styles.timeAgoContainer}>
+                      <ThemedText ignoreGradient style={[styles.timeAgoText, { color: theme.textTertiary }]}>
+                        {getRelativeTime(request.requestDate || request.createdAt)}
+                      </ThemedText>
+                    </View>
+                  </View>
+
+                  <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
+                    <View style={styles.detailItem}>
+                      <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
+                      <ThemedText ignoreGradient style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
+                      <ThemedText ignoreGradient style={[styles.detailText, { color: theme.text }]}>
+                        {request.requestType === 'VISITOR' && request.visitDate
+                          ? `${request.visitDate}${request.visitTime ? ` at ${request.visitTime}` : ''}`
+                          : formatDateShort(request.requestDate || request.createdAt)}
+                      </ThemedText>
+                    </View>
+                    {request.passType === 'BULK' && (
+                      <View style={styles.detailItem}>
+                        <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
+                        <ThemedText ignoreGradient style={[styles.detailText, { color: theme.text }]}>
+                          {(() => {
+                            const parts: string[] = [];
+                            const sc = request.staffCount ?? 0;
+                            const stc = request.studentCount ?? 0;
+                            if (sc > 0) parts.push(`Staff - ${sc}`);
+                            if (stc > 0) parts.push(`Students - ${stc}`);
+                            return parts.join(', ') || `${request.participantCount || 0} Participants`;
+                          })()}
                         </ThemedText>
                       </View>
                     )}
                   </View>
-                  <ThemedText ignoreGradient style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                    {request.requestType === 'VISITOR'
-                      ? `Visitor • ${request.visitorPhone || ''}`
-                      : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
-                  </ThemedText>
-                </View>
 
-                <View style={styles.timeAgoContainer}>
-                  <ThemedText ignoreGradient style={[styles.timeAgoText, { color: theme.textTertiary }]}>
-                    {getRelativeTime(request.requestDate || request.createdAt)}
-                  </ThemedText>
-                </View>
-              </View>
-
-              <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
-                <View style={styles.detailItem}>
-                  <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
-                  <ThemedText ignoreGradient style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
-                </View>
-                <View style={styles.detailItem}>
-                  <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                  <ThemedText ignoreGradient style={[styles.detailText, { color: theme.text }]}>
-                    {request.requestType === 'VISITOR' && request.visitDate
-                      ? `${request.visitDate}${request.visitTime ? ` at ${request.visitTime}` : ''}`
-                      : formatDateShort(request.requestDate || request.createdAt)}
-                  </ThemedText>
-                </View>
-                {request.passType === 'BULK' && (
-                  <View style={styles.detailItem}>
-                    <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
-                    <ThemedText ignoreGradient style={[styles.detailText, { color: theme.text }]}>
-                      {(() => {
-                        const parts: string[] = [];
-                        const sc = request.staffCount ?? 0;
-                        const stc = request.studentCount ?? 0;
-                        if (sc > 0) parts.push(`Staff - ${sc}`);
-                        if (stc > 0) parts.push(`Students - ${stc}`);
-                        return parts.join(', ') || `${request.participantCount || 0} Participants`;
-                      })()}
-                    </ThemedText>
+                  <View style={styles.cardFooter}>
+                    <View style={[
+                      styles.statusBadge,
+                      (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF') && { backgroundColor: theme.warning },
+                      request.staffApproval === 'APPROVED' && { backgroundColor: theme.success },
+                      request.staffApproval === 'REJECTED' && { backgroundColor: theme.error },
+                    ]}>
+                      <ThemedText ignoreGradient style={[
+                        styles.statusText,
+                        { color: '#FFFFFF' }
+                      ]}>
+                        {request.staffApproval}
+                      </ThemedText>
+                    </View>
                   </View>
-                )}
-              </View>
-
-              <View style={styles.cardFooter}>
-                <View style={[
-                  styles.statusBadge,
-                  (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF') && { backgroundColor: theme.warning },
-                  request.staffApproval === 'APPROVED' && { backgroundColor: theme.success },
-                  request.staffApproval === 'REJECTED' && { backgroundColor: theme.error },
-                ]}>
-                  <ThemedText ignoreGradient style={[
-                    styles.statusText,
-                    { color: '#FFFFFF' }
-                  ]}>
-                    {request.staffApproval}
-                  </ThemedText>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-      </View>
-      </VerticalScrollView>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        </VerticalScrollView>
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}
@@ -625,7 +625,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               </TouchableOpacity>
             </View>
 
-            <VerticalScrollView 
+            <VerticalScrollView
               style={styles.qrModalContent}
               contentContainerStyle={styles.qrModalScrollContent}
               showsVerticalScrollIndicator={false} decelerationRate="normal"
