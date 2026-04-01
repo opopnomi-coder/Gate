@@ -60,9 +60,16 @@ public class BulkGatePassService {
                 students = studentRepository.findByClassInchargeContaining(staffName);
                 log.info("Strategy 2b (LIKE class_incharge='{}', no dept filter) → {} students", staffName, students.size());
             }
-            
+
+            // Strategy 3: Fallback — fetch all students in the department (handles empty/null class_incharge)
             if (students.isEmpty()) {
-                log.warn("No students found with class_incharge matching '{}' for staff '{}'", staffName, staffCode);
+                String deptKeyword = com.example.visitor.util.DepartmentMapper.toStudentDeptKeyword(department);
+                students = studentRepository.findByDepartmentOrKeyword(department, deptKeyword);
+                log.info("Strategy 3 (dept fallback, dept='{}', keyword='{}') → {} students", department, deptKeyword, students.size());
+            }
+
+            if (students.isEmpty()) {
+                log.warn("No students found for staff '{}' (code: {}) in dept '{}'", staffName, staffCode, department);
             }
             
             // Convert to simple map
