@@ -926,7 +926,7 @@ const App: React.FC = () => {
           undefined
         }>
           <ActionLockProvider>
-            <NotificationProvider>
+            <NotificationProvider onNavigate={handleNotificationRoute}>
               <ProfileProvider>
                 <ThemedApp>
                   <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>

@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-// No disruptive popups: notification updates are surfaced via the bell + list.
 import { API_CONFIG } from '../config/api.config';
+import {
+  showLocalNotification,
+  requestNotificationPermission,
+  onNotificationTap,
+  getInitialNotificationData,
+} from '../services/localNotification.service';
 
 interface Notification {
   id: number;
@@ -29,10 +34,33 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: (route: string) => void }> = ({ children, onNavigate }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const currentUserRef = useRef<{ userId: string; userType: UserType } | null>(null);
   const shownNotificationIdsRef = useRef<Set<number>>(new Set());
+  const onNavigateRef = useRef(onNavigate);
+  onNavigateRef.current = onNavigate;
+
+  // Request permission + set up tap handler on mount
+  useEffect(() => {
+    requestNotificationPermission();
+
+    // Handle tap on notification (foreground)
+    const unsub = onNotificationTap((data) => {
+      if (data.actionRoute && onNavigateRef.current) {
+        onNavigateRef.current(data.actionRoute);
+      }
+    });
+
+    // Handle tap that opened app from background/quit
+    getInitialNotificationData().then((data) => {
+      if (data?.actionRoute && onNavigateRef.current) {
+        onNavigateRef.current(data.actionRoute);
+      }
+    });
+
+    return () => { unsub(); };
+  }, []);
 
   const isToday = (value?: string) => {
     if (!value) return false;
@@ -62,6 +90,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           );
           for (const n of unreadNew) {
             shownNotificationIdsRef.current.add(n.id);
+            // Fire real OS notification
+            showLocalNotification(
+              String(n.id),
+              n.title || 'RIT Gate',
+              n.message || '',
+              { actionRoute: n.actionRoute || '', notificationId: String(n.id) }
+            );
           }
         }
         setNotifications(todaysOnly);
