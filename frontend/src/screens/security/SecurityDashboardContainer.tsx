@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, BackHandler } from 'react-native';
 import { SecurityPersonnel, ScreenName } from '../../types';
 import NewSecurityDashboard from './NewSecurityDashboard';
 import ModernQRScannerScreen from './ModernQRScannerScreen';
@@ -34,6 +34,19 @@ const SecurityDashboardContainer: React.FC<SecurityDashboardContainerProps> = ({
   onNavigate,
 }) => {
   const [activeScreen, setActiveScreen] = useState<InternalScreen>('DASHBOARD');
+
+  // Handle hardware back: sub-screens go to DASHBOARD, DASHBOARD lets App.tsx handle it
+  useEffect(() => {
+    const onBack = () => {
+      if (activeScreen !== 'DASHBOARD') {
+        setActiveScreen('DASHBOARD');
+        return true; // consumed — don't let App.tsx see it
+      }
+      return false; // let App.tsx handle (show exit modal)
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+    return () => sub.remove();
+  }, [activeScreen]);
 
   const handleNavigate = (screen: ScreenName) => {
     switch (screen) {

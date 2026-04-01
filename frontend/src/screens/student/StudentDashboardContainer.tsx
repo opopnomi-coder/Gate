@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, BackHandler } from 'react-native';
 import { Student } from '../../types';
 import StudentHomeScreen from './StudentHomeScreen';
 import StudentRequestsScreen from './StudentRequestsScreen';
@@ -21,6 +21,19 @@ const StudentDashboardContainer: React.FC<StudentDashboardContainerProps> = ({
   onNavigate,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('HOME');
+
+  // Sub-tabs go back to HOME; HOME lets App.tsx handle (exit modal)
+  useEffect(() => {
+    const onBack = () => {
+      if (activeTab !== 'HOME') {
+        setActiveTab('HOME');
+        return true;
+      }
+      return false;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+    return () => sub.remove();
+  }, [activeTab]);
 
   const switchTab = (tab: TabType) => {
     setActiveTab(tab);

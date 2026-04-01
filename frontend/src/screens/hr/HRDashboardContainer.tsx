@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, BackHandler } from 'react-native';
 import { HR, ScreenName } from '../../types';
 import NewHRDashboard from './NewHRDashboard';
 import ProfileScreen from '../shared/ProfileScreen';
@@ -18,6 +18,18 @@ const HRDashboardContainer: React.FC<HRDashboardContainerProps> = ({
   onNavigate,
 }) => {
   const [activeTab, setActiveTab] = useState<InternalTab>('DASHBOARD');
+
+  useEffect(() => {
+    const onBack = () => {
+      if (activeTab !== 'DASHBOARD') {
+        setActiveTab('DASHBOARD');
+        return true;
+      }
+      return false;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+    return () => sub.remove();
+  }, [activeTab]);
 
   const handleNavigate = (screen: ScreenName) => {
     if (screen === 'PROFILE') {
