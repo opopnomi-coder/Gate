@@ -13,12 +13,12 @@ import {
 import Share from 'react-native-share';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import QRCode from 'react-native-qrcode-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
 import RNFS from 'react-native-fs';
 import { apiService } from '../../services/api';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ErrorModal from '../../components/ErrorModal';
+import GatePassQRModal from '../../components/GatePassQRModal';
 import { useTheme } from '../../context/ThemeContext';
 import ThemedText from '../../components/ThemedText';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
@@ -56,6 +56,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
   const [errMsg, setErrMsg] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [manualCode, setManualCode] = useState('');
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
     // When we already know the department from the authenticated user, skip directory lookup.
@@ -192,6 +193,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
       }
       setQrCode(res.qrCode || '');
       setManualCode(res.manualCode || '');
+      setShowQRModal(true); // auto-open floating modal
     } catch (e: any) {
       setErrMsg(e?.message || 'Request failed');
       setShowErr(true);
@@ -280,45 +282,53 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
               )}
             </TouchableOpacity>
           ) : (
-            <View style={[styles.resultCard, { backgroundColor: theme.success + 'EE', borderColor: theme.success }]}>
-              <ThemedText ignoreGradient style={[styles.resultTitle, { color: '#FFFFFF' }]}>Pass generated</ThemedText>
-              <View style={[styles.qrWrap, { backgroundColor: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }]}>
-                <QRCode
-                  value={qrCode}
-                  size={220}
-                  color="#000000"
-                  backgroundColor="#FFFFFF"
-                  getRef={(c: any) => {
-                    qrSvgRef.current = c;
-                  }}
-                />
+            /* Pass generated — show share buttons; QR shown in floating modal */
+            <View style={styles.passReadyCard}>
+              <View style={[styles.passReadyIcon, { backgroundColor: theme.success + '20' }]}>
+                <Ionicons name="checkmark-circle" size={32} color={theme.success} />
               </View>
-              <View style={styles.manualRow}>
-                <Ionicons name="keypad-outline" size={18} color="rgba(255,255,255,0.8)" />
-                <ThemedText ignoreGradient style={[styles.manualBig, { color: '#FFFFFF' }]}>{manualCode}</ThemedText>
-              </View>
-              <View style={styles.resultActions}>
+              <ThemedText style={[styles.passReadyTitle, { color: theme.text }]}>Pass Generated!</ThemedText>
+              <ThemedText style={[styles.passReadySub, { color: theme.textSecondary }]}>
+                Manual code: <ThemedText style={[styles.passReadyCode, { color: theme.primary }]}>{manualCode}</ThemedText>
+              </ThemedText>
+              <TouchableOpacity style={[styles.viewQRBtn, { backgroundColor: theme.primary }]} onPress={() => setShowQRModal(true)}>
+                <Ionicons name="qr-code-outline" size={18} color="#fff" />
+                <ThemedText style={styles.viewQRBtnText}>View QR Code</ThemedText>
+              </TouchableOpacity>
+              <View style={styles.shareRow}>
                 <TouchableOpacity style={styles.waBtnNew} onPress={shareWhatsApp}>
-                  <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+                  <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
                   <ThemedText style={styles.waBtnNewText}>WhatsApp</ThemedText>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.shareBtnNew} onPress={shareGeneric}>
-                  <Ionicons name="share-outline" size={20} color="#FFFFFF" />
-                  <ThemedText style={styles.shareBtnNewText}>Share</ThemedText>
+                <TouchableOpacity style={[styles.shareBtnNew, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={shareGeneric}>
+                  <Ionicons name="share-outline" size={18} color={theme.primary} />
+                  <ThemedText style={[styles.shareBtnNewText, { color: theme.primary }]}>Share</ThemedText>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.copyBtnNew} onPress={copyManual}>
-                  <Ionicons name="copy-outline" size={20} color="#FFFFFF" />
-                  <ThemedText style={styles.copyBtnNewText}>Copy</ThemedText>
+                <TouchableOpacity style={[styles.copyBtnNew, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={copyManual}>
+                  <Ionicons name="copy-outline" size={18} color={theme.text} />
+                  <ThemedText style={[styles.copyBtnNewText, { color: theme.text }]}>Copy</ThemedText>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.doneBtnNew} onPress={onBack}>
-                <ThemedText style={styles.doneBtnNewText}>Done</ThemedText>
+              <TouchableOpacity style={[styles.doneBtnNew, { backgroundColor: theme.inputBackground }]} onPress={onBack}>
+                <ThemedText style={[styles.doneBtnNewText, { color: theme.textSecondary }]}>Done</ThemedText>
               </TouchableOpacity>
             </View>
           )}
           <View style={{ height: 40 }} />
         </VerticalScrollView>
       </ScreenContentContainer>
+
+      {/* Floating QR Modal — same as student/staff */}
+      <GatePassQRModal
+        visible={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        personName={visitorName}
+        personId={`Guest • ${creatorDisplayName}`}
+        qrCodeData={qrCode}
+        manualCode={manualCode}
+        reason="Pre-registered Guest Pass"
+        validUntil="One time"
+      />
 
       <ErrorModal
         visible={showErr}
@@ -361,7 +371,15 @@ const styles = StyleSheet.create({
   meetValue: { fontSize: 16, fontWeight: '800' },
   primaryBtn: { paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 24 },
   primaryBtnText: { fontSize: 16, fontWeight: '700' },
-  waBtn: {
+  // Pass ready card (replaces inline result card)
+  passReadyCard: { borderRadius: 16, padding: 20, alignItems: 'center', gap: 10, marginTop: 8, borderWidth: 1, borderColor: 'transparent' },
+  passReadyIcon: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
+  passReadyTitle: { fontSize: 20, fontWeight: '800' },
+  passReadySub: { fontSize: 14, textAlign: 'center' },
+  passReadyCode: { fontWeight: '800', letterSpacing: 2 },
+  viewQRBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 13, paddingHorizontal: 28, borderRadius: 14, marginTop: 4 },
+  viewQRBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  shareRow: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap', justifyContent: 'center' },
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
