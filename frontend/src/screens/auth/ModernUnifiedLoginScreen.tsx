@@ -173,6 +173,25 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
       if (role === 'STAFF') {
         role = await apiService.detectRole(effectiveUserId);
       }
+
+      // Extra safety: if detectRole still returns STAFF, try HOD OTP first.
+      // If HOD OTP send succeeds → it's a HOD. This handles name-mismatch edge cases.
+      if (role === 'STAFF') {
+        try {
+          const hodTry = await apiService.sendHODOTP(effectiveUserId);
+          if (hodTry.success) {
+            role = 'HOD';
+            setUserId(effectiveUserId);
+            setMaskedEmail(hodTry.maskedEmail || hodTry.email || 'm***@institution.edu');
+            setDetectedRole(role);
+            resolvedRoleRef.current = role;
+            setOtpTimer(120);
+            setShowOTPSuccessModal(true);
+            return;
+          }
+        } catch (_) {}
+      }
+
       const response = await apiService.sendOTP(effectiveUserId, role);
       if (response.success) {
         setUserId(effectiveUserId);
