@@ -310,7 +310,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </View>
           {isEditing && (
             <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.primary }]} onPress={handleSaveProfile} disabled={savingProfile}>
-              {savingProfile ? <ActivityIndicator color="#FFF" size="small" /> : <ThemedText style={styles.saveButtonText}>Save Changes</ThemedText>}
+              {savingProfile ? <ActivityIndicator color="#FFF" size="small" /> : <ThemedText ignoreGradient style={[styles.saveButtonText, { color: '#FFF' }]}>Save Changes</ThemedText>}
             </TouchableOpacity>
           )}
         </View>
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   infoValue: { fontSize: 15, fontWeight: '600' },
   editInput: { borderBottomWidth: 1, paddingVertical: 4, fontSize: 15, fontWeight: '600', paddingHorizontal: 8, borderRadius: 4, width: '100%' },
   saveButton: { marginTop: 16, paddingVertical: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  saveButtonText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  saveButtonText: { fontSize: 14, fontWeight: '700' },
   divider: { height: 1, width: '100%', marginVertical: 4, opacity: 0.5 },
   preferencesCard: { borderRadius: 16, padding: 16, marginBottom: 32, elevation: 4 },
   prefRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, justifyContent: 'space-between' },

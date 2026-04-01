@@ -686,7 +686,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                     return marks;
                   })() : {}),
                 }}
-                markingType={fromDate && toDate ? 'period' : 'simple'}
+                markingType={fromDate && toDate ? 'period' : 'custom'}
                 theme={{
                   backgroundColor: theme.surface,
                   calendarBackground: theme.surface,

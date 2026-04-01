@@ -166,33 +166,23 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
       return;
     }
     setLoading(true);
-    setLoadingMessage('Connecting...');
+    setLoadingMessage('Detecting role...');
     try {
       let role = detectUserRole(effectiveUserId);
 
-      // For staff-pattern IDs (HOD/HR/STAFF all look the same from the ID alone),
-      // try HOD OTP first — backend now validates the person is actually a HOD.
-      // If HOD OTP succeeds → HOD. If it fails (403/404) → ask backend detectRole.
+      // For staff-pattern IDs (HOD/HR/STAFF all share the same ID format),
+      // always ask the backend to confirm the actual role FIRST.
+      // This prevents HODs from being misrouted to the Staff dashboard.
       if (role === 'STAFF') {
-        try {
-          const hodTry = await apiService.sendHODOTP(effectiveUserId);
-          if (hodTry.success) {
-            // Confirmed HOD
-            setUserId(effectiveUserId);
-            setMaskedEmail(hodTry.maskedEmail || hodTry.email || 'm***@institution.edu');
-            setDetectedRole('HOD');
-            resolvedRoleRef.current = 'HOD';
-            setOtpTimer(120);
-            setShowOTPSuccessModal(true);
-            return;
-          }
-          // HOD OTP failed (not a HOD) — fall through to detectRole
-        } catch (_) {}
-
-        // Ask backend for the real role (HR vs STAFF)
+        setLoadingMessage('Verifying credentials...');
         role = await apiService.detectRole(effectiveUserId);
+        console.log(`🔍 Backend detected role for ${effectiveUserId}: ${role}`);
       }
 
+      // Update detected role immediately so UI reflects it
+      setDetectedRole(role);
+
+      setLoadingMessage('Sending OTP...');
       const response = await apiService.sendOTP(effectiveUserId, role);
       if (response.success) {
         setUserId(effectiveUserId);
@@ -201,6 +191,7 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
         resolvedRoleRef.current = role;
         setOtpTimer(120);
         setShowOTPSuccessModal(true);
+        console.log(`✅ OTP sent for ${effectiveUserId} as ${role}`);
       } else {
         showError(new AppError('api', response.message || 'Failed to send OTP', 'OTP Send Failed'), handleSendOTP);
       }

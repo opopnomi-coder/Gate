@@ -53,26 +53,27 @@ const Dropdown = ({ label, value, options, onSelect, placeholder }: {
   onSelect: (v: string) => void; placeholder: string;
 }) => {
   const [open, setOpen] = useState(false);
+  const { theme } = useTheme();
   return (
     <View style={dd.wrap}>
-      <ThemedText style={dd.label}>{label}</ThemedText>
-      <TouchableOpacity style={dd.btn} onPress={() => setOpen(true)}>
-        <ThemedText style={[dd.btnText, !value && dd.placeholder]}>{value || placeholder}</ThemedText>
-        <Ionicons name="chevron-down" size={18} color="#6B7280" />
+      <ThemedText style={[dd.label, { color: theme.text }]}>{label}</ThemedText>
+      <TouchableOpacity style={[dd.btn, { backgroundColor: theme.inputBackground, borderColor: theme.border }]} onPress={() => setOpen(true)}>
+        <ThemedText style={[dd.btnText, { color: theme.text }, !value && { color: theme.textTertiary }]}>{value || placeholder}</ThemedText>
+        <Ionicons name="chevron-down" size={18} color={theme.textSecondary} />
       </TouchableOpacity>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <TouchableOpacity style={dd.overlay} activeOpacity={1} onPress={() => setOpen(false)}>
-          <View style={dd.sheet}>
-            <ThemedText style={dd.sheetTitle}>{label}</ThemedText>
+          <View style={[dd.sheet, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[dd.sheetTitle, { color: theme.text }]}>{label}</ThemedText>
             <VerticalScrollView>
-              <TouchableOpacity style={dd.option} onPress={() => { onSelect(''); setOpen(false); }}>
-                <ThemedText style={dd.optionText}>All</ThemedText>
+              <TouchableOpacity style={[dd.option, { borderBottomColor: theme.border }]} onPress={() => { onSelect(''); setOpen(false); }}>
+                <ThemedText style={[dd.optionText, { color: theme.text }]}>All</ThemedText>
               </TouchableOpacity>
               {options.map(o => (
-                <TouchableOpacity key={o} style={[dd.option, value === o && dd.optionActive]}
+                <TouchableOpacity key={o} style={[dd.option, { borderBottomColor: theme.border }, value === o && { backgroundColor: theme.primary + '20' }]}
                   onPress={() => { onSelect(o); setOpen(false); }}>
-                  <ThemedText style={[dd.optionText, value === o && dd.optionTextActive]}>{o}</ThemedText>
-                  {value === o && <Ionicons name="checkmark" size={18} color="#F59E0B" />}
+                  <ThemedText style={[dd.optionText, { color: theme.text }, value === o && { color: theme.primary, fontWeight: '700' }]}>{o}</ThemedText>
+                  {value === o && <Ionicons name="checkmark" size={18} color={theme.primary} />}
                 </TouchableOpacity>
               ))}
             </VerticalScrollView>
@@ -307,11 +308,11 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
 
         {/* Include HOD toggle */}
         <View style={[s.card, { backgroundColor: theme.surface }]}>
-          <TouchableOpacity style={[s.checkRow, { backgroundColor: '#FEF3C7' }]} onPress={() => { setIncludeHOD(!includeHOD); if (!includeHOD) { setReceiverId(null); setReceiverType(null); } }}>
-            <Ionicons name={includeHOD ? 'checkbox' : 'square-outline'} size={24} color="#F59E0B" />
+          <TouchableOpacity style={[s.checkRow, { backgroundColor: theme.primary + '20' }]} onPress={() => { setIncludeHOD(!includeHOD); if (!includeHOD) { setReceiverId(null); setReceiverType(null); } }}>
+            <Ionicons name={includeHOD ? 'checkbox' : 'square-outline'} size={24} color={theme.primary} />
             <View style={{ flex: 1 }}>
-              <ThemedText style={[s.checkLabel, { color: '#1F2937' }]}>Include HOD in this Pass</ThemedText>
-              <ThemedText style={[s.checkSub, { color: '#6B7280' }]}>{includeHOD ? 'HOD holds the QR code' : 'Select a receiver to hold the QR code'}</ThemedText>
+              <ThemedText style={[s.checkLabel, { color: theme.text }]}>Include HOD in this Pass</ThemedText>
+              <ThemedText style={[s.checkSub, { color: theme.textSecondary }]}>{includeHOD ? 'HOD holds the QR code' : 'Select a receiver to hold the QR code'}</ThemedText>
             </View>
           </TouchableOpacity>
         </View>
@@ -351,12 +352,12 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
               <TextInput style={[s.searchInput, { color: theme.text }]} placeholder="Search students..." placeholderTextColor={theme.textTertiary} value={studentSearch} onChangeText={setStudentSearch} />
             </View>
 
-            {isLoading ? <ActivityIndicator size="large" color="#F59E0B" style={{ marginVertical: 30 }} /> : (
+            {isLoading ? <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 30 }} /> : (
               filteredStudents.length === 0
                 ? <View style={s.empty}><Ionicons name="people-outline" size={40} color={theme.textTertiary} /><ThemedText style={[s.emptyText, { color: theme.textTertiary }]}>No students found</ThemedText></View>
                 : filteredStudents.map(st => (
                   <TouchableOpacity key={st.regNo} style={[s.item, { borderBottomColor: theme.border }]} onPress={() => toggleStudent(st.regNo)}>
-                    <Ionicons name={selectedStudents.has(st.regNo) ? 'checkbox' : 'square-outline'} size={24} color={selectedStudents.has(st.regNo) ? '#F59E0B' : theme.textTertiary} />
+                    <Ionicons name={selectedStudents.has(st.regNo) ? 'checkbox' : 'square-outline'} size={24} color={selectedStudents.has(st.regNo) ? theme.primary : theme.textTertiary} />
                     <View style={{ flex: 1 }}>
                       <ThemedText style={[s.itemName, { color: theme.text }]}>{st.fullName}</ThemedText>
                       <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.regNo} • {st.year} • {st.department} • Sec {st.section}</ThemedText>
@@ -380,12 +381,12 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
               <Ionicons name="search" size={18} color={theme.textTertiary} />
               <TextInput style={[s.searchInput, { color: theme.text }]} placeholder="Search staff..." placeholderTextColor={theme.textTertiary} value={staffSearch} onChangeText={setStaffSearch} />
             </View>
-            {isLoading ? <ActivityIndicator size="large" color="#F59E0B" style={{ marginVertical: 30 }} /> : (
+            {isLoading ? <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 30 }} /> : (
               filteredStaff.length === 0
                 ? <View style={s.empty}><Ionicons name="briefcase-outline" size={40} color={theme.textTertiary} /><ThemedText style={[s.emptyText, { color: theme.textTertiary }]}>No staff found</ThemedText></View>
                 : filteredStaff.map(st => (
                   <TouchableOpacity key={st.staffCode} style={[s.item, { borderBottomColor: theme.border }]} onPress={() => toggleStaff(st.staffCode)}>
-                    <Ionicons name={selectedStaff.has(st.staffCode) ? 'checkbox' : 'square-outline'} size={24} color={selectedStaff.has(st.staffCode) ? '#F59E0B' : theme.textTertiary} />
+                    <Ionicons name={selectedStaff.has(st.staffCode) ? 'checkbox' : 'square-outline'} size={24} color={selectedStaff.has(st.staffCode) ? theme.primary : theme.textTertiary} />
                     <View style={{ flex: 1 }}>
                       <ThemedText style={[s.itemName, { color: theme.text }]}>{st.fullName}</ThemedText>
                       <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.staffCode} • {st.department}</ThemedText>
@@ -400,22 +401,22 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
         {!includeHOD && totalSelected > 0 && (
           <View style={[s.card, { backgroundColor: theme.surface }]}>
             <ThemedText style={[s.sectionTitle, { color: theme.text }]}>Select QR Code Receiver</ThemedText>
-            <View style={[s.receiverInfo, { backgroundColor: '#FEF3C7' }]}>
-              <Ionicons name="information-circle" size={16} color="#F59E0B" />
-              <ThemedText style={[s.receiverInfoText, { color: '#92400E' }]}>This person will hold the QR code for the group</ThemedText>
+            <View style={[s.receiverInfo, { backgroundColor: theme.primary + '20' }]}>
+              <Ionicons name="information-circle" size={16} color={theme.primary} />
+              <ThemedText style={[s.receiverInfoText, { color: theme.primary }]}>This person will hold the QR code for the group</ThemedText>
             </View>
             {selectedStudents.size > 0 && <ThemedText style={[s.catTitle, { color: theme.textTertiary }]}>STUDENTS</ThemedText>}
             {Array.from(selectedStudents).map(rn => {
               const st = allStudents.find(x => x.regNo === rn); if (!st) return null;
               const active = receiverId === rn;
               return (
-                <TouchableOpacity key={rn} style={[s.receiverItem, { borderColor: 'transparent' }, active && s.receiverItemActive]} onPress={() => { setReceiverId(rn); setReceiverType('student'); }}>
-                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? '#F59E0B' : theme.textTertiary} />
+                <TouchableOpacity key={rn} style={[s.receiverItem, { borderColor: 'transparent' }, active && s.receiverItemActive, active && { borderColor: theme.primary, backgroundColor: theme.primary + '15' }]} onPress={() => { setReceiverId(rn); setReceiverType('student'); }}>
+                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? theme.primary : theme.textTertiary} />
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[s.itemName, { color: theme.text }, active && { color: '#92400E' }]}>{st.fullName}</ThemedText>
+                    <ThemedText style={[s.itemName, { color: theme.text }, active && { color: theme.primary }]}>{st.fullName}</ThemedText>
                     <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.regNo}</ThemedText>
                   </View>
-                  {active && <View style={s.receiverBadge}><ThemedText style={s.receiverBadgeText}>RECEIVER</ThemedText></View>}
+                  {active && <View style={[s.receiverBadge, { backgroundColor: theme.primary }]}><ThemedText style={s.receiverBadgeText}>RECEIVER</ThemedText></View>}
                 </TouchableOpacity>
               );
             })}
@@ -424,13 +425,13 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
               const st = allStaff.find(x => x.staffCode === code); if (!st) return null;
               const active = receiverId === code;
               return (
-                <TouchableOpacity key={code} style={[s.receiverItem, { borderColor: 'transparent' }, active && s.receiverItemActive]} onPress={() => { setReceiverId(code); setReceiverType('staff'); }}>
-                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? '#F59E0B' : theme.textTertiary} />
+                <TouchableOpacity key={code} style={[s.receiverItem, { borderColor: 'transparent' }, active && s.receiverItemActive, active && { borderColor: theme.primary, backgroundColor: theme.primary + '15' }]} onPress={() => { setReceiverId(code); setReceiverType('staff'); }}>
+                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? theme.primary : theme.textTertiary} />
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[s.itemName, { color: theme.text }, active && { color: '#92400E' }]}>{st.fullName}</ThemedText>
+                    <ThemedText style={[s.itemName, { color: theme.text }, active && { color: theme.primary }]}>{st.fullName}</ThemedText>
                     <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.staffCode}</ThemedText>
                   </View>
-                  {active && <View style={s.receiverBadge}><ThemedText style={s.receiverBadgeText}>RECEIVER</ThemedText></View>}
+                  {active && <View style={[s.receiverBadge, { backgroundColor: theme.primary }]}><ThemedText style={s.receiverBadgeText}>RECEIVER</ThemedText></View>}
                 </TouchableOpacity>
               );
             })}
@@ -472,7 +473,7 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
         </View>
 
         {/* Submit */}
-        <TouchableOpacity style={[s.submitBtn, totalSelected === 0 && s.submitBtnDisabled]} onPress={handleSubmit} disabled={totalSelected === 0 || isSubmitting}>
+        <TouchableOpacity style={[s.submitBtn, { backgroundColor: theme.success }, totalSelected === 0 && s.submitBtnDisabled]} onPress={handleSubmit} disabled={totalSelected === 0 || isSubmitting}>
           <Ionicons name="checkmark-circle" size={20} color="#FFF" />
           <ThemedText style={s.submitBtnText}>Submit for {totalSelected} Participant{totalSelected !== 1 ? 's' : ''}</ThemedText>
         </TouchableOpacity>

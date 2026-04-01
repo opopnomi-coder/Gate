@@ -116,13 +116,13 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'APPROVED': return '#10B981';
-      case 'APPROVED_BY_HOD': return '#10B981';
-      case 'USED': return '#64748B';
-      case 'REJECTED': return '#EF4444';
+      case 'APPROVED': return theme.success;
+      case 'APPROVED_BY_HOD': return theme.success;
+      case 'USED': return theme.textTertiary;
+      case 'REJECTED': return theme.error;
       case 'PENDING_HOD': return theme.primary;
       case 'PENDING_STAFF': return theme.warning;
-      default: return '#F59E0B';
+      default: return theme.warning;
     }
   };
 
@@ -397,8 +397,8 @@ const styles = StyleSheet.create({
   statusModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, paddingBottom: 20, borderBottomWidth: 1 },
   statusModalId: { fontSize: 20, fontWeight: '800', marginBottom: 6 },
   statusModalDate: { fontSize: 14, fontWeight: '600' },
-  closeModalButton: { backgroundColor: '#F3F4F6', paddingVertical: 15, borderRadius: 16, alignItems: 'center', marginTop: 20 },
-  closeModalButtonText: { fontWeight: '800', color: '#1F2937' },
+  closeModalButton: { paddingVertical: 15, borderRadius: 16, alignItems: 'center', marginTop: 20 },
+  closeModalButtonText: { fontWeight: '800' },
 });
 
 export default StudentHomeScreen;

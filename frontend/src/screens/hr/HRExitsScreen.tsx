@@ -134,7 +134,7 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
           <View style={styles.actions}>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => setRangeModalVisible(true)}>
               <Ionicons name="calendar-outline" size={16} color="#fff" />
-              <ThemedText ignoreGradient style={styles.actionBtnText}>Date Range</ThemedText>
+              <ThemedText ignoreGradient style={[styles.actionBtnText, { color: '#FFF' }]}>Date Range</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: exitLogs.length > 0 ? theme.success : theme.border }]}
@@ -144,7 +144,7 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
               {isDownloading
                 ? <ActivityIndicator size="small" color="#fff" />
                 : <Ionicons name="download-outline" size={16} color="#fff" />}
-              <ThemedText ignoreGradient style={styles.actionBtnText}>Download PDF</ThemedText>
+              <ThemedText ignoreGradient style={[styles.actionBtnText, { color: '#FFF' }]}>Download PDF</ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -258,7 +258,7 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
                   loadExitLogs(fromDate, toDate);
                 }}
               >
-                <ThemedText ignoreGradient style={styles.applyBtnText}>Apply</ThemedText>
+                <ThemedText ignoreGradient style={[styles.applyBtnText, { color: '#FFF' }]}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   hint: { fontSize: 14, marginBottom: 16 },
   actions: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 13, borderRadius: 12 },
-  actionBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  actionBtnText: { fontSize: 14, fontWeight: '700' },
   centered: { paddingVertical: 60, alignItems: 'center' },
   // Empty state card
   emptyCard: { borderRadius: 16, padding: 32, alignItems: 'center', gap: 12, marginTop: 8 },
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   clearBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, alignItems: 'center', borderWidth: 1 },
   clearBtnText: { fontSize: 15, fontWeight: '700' },
   applyBtn: { flex: 2, paddingVertical: 13, borderRadius: 12, alignItems: 'center' },
-  applyBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  applyBtnText: { fontSize: 15, fontWeight: '700' },
 });
 
 export default HRExitsScreen;

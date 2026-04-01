@@ -208,8 +208,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top','left','right','bottom']}>
         <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.surface} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#00BCD4" />
-          <ThemedText style={styles.loadingText}>Requesting camera permission...</ThemedText>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Requesting camera permission...</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -220,9 +220,9 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top','left','right','bottom']}>
         <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.surface} />
         <View style={styles.errorContainer}>
-          <Ionicons name="camera-reverse-outline" size={64} color="#EF4444" />
-          <ThemedText style={styles.errorTitle}>Camera Access Denied</ThemedText>
-          <ThemedText style={styles.errorText}>Please enable camera permissions in settings</ThemedText>
+          <Ionicons name="camera-reverse-outline" size={64} color={theme.error} />
+          <ThemedText style={[styles.errorTitle, { color: theme.text }]}>Camera Access Denied</ThemedText>
+          <ThemedText style={[styles.errorText, { color: theme.textSecondary }]}>Please enable camera permissions in settings</ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -234,7 +234,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       <View style={styles.fullScreen}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <CameraView
-          style={StyleSheet.absoluteFill}
+          style={StyleSheet.absoluteFillObject}
           onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
           barcodeScannerSettings={{
             barcodeTypes: ['qr','ean13','ean8','code128','code39','code93','upc_e','pdf417','aztec','datamatrix','itf14'],
@@ -242,19 +242,19 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         >
           <View style={styles.cameraOverlay}>
             {/* Scan Type Badge */}
-            <View style={[styles.scanTypeBadge, { marginTop: Platform.OS === 'android' ? 48 : 60 }]}>
+            <View style={[styles.scanTypeBadge, { marginTop: Platform.OS === 'android' ? 48 : 60, backgroundColor: theme.primary + 'E6' }]}>
               <Ionicons name={scannerType === 'ENTRY' ? 'log-in' : 'log-out'} size={20} color="#FFF" />
-              <ThemedText style={styles.scanTypeBadgeText}>
+              <ThemedText ignoreGradient style={styles.scanTypeBadgeText}>
                 {scannerType === 'ENTRY' ? 'ENTRY SCAN' : 'EXIT SCAN'}
               </ThemedText>
             </View>
 
             {/* Scan Frame */}
             <View style={styles.scanFrame}>
-              <View style={[styles.corner, styles.cornerTopLeft]} />
-              <View style={[styles.corner, styles.cornerTopRight]} />
-              <View style={[styles.corner, styles.cornerBottomLeft]} />
-              <View style={[styles.corner, styles.cornerBottomRight]} />
+              <View style={[styles.corner, styles.cornerTopLeft, { borderColor: theme.primary }]} />
+              <View style={[styles.corner, styles.cornerTopRight, { borderColor: theme.primary }]} />
+              <View style={[styles.corner, styles.cornerBottomLeft, { borderColor: theme.primary }]} />
+              <View style={[styles.corner, styles.cornerBottomRight, { borderColor: theme.primary }]} />
             </View>
 
             {/* Instructions */}
@@ -349,22 +349,22 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
 
           {/* Manual Entry Option */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Manual Entry</ThemedText>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Manual Entry</ThemedText>
             <TouchableOpacity
-              style={styles.manualButton}
+              style={[styles.manualButton, { borderColor: theme.primary, backgroundColor: theme.surface }]}
               onPress={() => setShowManualModal(true)}
             >
-              <Ionicons name="keypad" size={24} color="#00BCD4" />
-              <ThemedText style={styles.manualButtonText}>Enter Code Manually</ThemedText>
+              <Ionicons name="keypad" size={24} color={theme.primary} />
+              <ThemedText ignoreGradient style={[styles.manualButtonText, { color: theme.primary }]}>Enter Code Manually</ThemedText>
             </TouchableOpacity>
           </View>
 
           {/* Instructions */}
-          <View style={styles.instructionsCard}>
-            <Ionicons name="information-circle" size={24} color="#00BCD4" />
+          <View style={[styles.instructionsCard, { backgroundColor: theme.info + '22' }]}>
+            <Ionicons name="information-circle" size={24} color={theme.info} />
             <View style={styles.instructionsContent}>
-              <ThemedText style={styles.instructionsTitle}>How to Scan</ThemedText>
-              <ThemedText style={styles.instructionsText}>
+              <ThemedText ignoreGradient style={[styles.instructionsTitle, { color: theme.info }]}>How to Scan</ThemedText>
+              <ThemedText ignoreGradient style={[styles.instructionsText, { color: theme.textSecondary }]}>
                 Entry Scanner:{'\n'}
                 • QR codes & Barcodes → Regular entry/exit{'\n'}
                 • Plain ID codes → Late entry{'\n'}
@@ -387,54 +387,55 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         onRequestClose={() => setShowManualModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <ThemedText style={styles.modalTitle}>Manual Entry</ThemedText>
+          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+              <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Manual Entry</ThemedText>
               <TouchableOpacity
                 onPress={() => setShowManualModal(false)}
-                style={styles.closeButton}
+                style={[styles.closeButton, { backgroundColor: theme.surfaceHighlight }]}
               >
-                <Ionicons name="close" size={24} color="#6B7280" />
+                <Ionicons name="close" size={24} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalContent}>
-              <ThemedText style={styles.modalLabel}>Select Type</ThemedText>
+              <ThemedText style={[styles.modalLabel, { color: theme.textSecondary }]}>Select Type</ThemedText>
               <View style={styles.typeButtons}>
                 <TouchableOpacity
                   style={[
-                    styles.typeButton,
-                    scannerType === 'ENTRY' && styles.typeButtonActive
+                    styles.typeButton, { backgroundColor: theme.surfaceHighlight },
+                    scannerType === 'ENTRY' && { backgroundColor: theme.primary }
                   ]}
                   onPress={() => setScannerType('ENTRY')}
                 >
-                  <ThemedText style={[
-                    styles.typeButtonText,
-                    scannerType === 'ENTRY' && styles.typeButtonTextActive
+                  <ThemedText ignoreGradient style={[
+                    styles.typeButtonText, { color: theme.textSecondary },
+                    scannerType === 'ENTRY' && { color: '#FFF' }
                   ]}>
                     Entry
                   </ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
-                    styles.typeButton,
-                    scannerType === 'EXIT' && styles.typeButtonActive
+                    styles.typeButton, { backgroundColor: theme.surfaceHighlight },
+                    scannerType === 'EXIT' && { backgroundColor: theme.primary }
                   ]}
                   onPress={() => setScannerType('EXIT')}
                 >
-                  <ThemedText style={[
-                    styles.typeButtonText,
-                    scannerType === 'EXIT' && styles.typeButtonTextActive
+                  <ThemedText ignoreGradient style={[
+                    styles.typeButtonText, { color: theme.textSecondary },
+                    scannerType === 'EXIT' && { color: '#FFF' }
                   ]}>
                     Exit
                   </ThemedText>
                 </TouchableOpacity>
               </View>
 
-              <ThemedText style={styles.modalLabel}>Enter Code</ThemedText>
+              <ThemedText style={[styles.modalLabel, { color: theme.textSecondary }]}>Enter Code</ThemedText>
               <TextInput
-                style={styles.manualInput}
+                style={[styles.manualInput, { backgroundColor: theme.inputBackground, borderColor: theme.border, color: theme.text }]}
                 placeholder="Enter QR code manually"
+                placeholderTextColor={theme.textTertiary}
                 value={manualCode}
                 onChangeText={setManualCode}
                 autoCapitalize="none"
@@ -443,8 +444,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
 
               <TouchableOpacity
                 style={[
-                  styles.submitButton,
-                  (!manualCode.trim() || !scannerType) && styles.submitButtonDisabled
+                  styles.submitButton, { backgroundColor: theme.primary },
+                  (!manualCode.trim() || !scannerType) && { backgroundColor: theme.border }
                 ]}
                 onPress={handleManualEntry}
                 disabled={!manualCode.trim() || !scannerType || isLoading}
@@ -454,7 +455,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 ) : (
                   <>
                     <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                    <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
+                    <ThemedText ignoreGradient style={[styles.submitButtonText, { color: '#FFF' }]}>Submit</ThemedText>
                   </>
                 )}
               </TouchableOpacity>

@@ -18,6 +18,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { useTheme } from '../../context/ThemeContext';
 
 
 interface HRApprovalScreenProps {
@@ -27,6 +28,7 @@ interface HRApprovalScreenProps {
 }
 
 const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBack }) => {
+  const { theme } = useTheme();
 
   const [loading, setLoading] = useState(false);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
@@ -99,98 +101,98 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
   if (!request) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={THEME.colors.text} />
+        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+          <TouchableOpacity onPress={onBack} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <ThemedText style={styles.headerTitle}>Request Details</ThemedText>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Request Details</ThemedText>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={64} color="#EF4444" />
-          <ThemedText style={styles.errorText}>Request not found</ThemedText>
+          <Ionicons name="alert-circle" size={64} color={theme.error} />
+          <ThemedText style={[styles.errorText, { color: theme.textSecondary }]}>Request not found</ThemedText>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={THEME.colors.text} />
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['bottom']}>
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <TouchableOpacity onPress={onBack} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>Request Details</ThemedText>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Request Details</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
       <VerticalScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Request Info Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="document-text" size={24} color="#F59E0B" />
-            <ThemedText style={styles.cardTitle}>Request Information</ThemedText>
+        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
+            <Ionicons name="document-text" size={24} color={theme.primary} />
+            <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Request Information</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Request ID:</ThemedText>
-            <ThemedText style={styles.infoValue}>#{request.id}</ThemedText>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Request ID:</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>#{request.id}</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Purpose:</ThemedText>
-            <ThemedText style={styles.infoValue}>{request.purpose}</ThemedText>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Purpose:</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.purpose}</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Reason:</ThemedText>
-            <ThemedText style={styles.infoValue}>{request.reason}</ThemedText>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.reason}</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>Exit Schedule:</ThemedText>
-            <ThemedText style={styles.infoValue}>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Exit Schedule:</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>
               {new Date(request.requestDate).toLocaleString()}
             </ThemedText>
           </View>
         </View>
 
         {/* HOD Info Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="person" size={24} color="#3B82F6" />
-            <ThemedText style={styles.cardTitle}>HOD Information</ThemedText>
+        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
+            <Ionicons name="person" size={24} color={theme.primary} />
+            <ThemedText style={[styles.cardTitle, { color: theme.text }]}>HOD Information</ThemedText>
           </View>
 
           <View style={styles.infoRow}>
-            <ThemedText style={styles.infoLabel}>HOD Code:</ThemedText>
-            <ThemedText style={styles.infoValue}>{request.regNo}</ThemedText>
+            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>HOD Code:</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.regNo}</ThemedText>
           </View>
 
           {request.studentName && (
             <View style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Name:</ThemedText>
-              <ThemedText style={styles.infoValue}>{request.studentName}</ThemedText>
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Name:</ThemedText>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.studentName}</ThemedText>
             </View>
           )}
 
           {request.department && (
             <View style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Department:</ThemedText>
-              <ThemedText style={styles.infoValue}>{request.department}</ThemedText>
+              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Department:</ThemedText>
+              <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.department}</ThemedText>
             </View>
           )}
         </View>
 
         {/* Attachment Section */}
         {request.attachmentUri && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="attach-outline" size={24} color="#6B7280" />
-              <ThemedText style={styles.cardTitle}>Attachment</ThemedText>
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
+              <Ionicons name="attach-outline" size={24} color={theme.textSecondary} />
+              <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Attachment</ThemedText>
             </View>
             <TouchableOpacity 
-              style={styles.vAttachmentCard}
+              style={[styles.vAttachmentCard, { backgroundColor: theme.inputBackground }]}
               onPress={() => {
                 setPreviewAttachmentUri(request.attachmentUri);
                 setShowAttachmentPreview(true);
@@ -201,9 +203,9 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
                 style={styles.vAttachmentImage}
                 resizeMode="cover"
               />
-              <View style={styles.vPreviewButton}>
-                <Ionicons name="expand-outline" size={20} color="#1F2937" />
-                <ThemedText style={styles.vPreviewText}>Preview Attachment</ThemedText>
+              <View style={[styles.vPreviewButton, { backgroundColor: theme.surface }]}>
+                <Ionicons name="expand-outline" size={20} color={theme.text} />
+                <ThemedText style={[styles.vPreviewText, { color: theme.text }]}>Preview Attachment</ThemedText>
               </View>
             </TouchableOpacity>
           </View>
@@ -213,7 +215,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         {request.status === 'PENDING_HR' && (
           <View style={styles.actionContainer}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.approveButton]}
+              style={[styles.actionButton, styles.approveButton, { backgroundColor: theme.success }]}
               onPress={handleApprove}
               disabled={loading}
             >
@@ -228,7 +230,7 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, styles.rejectButton]}
+              style={[styles.actionButton, styles.rejectButton, { backgroundColor: theme.error }]}
               onPress={() => setRejectModalVisible(true)}
               disabled={loading}
             >
@@ -239,13 +241,13 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         )}
 
         {request.status !== 'PENDING_HR' && (
-          <View style={styles.statusCard}>
+          <View style={[styles.statusCard, { backgroundColor: theme.surface }]}>
             <Ionicons
               name={request.status === 'APPROVED' ? 'checkmark-circle' : 'close-circle'}
               size={48}
-              color={request.status === 'APPROVED' ? '#10B981' : '#EF4444'}
+              color={request.status === 'APPROVED' ? theme.success : theme.error}
             />
-            <ThemedText style={styles.statusText}>
+            <ThemedText style={[styles.statusText, { color: theme.text }]}>
               This request has been {request.status.toLowerCase()}
             </ThemedText>
           </View>
@@ -284,19 +286,20 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         onRequestClose={() => setRejectModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <ThemedText style={styles.modalTitle}>Reject Request</ThemedText>
+          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+              <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Reject Request</ThemedText>
               <TouchableOpacity onPress={() => setRejectModalVisible(false)}>
-                <Ionicons name="close" size={24} color={THEME.colors.text} />
+                <Ionicons name="close" size={24} color={theme.text} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalBody}>
-              <ThemedText style={styles.modalLabel}>Reason for Rejection *</ThemedText>
+              <ThemedText style={[styles.modalLabel, { color: theme.text }]}>Reason for Rejection *</ThemedText>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: theme.inputBackground, color: theme.text, borderColor: theme.border }]}
                 placeholder="Provide a detailed reason for rejection..."
+                placeholderTextColor={theme.textTertiary}
                 value={rejectReason}
                 onChangeText={setRejectReason}
                 multiline
@@ -304,10 +307,10 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
                 textAlignVertical="top"
                 maxLength={500}
               />
-              <ThemedText style={styles.charCount}>{rejectReason.length}/500</ThemedText>
+              <ThemedText style={[styles.charCount, { color: theme.textSecondary }]}>{rejectReason.length}/500</ThemedText>
 
               <TouchableOpacity
-                style={styles.modalButton}
+                style={[styles.modalButton, { backgroundColor: theme.error }]}
                 onPress={handleReject}
                 disabled={!rejectReason.trim() || loading}
               >
@@ -401,20 +404,17 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: THEME.colors.text,
   },
   infoRow: {
     marginBottom: 12,
   },
   infoLabel: {
     fontSize: 12,
-    color: THEME.colors.textSecondary,
     fontWeight: '600',
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 15,
-    color: THEME.colors.text,
     fontWeight: '500',
   },
   actionContainer: {

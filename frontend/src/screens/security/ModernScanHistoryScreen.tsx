@@ -279,41 +279,41 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           <TouchableOpacity style={[styles.fsBackBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={closeRangeResults}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <ThemedText style={styles.fsHeaderTitle}>Date range results</ThemedText>
-          <View style={styles.fsStatusPill}>
-            <ThemedText style={styles.fsStatusPillText}>{filteredScans.length}</ThemedText>
+          <ThemedText style={[styles.fsHeaderTitle, { color: theme.text }]}>Date range results</ThemedText>
+          <View style={[styles.fsStatusPill, { backgroundColor: theme.primary + '20' }]}>
+            <ThemedText style={[styles.fsStatusPillText, { color: theme.primary }]}>{filteredScans.length}</ThemedText>
           </View>
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
           <VerticalScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false} decelerationRate="normal">
             <View style={styles.rangeResultsTop}>
-              <ThemedText style={styles.rangeResultsSub}>
+              <ThemedText style={[styles.rangeResultsSub, { color: theme.textSecondary }]}>
                 {fromDate?.toLocaleDateString()} — {toDate?.toLocaleDateString()}
               </ThemedText>
               <TouchableOpacity style={[styles.rangeResultsDownloadBtn, { backgroundColor: theme.primary }]} onPress={exportScanPdf}>
                 <Ionicons name="download-outline" size={16} color="#ffffff" />
-                <ThemedText style={styles.rangeResultsDownloadText}>Download PDF</ThemedText>
+                <ThemedText ignoreGradient style={[styles.rangeResultsDownloadText, { color: '#ffffff' }]}>Download PDF</ThemedText>
               </TouchableOpacity>
             </View>
             <View style={styles.scrollContent}>
               {filteredScans.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Ionicons name="time-outline" size={64} color="#D1D5DB" />
-                  <ThemedText style={styles.emptyText}>No scan records in selected range</ThemedText>
+                  <Ionicons name={activeTab === 'SCANS' ? "time-outline" : "car-outline"} size={64} color={theme.border} />
+                  <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab === 'SCANS' ? 'scan' : 'vehicle'} records found</ThemedText>
                 </View>
               ) : (
                 filteredScans.map((scan, index) => (
-                  <View key={`range-${scan.id}-${index}`} style={styles.scanCard}>
-                    <View style={styles.scanAvatar}>
-                      <ThemedText style={styles.scanAvatarText}>{scan.isBulkPass ? 'GP' : getInitials(scan.name)}</ThemedText>
+                  <View style={[styles.scanCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <View style={[styles.scanAvatar, { backgroundColor: theme.primary + '20' }]}>
+                      <ThemedText style={[styles.scanAvatarText, { color: theme.primary }]}>{scan.isBulkPass ? 'GP' : getInitials(scan.name)}</ThemedText>
                     </View>
                     <View style={styles.scanInfo}>
-                      <ThemedText style={styles.scanName}>{scan.name}</ThemedText>
-                      <ThemedText style={styles.scanType}>{scan.type}</ThemedText>
-                      <ThemedText style={styles.scanPurpose} numberOfLines={1}>{scan.purpose}</ThemedText>
+                      <ThemedText style={[styles.scanName, { color: theme.text }]}>{scan.name}</ThemedText>
+                      <ThemedText style={[styles.scanType, { color: theme.textSecondary }]}>{scan.type}</ThemedText>
+                      <ThemedText style={[styles.scanPurpose, { color: theme.textSecondary }]} numberOfLines={1}>{scan.purpose}</ThemedText>
                     </View>
                     <View style={styles.scanRight}>
-                      <ThemedText style={styles.scanTime}>{formatTime(scan.outTime || scan.inTime)}</ThemedText>
+                      <ThemedText style={[styles.scanTime, { color: theme.textTertiary }]}>{formatTime(scan.outTime || scan.inTime)}</ThemedText>
                     </View>
                   </View>
                 ))
@@ -395,7 +395,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                     return marks;
                   })() : {}),
                 }}
-                markingType={fromDate && toDate ? 'period' : 'simple'}
+                markingType={fromDate && toDate ? 'period' : 'custom'}
                 theme={{
                   calendarBackground: theme.surface,
                   textSectionTitleColor: theme.textSecondary,
@@ -558,8 +558,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             // Scan History List
             filteredScans.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="time-outline" size={64} color="#D1D5DB" />
-                <ThemedText style={styles.emptyText}>No scan records found</ThemedText>
+                <Ionicons name="time-outline" size={64} color={theme.border} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No scan records found</ThemedText>
               </View>
             ) : (
               filteredScans.map((scan, index) => (
@@ -600,21 +600,21 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   <View style={styles.scanRight}>
                     <View style={[
                       styles.scanStatusBadge,
-                      scan.status === 'EXITED' || scan.outTime ? styles.scanStatusExit : styles.scanStatusEntry
+                      { backgroundColor: (scan.status === 'EXITED' || scan.outTime ? theme.error : theme.success) + '15' }
                     ]}>
                       <Ionicons
                         name={scan.status === 'EXITED' || scan.outTime ? 'log-out' : 'log-in'}
                         size={12}
-                        color={scan.status === 'EXITED' || scan.outTime ? '#EF4444' : '#10B981'}
+                        color={scan.status === 'EXITED' || scan.outTime ? theme.error : theme.success}
                       />
-                      <ThemedText style={[
+                      <ThemedText ignoreGradient style={[
                         styles.scanStatusText,
-                        scan.status === 'EXITED' || scan.outTime ? styles.scanStatusTextExit : styles.scanStatusTextEntry
+                        { color: scan.status === 'EXITED' || scan.outTime ? theme.error : theme.success }
                       ]}>
                         {scan.status === 'EXITED' || scan.outTime ? 'EXIT' : 'ENTRY'}
                       </ThemedText>
                     </View>
-                    <ThemedText style={styles.scanTime}>{formatTime(scan.outTime || scan.inTime)}</ThemedText>
+                    <ThemedText style={[styles.scanTime, { color: theme.textTertiary }]}>{formatTime(scan.outTime || scan.inTime)}</ThemedText>
                   </View>
                 </TouchableOpacity>
               ))
@@ -647,20 +647,11 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                     </ThemedText>
                   </View>
                   <View style={styles.scanRight}>
-                    <View style={[
-                      styles.scanStatusBadge,
-                      styles.scanStatusEntry
-                    ]}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={12}
-                        color="#10B981"
-                      />
-                      <ThemedText ignoreGradient style={[styles.scanStatusText, { color: '#FFFFFF' }]}>
-                        REGISTERED
-                      </ThemedText>
+                    <View style={[styles.scanStatusBadge, { backgroundColor: theme.success + '15' }]}>
+                      <Ionicons name="checkmark-circle" size={12} color={theme.success} />
+                      <ThemedText ignoreGradient style={[styles.scanStatusText, { color: theme.success }]}>REGISTERED</ThemedText>
                     </View>
-                    <ThemedText style={styles.scanTime}>{formatTime(vehicle.createdAt)}</ThemedText>
+                    <ThemedText style={[styles.scanTime, { color: theme.textTertiary }]}>{formatTime(vehicle.createdAt)}</ThemedText>
                   </View>
                 </TouchableOpacity>
               ))
@@ -737,15 +728,15 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                       )}
 
                       {/* Time info */}
-                      <View style={styles.fsBlock}>
-                        <ThemedText style={styles.fsBlockLabel}>TIME INFORMATION</ThemedText>
+                      <View style={[styles.fsBlock, { backgroundColor: theme.surface }]}>
+                        <ThemedText style={[styles.fsBlockLabel, { color: theme.textTertiary }]}>TIME INFORMATION</ThemedText>
                         <View style={styles.fsTlItem}>
-                          <View style={[styles.fsTlDot, { backgroundColor: '#EF4444' }]}>
+                          <View style={[styles.fsTlDot, { backgroundColor: theme.error }]}>
                             <Ionicons name="log-out" size={14} color="#FFF" />
                           </View>
                           <View style={styles.fsTlBody}>
-                            <ThemedText style={styles.fsTlTitle}>Exit Time</ThemedText>
-                            <ThemedText style={styles.fsTlSub}>{formatTime(selectedScan.inTime || selectedScan.outTime)}</ThemedText>
+                            <ThemedText style={[styles.fsTlTitle, { color: theme.text }]}>Exit Time</ThemedText>
+                            <ThemedText style={[styles.fsTlSub, { color: theme.textSecondary }]}>{formatTime(selectedScan.inTime || selectedScan.outTime)}</ThemedText>
                           </View>
                         </View>
                       </View>

@@ -92,10 +92,10 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
   );
 
   const getStatusBadge = (status: string) => {
-    if (status === 'APPROVED') return { text: 'ACTIVE', color: '#10B981', bg: '#D1FAE5' };
-    if (status === 'REJECTED') return { text: 'REJECTED', color: '#EF4444', bg: '#FEE2E2' };
-    if (status === 'PENDING_HOD') return { text: 'AWAITING HOD', color: '#3B82F6', bg: '#DBEAFE' };
-    return { text: 'AWAITING STAFF', color: '#F59E0B', bg: '#FEF3C7' };
+    if (status === 'APPROVED') return { text: 'ACTIVE', color: theme.success, bg: theme.success + '22' };
+    if (status === 'REJECTED') return { text: 'REJECTED', color: theme.error, bg: theme.error + '22' };
+    if (status === 'PENDING_HOD') return { text: 'AWAITING HOD', color: theme.primary, bg: theme.primary + '22' };
+    return { text: 'AWAITING STAFF', color: theme.warning, bg: theme.warning + '22' };
   };
 
   const getTimeAgo = (dateString: string) => getRelativeTime(dateString);

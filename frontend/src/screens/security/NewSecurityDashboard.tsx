@@ -370,7 +370,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           {escalatedVisitors.map((visitor) => (
             <TouchableOpacity
               key={visitor.id}
-              style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+              style={[styles.requestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
               onPress={() => { setSelectedVisitor(visitor); setShowVisitorModal(true); }}
             >
               <View style={styles.cardTopRow}>
@@ -451,7 +451,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           </View>
         ) : (
           activePersons.filter(p => p.status === 'PENDING').map((person, index) => (
-            <TouchableOpacity key={`${person.id}-${index}`} style={[styles.personCard, { backgroundColor: theme.cardBackground }]} onPress={() => { setSelectedPerson(person); setShowDetailModal(true); }}>
+            <TouchableOpacity key={`${person.id}-${index}`} style={[styles.personCard, { backgroundColor: theme.surface }]} onPress={() => { setSelectedPerson(person); setShowDetailModal(true); }}>
               <View style={[styles.personAvatar, { backgroundColor: theme.primary }]}>
                 <ThemedText style={styles.personAvatarText}>{getInitials(person.name)}</ThemedText>
               </View>
@@ -595,7 +595,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                 onPress={() => { setShowDetailModal(false); handleManualExit(selectedPerson); }}
               >
                 <Ionicons name="log-out-outline" size={20} color="#FFF" />
-                <ThemedText style={detailStyles.exitBtnText}>Mark as Exited</ThemedText>
+                <ThemedText ignoreGradient style={[detailStyles.exitBtnText, { color: '#FFF' }]}>Mark as Exited</ThemedText>
               </TouchableOpacity>
             </View>
           )}
@@ -687,14 +687,14 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                   onPress={() => handleApproveVisitor(selectedVisitor)}
                 >
                   <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                  <ThemedText style={visitorDetailStyles.actionBtnText}>Approve</ThemedText>
+                  <ThemedText ignoreGradient style={[visitorDetailStyles.actionBtnText, { color: '#FFF' }]}>Approve</ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[visitorDetailStyles.actionBtn, { backgroundColor: theme.error }]}
                   onPress={() => handleRejectVisitor(selectedVisitor)}
                 >
                   <Ionicons name="close-circle" size={20} color="#FFF" />
-                  <ThemedText style={visitorDetailStyles.actionBtnText}>Reject</ThemedText>
+                  <ThemedText ignoreGradient style={[visitorDetailStyles.actionBtnText, { color: '#FFF' }]}>Reject</ThemedText>
                 </TouchableOpacity>
               </View>
             </View>
@@ -729,7 +729,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
               </TouchableOpacity>
               <TouchableOpacity style={[styles.rejectModalConfirmBtn, { backgroundColor: theme.error }]} onPress={confirmRejectVisitor}>
                 <Ionicons name="close-circle" size={20} color="#FFF" />
-                <ThemedText style={styles.rejectModalConfirmText}>Reject</ThemedText>
+                <ThemedText ignoreGradient style={[styles.rejectModalConfirmText, { color: '#FFF' }]}>Reject</ThemedText>
               </TouchableOpacity>
             </View>
           </View>

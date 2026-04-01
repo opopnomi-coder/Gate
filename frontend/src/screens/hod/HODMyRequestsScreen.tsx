@@ -238,7 +238,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#F59E0B" />
+          <ActivityIndicator size="large" color={theme.primary} />
           <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
         </View>
       </SafeAreaView>
@@ -362,9 +362,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   tab: {
     flex: 1,
@@ -377,18 +375,17 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#F59E0B',
+    borderBottomColor: undefined,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
   },
   activeTabText: {
-    color: '#F59E0B',
+    color: undefined,
   },
   tabBadge: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: undefined,
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -533,7 +530,6 @@ const styles = StyleSheet.create({
   qrButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -551,7 +547,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -568,10 +563,8 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
   },
   requestInfoCard: {
-    backgroundColor: '#F3F4F6',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -585,13 +578,11 @@ const styles = StyleSheet.create({
   requestInfoLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6B7280',
     letterSpacing: 0.5,
   },
   requestInfoValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
   },
   reasonSection: {
     marginBottom: 24,
@@ -599,13 +590,11 @@ const styles = StyleSheet.create({
   reasonLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6B7280',
     marginBottom: 8,
     letterSpacing: 0.5,
   },
   reasonText: {
     fontSize: 15,
-    color: '#1F2937',
     lineHeight: 22,
   },
   timeline: {
@@ -614,12 +603,10 @@ const styles = StyleSheet.create({
   timelineHeading: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1F2937',
     marginBottom: 10,
   },
   timelineBar: {
     height: 3,
-    backgroundColor: '#10B981',
     borderRadius: 2,
     marginBottom: 16,
   },
@@ -632,7 +619,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -660,12 +646,10 @@ const styles = StyleSheet.create({
   timelineTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 4,
   },
   timelineStatus: {
     fontSize: 14,
-    color: '#6B7280',
   },
   timelineStatusComplete: {
     color: '#10B981',
@@ -675,29 +659,24 @@ const styles = StyleSheet.create({
   },
   remarkBox: {
     marginTop: 8,
-    backgroundColor: '#F3F4F6',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
   },
   remarkLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6B7280',
     marginBottom: 2,
   },
   remarkText: {
     fontSize: 14,
-    color: '#1F2937',
     lineHeight: 20,
     fontWeight: '500',
   },
   timelineLine: {
     width: 2,
     height: 32,
-    backgroundColor: '#E5E7EB',
     marginLeft: 19,
     marginVertical: 4,
   },
@@ -708,7 +687,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10B981',
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
@@ -719,7 +697,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   qrModalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -735,13 +712,11 @@ const styles = StyleSheet.create({
   qrModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937',
   },
   qrCloseButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -752,17 +727,14 @@ const styles = StyleSheet.create({
   qrStaffName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
     marginBottom: 4,
   },
   qrStaffCode: {
     fontSize: 14,
-    color: '#6B7280',
   },
   qrCodeContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
     padding: 24,
     borderRadius: 16,
     marginBottom: 16,
@@ -775,13 +747,11 @@ const styles = StyleSheet.create({
   qrScanText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#6B7280',
     textAlign: 'center',
     marginBottom: 24,
     letterSpacing: 1,
   },
   qrDetails: {
-    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -794,7 +764,6 @@ const styles = StyleSheet.create({
   },
   qrDetailLabel: {
     fontSize: 14,
-    color: '#6B7280',
   },
   qrDetailValue: {
     fontSize: 14,

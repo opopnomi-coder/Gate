@@ -249,7 +249,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
             onPress={() => { setIncludeStaff(v => { if (!v) setReceiverId(null); return !v; }); }}
             disabled={isSubmitting}
           >
-            <Ionicons name={includeStaff ? 'checkbox' : 'square-outline'} size={24} color="#8B5CF6" />
+            <Ionicons name={includeStaff ? 'checkbox' : 'square-outline'} size={24} color={theme.primary} />
             <View style={styles.checkboxContent}>
               <ThemedText style={[styles.checkboxLabel, { color: theme.text }]}>Include Staff in this Pass</ThemedText>
               <ThemedText style={[styles.checkboxSubtext, { color: theme.textSecondary }]}>
@@ -293,7 +293,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
 
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#8B5CF6" />
+              <ActivityIndicator size="large" color={theme.primary} />
             </View>
           ) : groups.length === 0 ? (
             <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>No students found</ThemedText>
@@ -317,7 +317,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                       <Ionicons
                         name={allSectionSelected ? 'checkbox' : someSectionSelected ? 'checkbox-outline' : 'square-outline'}
                         size={22}
-                        color={allSectionSelected || someSectionSelected ? '#8B5CF6' : theme.textTertiary}
+                        color={allSectionSelected || someSectionSelected ? theme.primary : theme.textTertiary}
                       />
                     </TouchableOpacity>
 
@@ -354,7 +354,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                             <Ionicons
                               name={isSelected ? 'checkbox' : 'square-outline'}
                               size={22}
-                              color={isSelected ? '#8B5CF6' : theme.textTertiary}
+                              color={isSelected ? theme.primary : theme.textTertiary}
                             />
                             <View style={styles.studentInfo}>
                               <ThemedText style={[styles.studentName, { color: theme.text }, isSelected && styles.studentNameSelected]}>
@@ -377,8 +377,8 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         {!includeStaff && selectedStudents.size > 0 && (
           <View style={[styles.section, { backgroundColor: theme.surface }]}>
             <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Select Receiver (QR Code Holder)</ThemedText>
-            <View style={[styles.receiverInfo, { backgroundColor: '#EDE9FE' }]}>
-              <Ionicons name="information-circle" size={16} color="#8B5CF6" />
+            <View style={[styles.receiverInfo, { backgroundColor: theme.primary + '15' }]}>
+              <Ionicons name="information-circle" size={16} color={theme.primary} />
               <ThemedText style={styles.receiverInfoText}>
                 The receiver will hold the QR code for the entire group
               </ThemedText>
@@ -398,7 +398,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
                     <Ionicons
                       name={isRcv ? 'radio-button-on' : 'radio-button-off'}
                       size={24}
-                      color={isRcv ? '#8B5CF6' : theme.textTertiary}
+                      color={isRcv ? theme.primary : theme.textTertiary}
                     />
                     <View style={styles.receiverStudentInfo}>
                       <View style={styles.receiverNameRow}>
@@ -509,7 +509,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
 
         {/* Submit */}
         <TouchableOpacity
-          style={[styles.submitButton, (isSubmitting || selectedStudents.size === 0) && styles.submitButtonDisabled]}
+          style={[styles.submitButton, { backgroundColor: theme.success }, (isSubmitting || selectedStudents.size === 0) && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           disabled={isSubmitting || selectedStudents.size === 0}
         >
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   attachmentPreview: { width: '100%', height: 160, borderRadius: 12, marginTop: 10 },
   filePreview: { marginTop: 10, borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
   filePreviewText: { flex: 1, fontSize: 14, fontWeight: '600' },
-  submitButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#10B981', marginHorizontal: 20, marginTop: 20, paddingVertical: 16, borderRadius: 12, gap: 8, elevation: 3 },
+  submitButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 20, marginTop: 20, paddingVertical: 16, borderRadius: 12, gap: 8, elevation: 3 },
   submitButtonDisabled: { opacity: 0.5 },
   submitButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 });

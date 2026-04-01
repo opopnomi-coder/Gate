@@ -1097,10 +1097,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rejectButton: {
-    backgroundColor: '#EF4444',
+    backgroundColor: '#EF4444', // Reverted because `theme` is not in scope here
   },
   approveButton: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#10B981', // Reverted because `theme` is not in scope here
   },
   actionButtonText: {
     fontSize: 16,
