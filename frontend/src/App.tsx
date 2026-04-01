@@ -452,7 +452,9 @@ const App: React.FC = () => {
   }, [exitAnimating, exitOpacity, exitTranslateY]);
 
   // ── Hardware back button / gesture back ──────────────────────────────────
-  const ROOT_SCREENS: ScreenName[] = [
+  // HOME + all dashboard screens → show exit confirmation
+  // Any other screen → go back to the role's dashboard
+  const EXIT_SCREENS: ScreenName[] = [
     'HOME', 'DASHBOARD', 'STAFF_DASHBOARD', 'HOD_DASHBOARD',
     'HR_DASHBOARD', 'SECURITY_DASHBOARD', 'UNIFIED_LOGIN',
   ];
@@ -461,11 +463,10 @@ const App: React.FC = () => {
     if (isLoading) return;
     if ((global as any).__actionLocked) return;
 
-    if (ROOT_SCREENS.includes(currentScreen)) {
+    if (EXIT_SCREENS.includes(currentScreen)) {
       setShowExitModal(true);
       return;
     }
-    // Any back/swipe not on a root screen → go to the role's dashboard
     if (userType) navigateBack();
     else setCurrentScreen('HOME');
   }, [currentScreen, isLoading, userType]);
@@ -475,12 +476,10 @@ const App: React.FC = () => {
       if (isLoading) return true;
       if ((global as any).__actionLocked) return true;
 
-      if (ROOT_SCREENS.includes(currentScreen)) {
+      if (EXIT_SCREENS.includes(currentScreen)) {
         setShowExitModal(true);
         return true;
       }
-
-      // Any back press not on a root screen → go to the role's dashboard
       if (userType) navigateBack();
       else setCurrentScreen('HOME');
       return true;

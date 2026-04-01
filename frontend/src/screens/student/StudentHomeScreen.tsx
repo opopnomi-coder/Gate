@@ -199,7 +199,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>{getGreeting()}</ThemedText>
-            <ThemedText style={[styles.userName, { color: theme.text }]}>
+            <ThemedText style={[styles.userName, { color: theme.text }]} numberOfLines={1}>
               {student.firstName.toUpperCase()} {student.lastName?.charAt(0) || ''}
             </ThemedText>
           </View>
@@ -223,7 +223,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       <VerticalScrollView
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} decelerationRate="normal"
       >
         <View style={[styles.statsCard, { backgroundColor: theme.cardBackground }]}>
           <View style={styles.statItem}>
@@ -318,7 +318,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               </TouchableOpacity>
             </View>
             {selectedRequest && (
-              <VerticalScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false}>
+              <VerticalScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false} decelerationRate="normal">
                 <View style={[styles.statusModalHeader, { borderBottomColor: theme.border }]}>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={[styles.statusModalId, { color: theme.primary }]}>#{selectedRequest.id}</ThemedText>
@@ -346,11 +346,11 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   avatar: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
   avatarImage: { width: 52, height: 52, borderRadius: 26 },
   avatarText: { fontSize: 20, fontWeight: '700' },
-  headerInfo: { gap: 2 },
+  headerInfo: { gap: 2, flex: 1 },
   greeting: { fontSize: 12, fontWeight: '500', letterSpacing: 0.5 },
   userName: { fontSize: 20, fontWeight: '700' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },

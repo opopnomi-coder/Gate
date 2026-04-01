@@ -219,7 +219,7 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
       <VerticalScrollView
         style={[styles.content, { backgroundColor: theme.background }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} decelerationRate="normal"
       >
         <View style={styles.requestsContainer}>
         {allRequests.length === 0 ? (

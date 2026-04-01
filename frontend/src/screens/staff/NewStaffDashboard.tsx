@@ -330,7 +330,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</ThemedText>
-            <ThemedText style={[styles.userName, { color: theme.text }]}>{(staff.staffName || 'Divya Rao').toUpperCase()}</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]} numberOfLines={1}>{(staff.staffName || 'Divya Rao').toUpperCase()}</ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -351,7 +351,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} decelerationRate="normal"
       >
       {/* Search Input */}
       <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
@@ -628,7 +628,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             <VerticalScrollView 
               style={styles.qrModalContent}
               contentContainerStyle={styles.qrModalScrollContent}
-              showsVerticalScrollIndicator={false}
+              showsVerticalScrollIndicator={false} decelerationRate="normal"
             >
               {/* Staff Info */}
               <View style={styles.qrStaffInfo}>
@@ -761,6 +761,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   headerLeft: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -783,6 +784,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   headerInfo: {
+    flex: 1,
     gap: 2,
   },
   greeting: {

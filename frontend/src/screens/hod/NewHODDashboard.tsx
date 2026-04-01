@@ -255,7 +255,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>GOOD MORNING,</ThemedText>
-            <ThemedText style={[styles.userName, { color: theme.text }]}>{(hod.hodName || 'HOD').toUpperCase()}</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]} numberOfLines={1}>{(hod.hodName || 'HOD').toUpperCase()}</ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -272,7 +272,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} decelerationRate="normal"
       >
       <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
         <Ionicons name="search" size={20} color={theme.textTertiary} />
@@ -560,11 +560,11 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   avatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   avatarImage: { width: 48, height: 48, borderRadius: 24 },
   avatarText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
-  headerInfo: { gap: 2 },
+  headerInfo: { gap: 2, flex: 1 },
   greeting: { fontSize: 12 },
   userName: { fontSize: 16, fontWeight: '700' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },

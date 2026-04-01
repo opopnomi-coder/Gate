@@ -212,7 +212,7 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
       <VerticalScrollView
         style={styles.listContainer}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} decelerationRate="normal"
             refreshControl={
           <RefreshControl
             refreshing={refreshing}

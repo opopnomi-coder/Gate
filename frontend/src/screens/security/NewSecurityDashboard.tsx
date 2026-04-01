@@ -309,7 +309,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>Good Morning,</ThemedText>
-            <ThemedText style={[styles.userName, { color: theme.text }]}>{(user.name || user.securityName || 'SECURITY').toUpperCase()}</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]} numberOfLines={1}>{(user.name || user.securityName || 'SECURITY').toUpperCase()}</ThemedText>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -773,12 +773,12 @@ const styles = StyleSheet.create({
   outerScroll: { flex: 1 },
   outerScrollContent: { paddingBottom: 20 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   avatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   avatarImage: { width: 48, height: 48, borderRadius: 24 },
   avatarFallback: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   avatarText: { fontSize: 18, fontWeight: '800' },
-  headerInfo: { gap: 2 },
+  headerInfo: { gap: 2, flex: 1 },
   greeting: { fontSize: 13 },
   userName: { fontSize: 18, fontWeight: '700' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },

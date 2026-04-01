@@ -25,7 +25,7 @@ export const VerticalScrollView = React.forwardRef<ScrollView, ScrollViewProps>(
         horizontal={false}
         showsHorizontalScrollIndicator={false}
         alwaysBounceHorizontal={false}
-        // iOS: Locks scroll to a single axis (prevents diagonal scrolling)
+        decelerationRate="normal"
         directionalLockEnabled={Platform.OS === 'ios' ? true : undefined}
       />
     );
@@ -46,6 +46,7 @@ export const VerticalFlatList = React.forwardRef<FlatList<any>, FlatListProps<an
         horizontal={false}
         showsHorizontalScrollIndicator={false}
         alwaysBounceHorizontal={false}
+        decelerationRate="normal"
         directionalLockEnabled={Platform.OS === 'ios' ? true : undefined}
       />
     );

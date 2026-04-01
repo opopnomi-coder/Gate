@@ -285,7 +285,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           </View>
         </View>
         <ScreenContentContainer style={{ flex: 1 }}>
-          <VerticalScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          <VerticalScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false} decelerationRate="normal">
             <View style={styles.rangeResultsTop}>
               <ThemedText style={styles.rangeResultsSub}>
                 {fromDate?.toLocaleDateString()} — {toDate?.toLocaleDateString()}
@@ -466,7 +466,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         style={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false} decelerationRate="normal"
       >
       <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Ionicons name="search" size={20} color={theme.textTertiary} />
@@ -670,7 +670,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   </View>
                 </View>
 
-                <VerticalScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
+                <VerticalScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} decelerationRate="normal" contentContainerStyle={styles.fsScrollContent}>
                   {selectedScan.isBulkPass ? (
                     <>
                       {/* Bulk pass profile row */}
@@ -853,7 +853,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                   </View>
                 </View>
 
-                <VerticalScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.fsScrollContent}>
+                <VerticalScrollView style={styles.fsScroll} showsVerticalScrollIndicator={false} decelerationRate="normal" contentContainerStyle={styles.fsScrollContent}>
                   {/* Profile row */}
                   <View style={styles.fsProfileRow}>
                     <View style={[styles.fsAvatar, { backgroundColor: '#F59E0B' }]}>

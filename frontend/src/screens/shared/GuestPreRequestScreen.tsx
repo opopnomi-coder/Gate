@@ -213,7 +213,7 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
         <VerticalScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={false} decelerationRate="normal"
         >
           <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
             Creates an approved visitor pass with QR and manual code (no waiting). Share with your guest.

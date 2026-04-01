@@ -1,46 +1,39 @@
 import React, { useRef } from 'react';
-import { Animated, Dimensions, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
   State,
 } from 'react-native-gesture-handler';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const EDGE_HIT_SLOP = 30;
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.35;
-const VELOCITY_THRESHOLD = 600;
+const EDGE_HIT_SLOP = 28;
+const SWIPE_THRESHOLD = 80;   // px rightward to trigger
+const VELOCITY_THRESHOLD = 500; // px/s rightward to trigger
 
 interface SwipeBackWrapperProps {
   children: React.ReactNode;
   onBack: () => void;
-  /** Disable on root screens */
   enabled?: boolean;
-  /** Disable during API calls / locked state */
   locked?: boolean;
 }
 
+/**
+ * Detects a left-edge swipe-right gesture and calls onBack().
+ * NO visual translation — the screen stays in place.
+ * This avoids the grey-background reveal while still supporting
+ * the back gesture.
+ */
 const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
   children,
   onBack,
   enabled = true,
   locked = false,
 }) => {
-  const translateX = useRef(new Animated.Value(0)).current;
   const startedFromEdge = useRef(false);
   const navigating = useRef(false);
 
-  const onGestureEvent = Animated.event(
-    [{ nativeEvent: { translationX: translateX } }],
-    { useNativeDriver: true }
-  );
-
   const onHandlerStateChange = (event: PanGestureHandlerGestureEvent) => {
-    if (!enabled || locked) {
-      translateX.setValue(0);
-      return;
-    }
+    if (!enabled || locked) return;
 
     const { state, translationX, velocityX, x } = event.nativeEvent;
 
@@ -49,40 +42,21 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
       navigating.current = false;
     }
 
-    if (state === State.ACTIVE) {
-      // Only allow rightward swipe from edge
-      if (!startedFromEdge.current || translationX < 0) {
-        translateX.setValue(0);
-      }
-    }
-
-    if (state === State.END || state === State.FAILED || state === State.CANCELLED) {
+    if (state === State.END) {
       const shouldNavigate =
         !navigating.current &&
         startedFromEdge.current &&
+        translationX > 0 &&
         (translationX >= SWIPE_THRESHOLD || velocityX >= VELOCITY_THRESHOLD);
 
       if (shouldNavigate) {
         navigating.current = true;
-        // Animate slide out to the right, then trigger back
-        Animated.timing(translateX, {
-          toValue: SCREEN_WIDTH,
-          duration: 220,
-          useNativeDriver: true,
-        }).start(() => {
-          translateX.setValue(0);
-          navigating.current = false;
-          onBack();
-        });
-      } else {
-        // Snap back
-        Animated.spring(translateX, {
-          toValue: 0,
-          useNativeDriver: true,
-          bounciness: 0,
-          speed: 20,
-        }).start();
+        onBack();
       }
+      startedFromEdge.current = false;
+    }
+
+    if (state === State.FAILED || state === State.CANCELLED) {
       startedFromEdge.current = false;
     }
   };
@@ -91,30 +65,17 @@ const SwipeBackWrapper: React.FC<SwipeBackWrapperProps> = ({
     return <>{children}</>;
   }
 
-  // Clamp translation so it only moves right (never left)
-  const clampedTranslateX = translateX.interpolate({
-    inputRange: [0, SCREEN_WIDTH],
-    outputRange: [0, SCREEN_WIDTH],
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
-
   return (
     <PanGestureHandler
-      onGestureEvent={onGestureEvent}
       onHandlerStateChange={onHandlerStateChange}
-      activeOffsetX={[0, 25]}
-      failOffsetY={[-15, 15]}
+      activeOffsetX={[0, 20]}
+      failOffsetY={[-20, 20]}
       enabled={!locked}
     >
-      <Animated.View
-        style={[
-          styles.container,
-          { transform: [{ translateX: clampedTranslateX }] },
-        ]}
-      >
+      {/* Plain View — no Animated.View, no translateX */}
+      <View style={styles.container}>
         {children}
-      </Animated.View>
+      </View>
     </PanGestureHandler>
   );
 };
