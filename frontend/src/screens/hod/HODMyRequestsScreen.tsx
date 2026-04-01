@@ -165,7 +165,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
 
     return (
       <TouchableOpacity
-        style={styles.requestCard}
+        style={[styles.requestCard, { backgroundColor: theme.surface }]}
         onPress={() => handleReviewRequest(request)}
         activeOpacity={0.85}
       >
@@ -176,30 +176,30 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
           </View>
           <View style={styles.cardNameBlock}>
             <View style={styles.cardNameRow}>
-              <ThemedText style={styles.cardName} numberOfLines={1}>{name}</ThemedText>
-              <View style={styles.typePillInline}>
-                <ThemedText style={styles.typePillInlineText}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</ThemedText>
+              <ThemedText ignoreGradient style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</ThemedText>
+              <View style={[styles.typePillInline, { backgroundColor: theme.inputBackground }]}>
+                <ThemedText ignoreGradient style={[styles.typePillInlineText, { color: theme.text }]}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</ThemedText>
               </View>
             </View>
-            <ThemedText style={styles.cardSubtitle}>HOD • {user.department || 'Department'}</ThemedText>
+            <ThemedText ignoreGradient style={[styles.cardSubtitle, { color: theme.textSecondary }]}>HOD • {user.department || 'Department'}</ThemedText>
           </View>
-          <ThemedText style={styles.cardTimeAgo}>{getTimeAgo(dateStr)}</ThemedText>
+          <ThemedText ignoreGradient style={[styles.cardTimeAgo, { color: theme.textTertiary }]}>{getTimeAgo(dateStr)}</ThemedText>
         </View>
 
         {/* Info box */}
-        <View style={styles.infoBox}>
+        <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
           <View style={styles.infoBoxRow}>
-            <Ionicons name="document-text-outline" size={14} color="#6B7280" />
-            <ThemedText style={styles.infoBoxText} numberOfLines={1}>{request.purpose || 'General'}</ThemedText>
+            <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
+            <ThemedText ignoreGradient style={[styles.infoBoxText, { color: theme.text }]} numberOfLines={1}>{request.purpose || 'General'}</ThemedText>
           </View>
           <View style={styles.infoBoxRow}>
-            <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-            <ThemedText style={styles.infoBoxText}>{formatDate(dateStr)}</ThemedText>
+            <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
+            <ThemedText ignoreGradient style={[styles.infoBoxText, { color: theme.text }]}>{formatDate(dateStr)}</ThemedText>
           </View>
           {isBulk && (
             <View style={styles.infoBoxRow}>
-              <Ionicons name="people-outline" size={14} color="#6B7280" />
-              <ThemedText style={styles.infoBoxText}>
+              <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
+              <ThemedText ignoreGradient style={[styles.infoBoxText, { color: theme.text }]}>
                 {(() => {
                   const parts: string[] = [];
                   const sc = request.staffCount ?? 0;
@@ -229,47 +229,47 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => onBack && onBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+          <TouchableOpacity onPress={() => onBack && onBack()} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <ThemedText style={styles.headerTitle}>My Requests</ThemedText>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F59E0B" />
-          <ThemedText style={styles.loadingText}>Loading requests...</ThemedText>
+          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => onBack && onBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <TouchableOpacity onPress={() => onBack && onBack()} style={[styles.backButton, { backgroundColor: theme.inputBackground }]}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>My Requests</ThemedText>
+        <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
       <ScreenContentContainer>
       <VerticalScrollView
-        style={styles.content}
+        style={[styles.content, { backgroundColor: theme.background }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#F59E0B']} />
         }
         showsVerticalScrollIndicator={false} decelerationRate="normal"
       >
-        <View style={styles.requestsContainer}>
+        <View style={[styles.requestsContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         {allRequests.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
-            <ThemedText style={styles.emptyStateText}>No requests found</ThemedText>
-            <ThemedText style={styles.emptyStateSubtext}>
+            <Ionicons name="document-text-outline" size={64} color={theme.textTertiary} />
+            <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No requests found</ThemedText>
+            <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>
               Your requests will appear here
             </ThemedText>
           </View>
@@ -340,7 +340,6 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   header: {
     flexDirection: 'row',
@@ -348,22 +347,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1F2937',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -413,20 +408,16 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 20,
-    backgroundColor: '#F9FAFB',
   },
   requestsContainer: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
     padding: 12,
   },
   emptyState: {
@@ -436,16 +427,13 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
     marginTop: 16,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#6B7280',
     marginTop: 8,
   },
   requestCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 14,
     marginBottom: 12,
@@ -465,7 +453,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#FEF3C7',
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
@@ -473,7 +460,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F59E0B',
   },
   cardNameBlock: {
     flex: 1,
@@ -487,22 +473,9 @@ const styles = StyleSheet.create({
   cardName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
     flexShrink: 1,
   },
-  bulkBadge: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  bulkBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
   typePillInline: {
-    backgroundColor: '#F3F4F6',
     borderRadius: 6,
     paddingHorizontal: 5,
     paddingVertical: 1,
@@ -510,20 +483,16 @@ const styles = StyleSheet.create({
   typePillInlineText: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#1F2937',
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
     marginTop: 2,
   },
   cardTimeAgo: {
     fontSize: 12,
-    color: '#9CA3AF',
     flexShrink: 0,
   },
   infoBox: {
-    backgroundColor: '#F9FAFB',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -537,7 +506,6 @@ const styles = StyleSheet.create({
   },
   infoBoxText: {
     fontSize: 13,
-    color: '#374151',
     flex: 1,
   },
   cardBottomRow: {

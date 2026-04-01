@@ -20,6 +20,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { useTheme } from '../../context/ThemeContext';
 
 
 interface HODBulkGatePassScreenProps {
@@ -83,6 +84,7 @@ const Dropdown = ({ label, value, options, onSelect, placeholder }: {
 };
 
 const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, navigation, onBack }) => {
+  const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('students');
   const [purpose, setPurpose] = useState('');
   const [reason, setReason] = useState('');
@@ -270,24 +272,24 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
   };
 
   return (
-    <SafeAreaView style={s.container}>
+    <SafeAreaView style={[s.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View style={s.header}>
-        <TouchableOpacity onPress={handleGoBack} style={s.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+      <View style={[s.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <TouchableOpacity onPress={handleGoBack} style={[s.backBtn, { backgroundColor: theme.inputBackground }]}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <ThemedText style={s.headerTitle}>HOD Bulk Gate Pass</ThemedText>
+        <ThemedText style={[s.headerTitle, { color: theme.text }]}>HOD Bulk Gate Pass</ThemedText>
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={s.infoBanner}>
-        <Ionicons name="information-circle" size={18} color="#3B82F6" />
-        <ThemedText style={s.infoBannerText}>Bulk passes — no HR approval required</ThemedText>
+      <View style={[s.infoBanner, { backgroundColor: theme.primary + '15' }]}>
+        <Ionicons name="information-circle" size={18} color={theme.primary} />
+        <ThemedText style={[s.infoBannerText, { color: theme.primary }]}>Bulk passes — no HR approval required</ThemedText>
       </View>
 
       <VerticalScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* Summary */}
-        <View style={s.card}>
+        <View style={[s.card, { backgroundColor: theme.surface }]}>
           <View style={s.summaryRow}>
             {[['school', '#3B82F6', 'Students', selectedStudents.size],
               ['briefcase', '#10B981', 'Staff', selectedStaff.size],
@@ -295,8 +297,8 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
               <View key={lbl as string} style={s.summaryItem}>
                 <Ionicons name={icon as any} size={22} color={color as string} />
                 <View>
-                  <ThemedText style={s.summaryLabel}>{lbl as string}</ThemedText>
-                  <ThemedText style={s.summaryVal}>{val as number}</ThemedText>
+                  <ThemedText style={[s.summaryLabel, { color: theme.textSecondary }]}>{lbl as string}</ThemedText>
+                  <ThemedText style={[s.summaryVal, { color: theme.text }]}>{val as number}</ThemedText>
                 </View>
               </View>
             ))}
@@ -304,23 +306,23 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
         </View>
 
         {/* Include HOD toggle */}
-        <View style={s.card}>
-          <TouchableOpacity style={s.checkRow} onPress={() => { setIncludeHOD(!includeHOD); if (!includeHOD) { setReceiverId(null); setReceiverType(null); } }}>
+        <View style={[s.card, { backgroundColor: theme.surface }]}>
+          <TouchableOpacity style={[s.checkRow, { backgroundColor: '#FEF3C7' }]} onPress={() => { setIncludeHOD(!includeHOD); if (!includeHOD) { setReceiverId(null); setReceiverType(null); } }}>
             <Ionicons name={includeHOD ? 'checkbox' : 'square-outline'} size={24} color="#F59E0B" />
             <View style={{ flex: 1 }}>
-              <ThemedText style={s.checkLabel}>Include HOD in this Pass</ThemedText>
-              <ThemedText style={s.checkSub}>{includeHOD ? 'HOD holds the QR code' : 'Select a receiver to hold the QR code'}</ThemedText>
+              <ThemedText style={[s.checkLabel, { color: '#1F2937' }]}>Include HOD in this Pass</ThemedText>
+              <ThemedText style={[s.checkSub, { color: '#6B7280' }]}>{includeHOD ? 'HOD holds the QR code' : 'Select a receiver to hold the QR code'}</ThemedText>
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Tabs */}
-        <View style={s.card}>
-          <View style={s.tabs}>
+        <View style={[s.card, { backgroundColor: theme.surface }]}>
+          <View style={[s.tabs, { backgroundColor: theme.inputBackground }]}>
             {(['students', 'staff'] as ViewMode[]).map(mode => (
               <TouchableOpacity key={mode} style={[s.tab, viewMode === mode && s.tabActive]} onPress={() => setViewMode(mode)}>
-                <Ionicons name={mode === 'students' ? 'school' : 'briefcase'} size={18} color={viewMode === mode ? '#FFF' : '#6B7280'} />
-                <ThemedText style={[s.tabText, viewMode === mode && s.tabTextActive]}>{mode === 'students' ? 'Students' : 'Staff'}</ThemedText>
+                <Ionicons name={mode === 'students' ? 'school' : 'briefcase'} size={18} color={viewMode === mode ? '#FFF' : theme.textSecondary} />
+                <ThemedText style={[s.tabText, { color: viewMode === mode ? '#FFF' : theme.textSecondary }, viewMode === mode && s.tabTextActive]}>{mode === 'students' ? 'Students' : 'Staff'}</ThemedText>
                 {(mode === 'students' ? selectedStudents.size : selectedStaff.size) > 0 && (
                   <View style={s.badge}><ThemedText style={s.badgeText}>{mode === 'students' ? selectedStudents.size : selectedStaff.size}</ThemedText></View>
                 )}
@@ -331,33 +333,33 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
 
         {/* Student view */}
         {viewMode === 'students' && (
-          <View style={s.card}>
+          <View style={[s.card, { backgroundColor: theme.surface }]}>
             {/* Cascading dropdowns */}
             <Dropdown label="Year" value={filterYear} options={yearOptions} onSelect={handleYearChange} placeholder="All Years" />
             <Dropdown label="Department" value={filterDept} options={deptOptions} onSelect={handleDeptChange} placeholder="All Departments" />
             <Dropdown label="Section" value={filterSection} options={sectionOptions} onSelect={setFilterSection} placeholder="All Sections" />
 
             <View style={s.rowBetween}>
-              <ThemedText style={s.countText}>Selected: {selectedStudents.size} / {filteredStudents.length}</ThemedText>
-              <TouchableOpacity onPress={selectAll} style={s.selectAllBtn}>
+              <ThemedText style={[s.countText, { color: theme.text }]}>Selected: {selectedStudents.size} / {filteredStudents.length}</ThemedText>
+              <TouchableOpacity onPress={selectAll} style={[s.selectAllBtn, { backgroundColor: theme.inputBackground }]}>
                 <ThemedText style={s.selectAllText}>{selectedStudents.size === filteredStudents.length && filteredStudents.length > 0 ? 'Deselect All' : 'Select All'}</ThemedText>
               </TouchableOpacity>
             </View>
 
-            <View style={s.searchBox}>
-              <Ionicons name="search" size={18} color="#9CA3AF" />
-              <TextInput style={s.searchInput} placeholder="Search students..." placeholderTextColor="#9CA3AF" value={studentSearch} onChangeText={setStudentSearch} />
+            <View style={[s.searchBox, { backgroundColor: theme.inputBackground }]}>
+              <Ionicons name="search" size={18} color={theme.textTertiary} />
+              <TextInput style={[s.searchInput, { color: theme.text }]} placeholder="Search students..." placeholderTextColor={theme.textTertiary} value={studentSearch} onChangeText={setStudentSearch} />
             </View>
 
             {isLoading ? <ActivityIndicator size="large" color="#F59E0B" style={{ marginVertical: 30 }} /> : (
               filteredStudents.length === 0
-                ? <View style={s.empty}><Ionicons name="people-outline" size={40} color="#D1D5DB" /><ThemedText style={s.emptyText}>No students found</ThemedText></View>
+                ? <View style={s.empty}><Ionicons name="people-outline" size={40} color={theme.textTertiary} /><ThemedText style={[s.emptyText, { color: theme.textTertiary }]}>No students found</ThemedText></View>
                 : filteredStudents.map(st => (
-                  <TouchableOpacity key={st.regNo} style={s.item} onPress={() => toggleStudent(st.regNo)}>
-                    <Ionicons name={selectedStudents.has(st.regNo) ? 'checkbox' : 'square-outline'} size={24} color={selectedStudents.has(st.regNo) ? '#F59E0B' : '#9CA3AF'} />
+                  <TouchableOpacity key={st.regNo} style={[s.item, { borderBottomColor: theme.border }]} onPress={() => toggleStudent(st.regNo)}>
+                    <Ionicons name={selectedStudents.has(st.regNo) ? 'checkbox' : 'square-outline'} size={24} color={selectedStudents.has(st.regNo) ? '#F59E0B' : theme.textTertiary} />
                     <View style={{ flex: 1 }}>
-                      <ThemedText style={s.itemName}>{st.fullName}</ThemedText>
-                      <ThemedText style={s.itemSub}>{st.regNo} • {st.year} • {st.department} • Sec {st.section}</ThemedText>
+                      <ThemedText style={[s.itemName, { color: theme.text }]}>{st.fullName}</ThemedText>
+                      <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.regNo} • {st.year} • {st.department} • Sec {st.section}</ThemedText>
                     </View>
                   </TouchableOpacity>
                 ))
@@ -367,26 +369,26 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
 
         {/* Staff view */}
         {viewMode === 'staff' && (
-          <View style={s.card}>
+          <View style={[s.card, { backgroundColor: theme.surface }]}>
             <View style={s.rowBetween}>
-              <ThemedText style={s.countText}>Selected: {selectedStaff.size} / {filteredStaff.length}</ThemedText>
-              <TouchableOpacity onPress={selectAll} style={s.selectAllBtn}>
+              <ThemedText style={[s.countText, { color: theme.text }]}>Selected: {selectedStaff.size} / {filteredStaff.length}</ThemedText>
+              <TouchableOpacity onPress={selectAll} style={[s.selectAllBtn, { backgroundColor: theme.inputBackground }]}>
                 <ThemedText style={s.selectAllText}>{selectedStaff.size === filteredStaff.length && filteredStaff.length > 0 ? 'Deselect All' : 'Select All'}</ThemedText>
               </TouchableOpacity>
             </View>
-            <View style={s.searchBox}>
-              <Ionicons name="search" size={18} color="#9CA3AF" />
-              <TextInput style={s.searchInput} placeholder="Search staff..." placeholderTextColor="#9CA3AF" value={staffSearch} onChangeText={setStaffSearch} />
+            <View style={[s.searchBox, { backgroundColor: theme.inputBackground }]}>
+              <Ionicons name="search" size={18} color={theme.textTertiary} />
+              <TextInput style={[s.searchInput, { color: theme.text }]} placeholder="Search staff..." placeholderTextColor={theme.textTertiary} value={staffSearch} onChangeText={setStaffSearch} />
             </View>
             {isLoading ? <ActivityIndicator size="large" color="#F59E0B" style={{ marginVertical: 30 }} /> : (
               filteredStaff.length === 0
-                ? <View style={s.empty}><Ionicons name="briefcase-outline" size={40} color="#D1D5DB" /><ThemedText style={s.emptyText}>No staff found</ThemedText></View>
+                ? <View style={s.empty}><Ionicons name="briefcase-outline" size={40} color={theme.textTertiary} /><ThemedText style={[s.emptyText, { color: theme.textTertiary }]}>No staff found</ThemedText></View>
                 : filteredStaff.map(st => (
-                  <TouchableOpacity key={st.staffCode} style={s.item} onPress={() => toggleStaff(st.staffCode)}>
-                    <Ionicons name={selectedStaff.has(st.staffCode) ? 'checkbox' : 'square-outline'} size={24} color={selectedStaff.has(st.staffCode) ? '#F59E0B' : '#9CA3AF'} />
+                  <TouchableOpacity key={st.staffCode} style={[s.item, { borderBottomColor: theme.border }]} onPress={() => toggleStaff(st.staffCode)}>
+                    <Ionicons name={selectedStaff.has(st.staffCode) ? 'checkbox' : 'square-outline'} size={24} color={selectedStaff.has(st.staffCode) ? '#F59E0B' : theme.textTertiary} />
                     <View style={{ flex: 1 }}>
-                      <ThemedText style={s.itemName}>{st.fullName}</ThemedText>
-                      <ThemedText style={s.itemSub}>{st.staffCode} • {st.department}</ThemedText>
+                      <ThemedText style={[s.itemName, { color: theme.text }]}>{st.fullName}</ThemedText>
+                      <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.staffCode} • {st.department}</ThemedText>
                     </View>
                   </TouchableOpacity>
                 ))
@@ -396,37 +398,37 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
 
         {/* Receiver selection */}
         {!includeHOD && totalSelected > 0 && (
-          <View style={s.card}>
-            <ThemedText style={s.sectionTitle}>Select QR Code Receiver</ThemedText>
-            <View style={s.receiverInfo}>
+          <View style={[s.card, { backgroundColor: theme.surface }]}>
+            <ThemedText style={[s.sectionTitle, { color: theme.text }]}>Select QR Code Receiver</ThemedText>
+            <View style={[s.receiverInfo, { backgroundColor: '#FEF3C7' }]}>
               <Ionicons name="information-circle" size={16} color="#F59E0B" />
-              <ThemedText style={s.receiverInfoText}>This person will hold the QR code for the group</ThemedText>
+              <ThemedText style={[s.receiverInfoText, { color: '#92400E' }]}>This person will hold the QR code for the group</ThemedText>
             </View>
-            {selectedStudents.size > 0 && <ThemedText style={s.catTitle}>STUDENTS</ThemedText>}
+            {selectedStudents.size > 0 && <ThemedText style={[s.catTitle, { color: theme.textTertiary }]}>STUDENTS</ThemedText>}
             {Array.from(selectedStudents).map(rn => {
               const st = allStudents.find(x => x.regNo === rn); if (!st) return null;
               const active = receiverId === rn;
               return (
-                <TouchableOpacity key={rn} style={[s.receiverItem, active && s.receiverItemActive]} onPress={() => { setReceiverId(rn); setReceiverType('student'); }}>
-                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? '#F59E0B' : '#9CA3AF'} />
+                <TouchableOpacity key={rn} style={[s.receiverItem, { borderColor: 'transparent' }, active && s.receiverItemActive]} onPress={() => { setReceiverId(rn); setReceiverType('student'); }}>
+                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? '#F59E0B' : theme.textTertiary} />
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[s.itemName, active && { color: '#92400E' }]}>{st.fullName}</ThemedText>
-                    <ThemedText style={s.itemSub}>{st.regNo}</ThemedText>
+                    <ThemedText style={[s.itemName, { color: theme.text }, active && { color: '#92400E' }]}>{st.fullName}</ThemedText>
+                    <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.regNo}</ThemedText>
                   </View>
                   {active && <View style={s.receiverBadge}><ThemedText style={s.receiverBadgeText}>RECEIVER</ThemedText></View>}
                 </TouchableOpacity>
               );
             })}
-            {selectedStaff.size > 0 && <ThemedText style={s.catTitle}>STAFF</ThemedText>}
+            {selectedStaff.size > 0 && <ThemedText style={[s.catTitle, { color: theme.textTertiary }]}>STAFF</ThemedText>}
             {Array.from(selectedStaff).map(code => {
               const st = allStaff.find(x => x.staffCode === code); if (!st) return null;
               const active = receiverId === code;
               return (
-                <TouchableOpacity key={code} style={[s.receiverItem, active && s.receiverItemActive]} onPress={() => { setReceiverId(code); setReceiverType('staff'); }}>
-                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? '#F59E0B' : '#9CA3AF'} />
+                <TouchableOpacity key={code} style={[s.receiverItem, { borderColor: 'transparent' }, active && s.receiverItemActive]} onPress={() => { setReceiverId(code); setReceiverType('staff'); }}>
+                  <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={22} color={active ? '#F59E0B' : theme.textTertiary} />
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={[s.itemName, active && { color: '#92400E' }]}>{st.fullName}</ThemedText>
-                    <ThemedText style={s.itemSub}>{st.staffCode}</ThemedText>
+                    <ThemedText style={[s.itemName, { color: theme.text }, active && { color: '#92400E' }]}>{st.fullName}</ThemedText>
+                    <ThemedText style={[s.itemSub, { color: theme.textSecondary }]}>{st.staffCode}</ThemedText>
                   </View>
                   {active && <View style={s.receiverBadge}><ThemedText style={s.receiverBadgeText}>RECEIVER</ThemedText></View>}
                 </TouchableOpacity>
@@ -436,16 +438,16 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
         )}
 
         {/* Gate pass details */}
-        <View style={s.card}>
-          <ThemedText style={s.sectionTitle}>Gate Pass Details</ThemedText>
-          <ThemedText style={s.fieldLabel}>Purpose *</ThemedText>
-          <TextInput style={s.input} placeholder="Enter purpose" placeholderTextColor="#9CA3AF" value={purpose} onChangeText={setPurpose} />
-          <ThemedText style={s.fieldLabel}>Reason *</ThemedText>
-          <TextInput style={[s.input, { height: 90, textAlignVertical: 'top', paddingTop: 12 }]} placeholder="Describe the reason..." placeholderTextColor="#9CA3AF" value={reason} onChangeText={setReason} multiline />
-          <ThemedText style={s.fieldLabel}>Attachment (Optional)</ThemedText>
-          <TouchableOpacity style={s.uploadBtn} onPress={pickAttachment}>
-            <Ionicons name="attach-outline" size={22} color="#9CA3AF" />
-            <ThemedText style={s.uploadText}>{attachment ? attachment.name : 'Tap to upload (image/PDF)'}</ThemedText>
+        <View style={[s.card, { backgroundColor: theme.surface }]}>
+          <ThemedText style={[s.sectionTitle, { color: theme.text }]}>Gate Pass Details</ThemedText>
+          <ThemedText style={[s.fieldLabel, { color: theme.textSecondary }]}>Purpose *</ThemedText>
+          <TextInput style={[s.input, { backgroundColor: theme.inputBackground, borderColor: theme.border, color: theme.text }]} placeholder="Enter purpose" placeholderTextColor={theme.textTertiary} value={purpose} onChangeText={setPurpose} />
+          <ThemedText style={[s.fieldLabel, { color: theme.textSecondary }]}>Reason *</ThemedText>
+          <TextInput style={[s.input, { height: 90, textAlignVertical: 'top', paddingTop: 12, backgroundColor: theme.inputBackground, borderColor: theme.border, color: theme.text }]} placeholder="Describe the reason..." placeholderTextColor={theme.textTertiary} value={reason} onChangeText={setReason} multiline />
+          <ThemedText style={[s.fieldLabel, { color: theme.textSecondary }]}>Attachment (Optional)</ThemedText>
+          <TouchableOpacity style={[s.uploadBtn, { backgroundColor: theme.inputBackground, borderColor: theme.border }]} onPress={pickAttachment}>
+            <Ionicons name="attach-outline" size={22} color={theme.textTertiary} />
+            <ThemedText style={[s.uploadText, { color: theme.textSecondary }]}>{attachment ? attachment.name : 'Tap to upload (image/PDF)'}</ThemedText>
             {attachment && <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color="#EF4444" /></TouchableOpacity>}
           </TouchableOpacity>
           {attachment && (
@@ -453,17 +455,17 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
               <Image source={{ uri: attachment.base64Uri }} style={s.attachPreview} resizeMode="cover" />
             ) : (
               <TouchableOpacity
-                style={[s.filePreview, { borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }]}
+                style={[s.filePreview, { borderColor: theme.border, backgroundColor: theme.surface }]}
                 onPress={() => {
                   const uri = attachment.uri || attachment.base64Uri;
                   if (uri) Linking.openURL(uri);
                 }}
               >
                 <Ionicons name="document-text-outline" size={20} color="#1D4ED8" />
-                <ThemedText style={s.filePreviewText} numberOfLines={1}>
+                <ThemedText style={[s.filePreviewText, { color: theme.text }]} numberOfLines={1}>
                   Tap to preview {attachment.name}
                 </ThemedText>
-                <Ionicons name="open-outline" size={18} color="#6B7280" />
+                <Ionicons name="open-outline" size={18} color={theme.textSecondary} />
               </TouchableOpacity>
             )
           )}
@@ -512,53 +514,53 @@ const dd = StyleSheet.create({
 });
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937' },
-  infoBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
-  infoBannerText: { flex: 1, fontSize: 13, color: '#1E40AF' },
-  card: { backgroundColor: '#FFF', marginTop: 10, paddingHorizontal: 16, paddingVertical: 16 },
+  container: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
+  infoBanner: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  infoBannerText: { flex: 1, fontSize: 13 },
+  card: { marginTop: 10, paddingHorizontal: 16, paddingVertical: 16 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-around' },
   summaryItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  summaryLabel: { fontSize: 12, color: '#6B7280', fontWeight: '600' },
-  summaryVal: { fontSize: 22, fontWeight: '700', color: '#1F2937' },
-  checkRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
-  checkLabel: { fontSize: 15, fontWeight: '600', color: '#1F2937' },
-  checkSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  tabs: { flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 10, padding: 4, gap: 4 },
+  summaryLabel: { fontSize: 12, fontWeight: '600' },
+  summaryVal: { fontSize: 22, fontWeight: '700' },
+  checkRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 12 },
+  checkLabel: { fontSize: 15, fontWeight: '600' },
+  checkSub: { fontSize: 12, marginTop: 2 },
+  tabs: { flexDirection: 'row', borderRadius: 10, padding: 4, gap: 4 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 8, gap: 6 },
   tabActive: { backgroundColor: '#F59E0B' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
+  tabText: { fontSize: 14, fontWeight: '600' },
   tabTextActive: { color: '#FFF' },
   badge: { backgroundColor: '#FFF', paddingHorizontal: 7, paddingVertical: 1, borderRadius: 10 },
   badgeText: { fontSize: 11, fontWeight: '700', color: '#F59E0B' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  countText: { fontSize: 14, fontWeight: '600', color: '#374151' },
-  selectAllBtn: { paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#F3F4F6', borderRadius: 6 },
+  countText: { fontSize: 14, fontWeight: '600' },
+  selectAllBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
   selectAllText: { fontSize: 13, fontWeight: '600', color: '#F59E0B' },
-  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12, gap: 8 },
-  searchInput: { flex: 1, fontSize: 15, color: '#1F2937' },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F9FAFB' },
-  itemName: { fontSize: 15, fontWeight: '600', color: '#1F2937' },
-  itemSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  searchBox: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12, gap: 8 },
+  searchInput: { flex: 1, fontSize: 15 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, borderBottomWidth: 1 },
+  itemName: { fontSize: 15, fontWeight: '600' },
+  itemSub: { fontSize: 12, marginTop: 2 },
   empty: { alignItems: 'center', paddingVertical: 30, gap: 8 },
-  emptyText: { fontSize: 14, color: '#9CA3AF' },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1F2937', marginBottom: 12 },
-  receiverInfo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF3C7', padding: 10, borderRadius: 8, marginBottom: 12, gap: 8 },
-  receiverInfoText: { flex: 1, fontSize: 13, color: '#92400E', fontWeight: '500' },
-  catTitle: { fontSize: 12, fontWeight: '700', color: '#9CA3AF', marginTop: 10, marginBottom: 6, letterSpacing: 0.5 },
-  receiverItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderRadius: 10, paddingHorizontal: 8, borderWidth: 1.5, borderColor: 'transparent', marginBottom: 6 },
+  emptyText: { fontSize: 14 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
+  receiverInfo: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 8, marginBottom: 12, gap: 8 },
+  receiverInfoText: { flex: 1, fontSize: 13, fontWeight: '500' },
+  catTitle: { fontSize: 12, fontWeight: '700', marginTop: 10, marginBottom: 6, letterSpacing: 0.5 },
+  receiverItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderRadius: 10, paddingHorizontal: 8, borderWidth: 1.5, marginBottom: 6 },
   receiverItemActive: { backgroundColor: '#FEF3C7', borderColor: '#F59E0B' },
   receiverBadge: { backgroundColor: '#F59E0B', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   receiverBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFF' },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#1F2937' },
-  uploadBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#D1D5DB', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, gap: 10, marginTop: 4 },
-  uploadText: { flex: 1, fontSize: 14, color: '#6B7280' },
+  fieldLabel: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },
+  input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, gap: 10, marginTop: 4 },
+  uploadText: { flex: 1, fontSize: 14 },
   attachPreview: { width: '100%', height: 150, borderRadius: 10, marginTop: 10 },
   filePreview: { marginTop: 10, borderWidth: 1, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  filePreviewText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#1F2937' },
+  filePreviewText: { flex: 1, fontSize: 14, fontWeight: '600' },
   submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#10B981', marginHorizontal: 16, marginTop: 16, paddingVertical: 16, borderRadius: 12, gap: 8 },
   submitBtnDisabled: { opacity: 0.5 },
   submitBtnText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
