@@ -288,7 +288,7 @@ const HODBulkGatePassScreen: React.FC<HODBulkGatePassScreenProps> = ({ user, nav
         <ThemedText style={[s.infoBannerText, { color: theme.primary }]}>Bulk passes — no HR approval required</ThemedText>
       </View>
 
-      <VerticalScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <VerticalScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Summary */}
         <View style={[s.card, { backgroundColor: theme.surface }]}>
           <View style={s.summaryRow}>

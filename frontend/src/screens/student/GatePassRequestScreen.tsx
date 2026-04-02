@@ -175,7 +175,7 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
         <ThemedText style={[styles.headerTitle, { color: theme.text }]}>New Gate Pass Request</ThemedText>
         <View style={{ width: 44 }} />
       </View>
-      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         <View>
           <View style={[styles.infoCard, { backgroundColor: theme.surface }]}>
             <View style={styles.avatarContainer}>

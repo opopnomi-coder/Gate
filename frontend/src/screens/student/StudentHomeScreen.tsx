@@ -28,7 +28,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface StudentHomeScreenProps {
@@ -220,69 +220,73 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       </View>
 
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false} decelerationRate="normal"
-      >
-        <View style={[styles.statsCard, { backgroundColor: theme.cardBackground }]}>
-          <View style={styles.statItem}>
-            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.entries}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>ENTRIES</ThemedText>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.exits}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>EXITS</ThemedText>
-          </View>
-        </View>
+        <VerticalFlatList
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          data={recentRequests}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.scrollContent}
+          ListHeaderComponent={
+            <>
+              <View style={[styles.statsCard, { backgroundColor: theme.cardBackground }]}>
+                <View style={styles.statItem}>
+                  <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.entries}</ThemedText>
+                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>ENTRIES</ThemedText>
+                </View>
+                <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
+                <View style={styles.statItem}>
+                  <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.exits}</ThemedText>
+                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>EXITS</ThemedText>
+                </View>
+              </View>
 
-        <TouchableOpacity style={[styles.requestCard, { backgroundColor: theme.cardBackground }]} onPress={onRequestGatePass}>
-          <View style={[styles.requestCardTop, { backgroundColor: theme.primary }]}>
-            <Ionicons name="shield-checkmark" size={40} color="rgba(255,255,255,0.7)" />
-          </View>
-          <View style={[styles.requestCardBottom, { backgroundColor: theme.cardBackground }]}>
-             <View style={styles.requestCardContent}>
-               <ThemedText style={[styles.requestCardTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
-             </View>
-             <TouchableOpacity style={[styles.applyButton, { backgroundColor: theme.primary }]} onPress={onRequestGatePass}>
-               <ThemedText style={styles.applyButtonText}>Apply Now</ThemedText>
-             </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+              <TouchableOpacity style={[styles.requestCard, { backgroundColor: theme.cardBackground }]} onPress={onRequestGatePass}>
+                <View style={[styles.requestCardTop, { backgroundColor: theme.primary }]}>
+                  <Ionicons name="shield-checkmark" size={40} color="rgba(255,255,255,0.7)" />
+                </View>
+                <View style={[styles.requestCardBottom, { backgroundColor: theme.cardBackground }]}>
+                  <View style={styles.requestCardContent}>
+                    <ThemedText style={[styles.requestCardTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
+                  </View>
+                  <TouchableOpacity style={[styles.applyButton, { backgroundColor: theme.primary }]} onPress={onRequestGatePass}>
+                    <ThemedText style={styles.applyButtonText}>Apply Now</ThemedText>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
 
-        <View style={styles.sectionHeader}>
-          <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
-        </View>
-
-        {recentRequests.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="document-text-outline" size={48} color={theme.border} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No recent requests</ThemedText>
-          </View>
-        ) : (
-          recentRequests.map((request) => (
-            <TouchableOpacity key={request.id} style={[styles.requestItem, { backgroundColor: theme.cardBackground }]} onPress={() => handleRequestClick(request)}>
-               <View style={styles.requestItemTop}>
-                 <View style={{ flex: 1 }}>
-                   <ThemedText style={[styles.requestId, { color: theme.text }]}>{request.purpose || 'Gate Pass Request'}</ThemedText>
-                   <ThemedText style={[styles.requestReason, { color: theme.textSecondary }]}>{formatDate(request.requestDate)}</ThemedText>
-                 </View>
-                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
-                    <ThemedText style={styles.statusText}>{getStatusLabel(request.status)}</ThemedText>
-                 </View>
-               </View>
-               {request.status === 'APPROVED' && (
-                 <TouchableOpacity style={[styles.viewQRButton, { backgroundColor: theme.primary }]} onPress={() => handleViewQR(request)}>
-                   <Ionicons name="qr-code-outline" size={16} color="#FFFFFF" />
-                   <ThemedText style={styles.viewQRButtonText}>View QR</ThemedText>
-                 </TouchableOpacity>
-               )}
+              <View style={styles.sectionHeader}>
+                <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
+              </View>
+            </>
+          }
+          renderItem={({ item: request }) => (
+            <TouchableOpacity style={[styles.requestItem, { backgroundColor: theme.cardBackground }]} onPress={() => handleRequestClick(request)}>
+              <View style={styles.requestItemTop}>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[styles.requestId, { color: theme.text }]}>{request.purpose || 'Gate Pass Request'}</ThemedText>
+                  <ThemedText style={[styles.requestReason, { color: theme.textSecondary }]}>{formatDate(request.requestDate)}</ThemedText>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
+                  <ThemedText style={styles.statusText}>{getStatusLabel(request.status)}</ThemedText>
+                </View>
+              </View>
+              {request.status === 'APPROVED' && (
+                <TouchableOpacity style={[styles.viewQRButton, { backgroundColor: theme.primary }]} onPress={() => handleViewQR(request)}>
+                  <Ionicons name="qr-code-outline" size={16} color="#FFFFFF" />
+                  <ThemedText style={styles.viewQRButtonText}>View QR</ThemedText>
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
-          ))
-        )}
-        <View style={{ height: 100 }} />
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="document-text-outline" size={48} color={theme.border} />
+              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No recent requests</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
 
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
@@ -318,18 +322,27 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               </TouchableOpacity>
             </View>
             {selectedRequest && (
-              <VerticalScrollView style={styles.detailModalContent} showsVerticalScrollIndicator={false} decelerationRate="normal">
-                <View style={[styles.statusModalHeader, { borderBottomColor: theme.border }]}>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText style={[styles.statusModalId, { color: theme.primary }]}>#{selectedRequest.id}</ThemedText>
-                    <ThemedText style={[styles.statusModalDate, { color: theme.textSecondary }]}>{new Date(selectedRequest.requestDate).toLocaleDateString()}</ThemedText>
-                  </View>
-                </View>
-                <RequestTimeline status={selectedRequest.status} staffApproval={selectedRequest.staffApproval || 'PENDING'} hodApproval={selectedRequest.hodApproval || 'PENDING'} requestDate={selectedRequest.requestDate} staffRemark={selectedRequest.staffRemark} hodRemark={selectedRequest.hodRemark}/>
-                <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.inputBackground }]} onPress={() => setShowDetailModal(false)}>
-                  <ThemedText style={[styles.closeModalButtonText, { color: theme.text }]}>Close Status</ThemedText>
-                </TouchableOpacity>
-              </VerticalScrollView>
+              <VerticalFlatList
+                style={styles.detailModalContent}
+                showsVerticalScrollIndicator={false}
+                decelerationRate="normal"
+                data={['content']}
+                keyExtractor={(item) => item}
+                renderItem={() => (
+                  <>
+                    <View style={[styles.statusModalHeader, { borderBottomColor: theme.border }]}>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText style={[styles.statusModalId, { color: theme.primary }]}>#{selectedRequest.id}</ThemedText>
+                        <ThemedText style={[styles.statusModalDate, { color: theme.textSecondary }]}>{new Date(selectedRequest.requestDate).toLocaleDateString()}</ThemedText>
+                      </View>
+                    </View>
+                    <RequestTimeline status={selectedRequest.status} staffApproval={selectedRequest.staffApproval || 'PENDING'} hodApproval={selectedRequest.hodApproval || 'PENDING'} requestDate={selectedRequest.requestDate} staffRemark={selectedRequest.staffRemark} hodRemark={selectedRequest.hodRemark}/>
+                    <TouchableOpacity style={[styles.closeModalButton, { backgroundColor: theme.inputBackground }]} onPress={() => setShowDetailModal(false)}>
+                      <ThemedText style={[styles.closeModalButtonText, { color: theme.text }]}>Close Status</ThemedText>
+                    </TouchableOpacity>
+                  </>
+                )}
+              />
             )}
           </View>
         </View>
@@ -358,6 +371,7 @@ const styles = StyleSheet.create({
   notificationBadge: { position: 'absolute', top: 4, right: 4, borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
   notificationBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   content: { flex: 1 },
+  scrollContent: { paddingBottom: 100 },
   statsCard: { flexDirection: 'row', marginHorizontal: 20, marginTop: 20, borderRadius: 16, padding: 16, elevation: 2 },
   statItem: { flex: 1, alignItems: 'center', paddingVertical: 8 },
   statValue: { fontSize: 36, fontWeight: '700', marginBottom: 4 },

@@ -27,7 +27,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import { formatTime as fmtTime, getRelativeTimeShort } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 
 interface NewSecurityDashboardProps {
@@ -322,136 +322,139 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
       {/* Stats Cards */}
       <ScreenContentContainer style={{ flex: 1 }}>
-      <VerticalScrollView
-        style={styles.outerScroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={styles.outerScrollContent}
-      >
-        <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
-            <View style={[styles.statIcon, { backgroundColor: theme.success }]}>
-              <Ionicons name="enter-outline" size={20} color="#FFFFFF" />
-            </View>
-            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.active}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>Active</ThemedText>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
-            <View style={[styles.statIcon, { backgroundColor: theme.error }]}>
-              <Ionicons name="exit-outline" size={20} color="#FFFFFF" />
-            </View>
-            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.exited}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>Exited</ThemedText>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
-            <View style={[styles.statIcon, { backgroundColor: theme.primary }]}>
-              <Ionicons name="people-outline" size={20} color="#FFFFFF" />
-            </View>
-            <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.total}</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>Total</ThemedText>
-          </View>
-        </View>
-
-      {/* Visitor Requests Section — escalated after 5 min of no staff response */}
-      {escalatedVisitors.length > 0 && (
-        <>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="alert-circle" size={18} color={theme.error} />
-              <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Pending Visitor Requests</ThemedText>
-            </View>
-            <View style={[styles.badge, { backgroundColor: theme.error + '22' }]}>
-              <ThemedText style={[styles.badgeText, { color: theme.error }]}>{escalatedVisitors.length}</ThemedText>
-            </View>
-          </View>
-          <ThemedText style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
-            Staff did not respond within 5 min — your action required
-          </ThemedText>
-
-          {escalatedVisitors.map((visitor) => (
-            <TouchableOpacity
-              key={visitor.id}
-              style={[styles.requestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-              onPress={() => { setSelectedVisitor(visitor); setShowVisitorModal(true); }}
-            >
-              <View style={styles.cardTopRow}>
-                <View style={[styles.avatarContainer, { backgroundColor: theme.error + '22' }]}>
-                  <ThemedText style={[styles.requestAvatarText, { color: theme.error }]}>
-                    {getInitials(visitor.name)}
-                  </ThemedText>
+        <VerticalFlatList
+          style={styles.outerScroll}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={styles.outerScrollContent}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          data={activePersons.filter(p => p.status === 'PENDING')}
+          keyExtractor={(person, index) => `${person.id}-${index}`}
+          ListHeaderComponent={
+            <>
+              <View style={styles.statsContainer}>
+                <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+                  <View style={[styles.statIcon, { backgroundColor: theme.success }]}>
+                    <Ionicons name="enter-outline" size={20} color="#FFFFFF" />
+                  </View>
+                  <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.active}</ThemedText>
+                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>Active</ThemedText>
                 </View>
-                <View style={styles.headerMainInfo}>
-                  <View style={styles.nameRow}>
-                    <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                      {visitor.name}
-                    </ThemedText>
-                    <View style={[styles.passTypePill, { backgroundColor: theme.error + '15', borderColor: theme.error + '44' }]}>
-                      <ThemedText style={[styles.passTypePillText, { color: theme.error }]}>Visitor</ThemedText>
+                <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+                  <View style={[styles.statIcon, { backgroundColor: theme.error }]}>
+                    <Ionicons name="exit-outline" size={20} color="#FFFFFF" />
+                  </View>
+                  <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.exited}</ThemedText>
+                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>Exited</ThemedText>
+                </View>
+                <View style={[styles.statCard, { backgroundColor: theme.primary }]}>
+                  <View style={[styles.statIcon, { backgroundColor: theme.primary }]}>
+                    <Ionicons name="people-outline" size={20} color="#FFFFFF" />
+                  </View>
+                  <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.total}</ThemedText>
+                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>Total</ThemedText>
+                </View>
+              </View>
+
+              {/* Visitor Requests Section */}
+              {escalatedVisitors.length > 0 && (
+                <View style={{ marginTop: 10 }}>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionTitleRow}>
+                      <Ionicons name="alert-circle" size={18} color={theme.error} />
+                      <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Pending Visitor Requests</ThemedText>
+                    </View>
+                    <View style={[styles.badge, { backgroundColor: theme.error + '22' }]}>
+                      <ThemedText style={[styles.badgeText, { color: theme.error }]}>{escalatedVisitors.length}</ThemedText>
                     </View>
                   </View>
-                  <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                    To meet: {visitor.personToMeet} • {visitor.department}
+                  <ThemedText style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                    Staff did not respond within 5 min — your action required
                   </ThemedText>
+
+                  {escalatedVisitors.map((visitor) => (
+                    <TouchableOpacity
+                      key={visitor.id}
+                      style={[styles.requestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                      onPress={() => { setSelectedVisitor(visitor); setShowVisitorModal(true); }}
+                    >
+                      <View style={styles.cardTopRow}>
+                        <View style={[styles.avatarContainer, { backgroundColor: theme.error + '22' }]}>
+                          <ThemedText style={[styles.requestAvatarText, { color: theme.error }]}>
+                            {getInitials(visitor.name)}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.headerMainInfo}>
+                          <View style={styles.nameRow}>
+                            <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                              {visitor.name}
+                            </ThemedText>
+                            <View style={[styles.passTypePill, { backgroundColor: theme.error + '15', borderColor: theme.error + '44' }]}>
+                              <ThemedText style={[styles.passTypePillText, { color: theme.error }]}>Visitor</ThemedText>
+                            </View>
+                          </View>
+                          <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                            To meet: {visitor.personToMeet} • {visitor.department}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.timeAgoContainer}>
+                          <Ionicons name="time-outline" size={12} color={theme.error} />
+                          <ThemedText style={[styles.timeAgoText, { color: theme.error }]}>
+                            {getRelativeTimeShort(visitor.escalationTime || visitor.createdAt)}
+                          </ThemedText>
+                        </View>
+                      </View>
+
+                      <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
+                        <View style={styles.detailItem}>
+                          <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
+                          <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{visitor.purpose}</ThemedText>
+                        </View>
+                        <View style={styles.detailItem}>
+                          <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
+                          <ThemedText style={[styles.detailText, { color: theme.text }]}>{visitor.numberOfPeople} {visitor.numberOfPeople === 1 ? 'person' : 'people'}</ThemedText>
+                        </View>
+                        <View style={styles.detailItem}>
+                          <Ionicons name="call-outline" size={14} color={theme.textSecondary} />
+                          <ThemedText style={[styles.detailText, { color: theme.text }]}>{visitor.phone}</ThemedText>
+                        </View>
+                      </View>
+
+                      <View style={styles.cardFooter}>
+                        <TouchableOpacity
+                          style={[styles.actionBtn, { backgroundColor: theme.success }]}
+                          onPress={(e) => { e.stopPropagation(); handleApproveVisitor(visitor); }}
+                        >
+                          <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                          <ThemedText style={[styles.actionBtnText, { color: '#FFFFFF' }]}>Approve</ThemedText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.actionBtn, { backgroundColor: theme.error }]}
+                          onPress={(e) => { e.stopPropagation(); handleRejectVisitor(visitor); }}
+                        >
+                          <Ionicons name="close" size={14} color="#FFFFFF" />
+                          <ThemedText style={[styles.actionBtnText, { color: '#FFFFFF' }]}>Reject</ThemedText>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-                <View style={styles.timeAgoContainer}>
-                  <Ionicons name="time-outline" size={12} color={theme.error} />
-                  <ThemedText style={[styles.timeAgoText, { color: theme.error }]}>
-                    {getRelativeTimeShort(visitor.escalationTime || visitor.createdAt)}
-                  </ThemedText>
+              )}
+
+              {/* Active Persons Section Header */}
+              <View style={[styles.sectionHeader, { paddingBottom: 12 }]}>
+                <View style={styles.sectionTitleRow}>
+                  <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Active Persons</ThemedText>
                 </View>
+                <ThemedText style={[styles.sectionCount, { color: theme.textSecondary }]}>{stats.active} active</ThemedText>
               </View>
-
-              <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
-                <View style={styles.detailItem}>
-                  <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
-                  <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{visitor.purpose}</ThemedText>
-                </View>
-                <View style={styles.detailItem}>
-                  <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
-                  <ThemedText style={[styles.detailText, { color: theme.text }]}>{visitor.numberOfPeople} {visitor.numberOfPeople === 1 ? 'person' : 'people'}</ThemedText>
-                </View>
-                <View style={styles.detailItem}>
-                  <Ionicons name="call-outline" size={14} color={theme.textSecondary} />
-                  <ThemedText style={[styles.detailText, { color: theme.text }]}>{visitor.phone}</ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.cardFooter}>
-                <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: theme.success }]}
-                  onPress={(e) => { e.stopPropagation(); handleApproveVisitor(visitor); }}
-                >
-                  <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                  <ThemedText style={[styles.actionBtnText, { color: '#FFFFFF' }]}>Approve</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: theme.error }]}
-                  onPress={(e) => { e.stopPropagation(); handleRejectVisitor(visitor); }}
-                >
-                  <Ionicons name="close" size={14} color="#FFFFFF" />
-                  <ThemedText style={[styles.actionBtnText, { color: '#FFFFFF' }]}>Reject</ThemedText>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </>
-      )}
-
-        {/* Active Persons List */}
-        <View style={[styles.sectionHeader, { paddingBottom: 12 }]}>
-          <View style={styles.sectionTitleRow}>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Active Persons</ThemedText>
-          </View>
-          <ThemedText style={[styles.sectionCount, { color: theme.textSecondary }]}>{stats.active} active</ThemedText>
-        </View>
-
-        {activePersons.filter(p => p.status === 'PENDING').length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={64} color={theme.border} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No active persons</ThemedText>
-          </View>
-        ) : (
-          activePersons.filter(p => p.status === 'PENDING').map((person, index) => (
-            <TouchableOpacity key={`${person.id}-${index}`} style={[styles.personCard, { backgroundColor: theme.surface }]} onPress={() => { setSelectedPerson(person); setShowDetailModal(true); }}>
+            </>
+          }
+          renderItem={({ item: person }) => (
+            <TouchableOpacity
+              style={[styles.personCard, { backgroundColor: theme.surface }]}
+              onPress={() => { setSelectedPerson(person); setShowDetailModal(true); }}
+            >
               <View style={[styles.personAvatar, { backgroundColor: theme.primary }]}>
                 <ThemedText style={styles.personAvatarText}>{getInitials(person.name)}</ThemedText>
               </View>
@@ -466,16 +469,23 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                   <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>ACTIVE</ThemedText>
                 </View>
                 <ThemedText style={[styles.personTime, { color: theme.textTertiary }]}>{formatTime(person.inTime)}</ThemedText>
-                <TouchableOpacity style={[styles.exitButton, { backgroundColor: theme.error }]} onPress={(e) => { e.stopPropagation(); handleManualExit(person); }}>
+                <TouchableOpacity
+                  style={[styles.exitButton, { backgroundColor: theme.error }]}
+                  onPress={(e) => { e.stopPropagation(); handleManualExit(person); }}
+                >
                   <Ionicons name="log-out-outline" size={16} color="#FFFFFF" />
                   <ThemedText style={[styles.exitButtonText, { color: '#FFFFFF' }]}>Exit</ThemedText>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          ))
-        )}
-        <View style={{ height: 100 }} />
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="people-outline" size={64} color={theme.border} />
+              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No active persons</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}
@@ -557,7 +567,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                   </View>
                   <View style={detailStyles.tlBody}>
                     <ThemedText style={[detailStyles.tlTitle, { color: theme.text }]}>Entry Recorded</ThemedText>
-                    <ThemedText style={[detailStyles.tlStatus, { color: theme.success }]}>✓ Completed — {formatTime(selectedPerson.inTime)}</ThemedText>
+                    <ThemedText style={[detailStyles.tlStatus, { color: theme.success }]}>✓ Completed — {selectedPerson.inTime ? formatTime(selectedPerson.inTime) : ''}</ThemedText>
                   </View>
                 </View>
                 <View style={[detailStyles.tlConnector, { backgroundColor: selectedPerson.status === 'EXITED' ? theme.success : theme.border }]} />
@@ -771,7 +781,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   outerScroll: { flex: 1 },
-  outerScrollContent: { paddingBottom: 20 },
+  outerScrollContent: { paddingBottom: 100 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   avatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },

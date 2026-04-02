@@ -28,7 +28,7 @@ import ErrorModal from '../../components/ErrorModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface NewHODDashboardProps {
@@ -266,50 +266,47 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         </View>
       </View>
 
-      {/* Search Bar */}
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false} decelerationRate="normal"
-      >
-      <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
-        <Ionicons name="search" size={20} color={theme.textTertiary} />
-        <TextInput
-          style={[styles.searchInput, { color: theme.text }]}
-          placeholder="Search requests..."
-          placeholderTextColor={theme.textTertiary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+        <VerticalFlatList
+          style={styles.content}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          data={filteredRequests}
+          keyExtractor={(request) => request.id.toString()}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          ListHeaderComponent={
+            <>
+              {/* Search Bar */}
+              <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
+                <Ionicons name="search" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.searchInput, { color: theme.text }]}
+                  placeholder="Search requests..."
+                  placeholderTextColor={theme.textTertiary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
 
-      {/* Stats Tabs */}
-      <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
-        <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]} onPress={() => setActiveTab('PENDING')}>
-          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>PENDING</ThemedText>
-          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]} onPress={() => setActiveTab('APPROVED')}>
-          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</ThemedText>
-          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</ThemedText>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]} onPress={() => setActiveTab('REJECTED')}>
-          <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</ThemedText>
-          <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
-        </TouchableOpacity>
-      </View>
-
-      {/* Request List */}
-      <View style={styles.scrollContent}>
-        {filteredRequests.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
-          </View>
-        ) : (
-          filteredRequests.map((request) => (
+              {/* Stats Tabs */}
+              <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
+                <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]} onPress={() => setActiveTab('PENDING')}>
+                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>PENDING</ThemedText>
+                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]} onPress={() => setActiveTab('APPROVED')}>
+                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</ThemedText>
+                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]} onPress={() => setActiveTab('REJECTED')}>
+                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</ThemedText>
+                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </>
+          }
+          renderItem={({ item: request }) => (
             <TouchableOpacity
               key={request.id}
               style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
@@ -329,7 +326,8 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                 } else {
                   setShowDetailModal(true);
                 }
-              }}            >
+              }}
+            >
               <View style={styles.cardTopRow}>
                 <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
                   <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
@@ -408,10 +406,14 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                 </View>
               </View>
             </TouchableOpacity>
-          ))
-        )}
-      </View>
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
+              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}

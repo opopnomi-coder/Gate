@@ -14,7 +14,7 @@ import { exportStyledPdfReport } from '../../utils/pdfReport';
 import { formatDateShort } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 
@@ -118,84 +118,88 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScreenContentContainer>
-        <VerticalScrollView
+      <ScreenContentContainer style={{ flex: 1 }}>
+        <VerticalFlatList
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
-          contentContainerStyle={styles.listContent}
+          data={exitLogs}
+          keyExtractor={(item) => `exit-${item.id}`}
+          contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
           showsVerticalScrollIndicator={false}
           decelerationRate="normal"
-        >
-          {/* Hint */}
-          <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
-            {rangeLabel} — {loading ? 'Loading…' : `${exitLogs.length} record${exitLogs.length !== 1 ? 's' : ''}`}
-          </ThemedText>
-
-          {/* Action buttons */}
-          <View style={styles.actions}>
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => setRangeModalVisible(true)}>
-              <Ionicons name="calendar-outline" size={16} color="#fff" />
-              <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Date Range</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: exitLogs.length > 0 ? theme.success : theme.border }]}
-              onPress={exportPdf}
-              disabled={isDownloading}
-            >
-              {isDownloading
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Ionicons name="download-outline" size={16} color="#fff" />}
-              <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Download PDF</ThemedText>
-            </TouchableOpacity>
-          </View>
-
-          {/* Content */}
-          {loading ? (
-            <View style={styles.centered}>
-              <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-          ) : exitLogs.length === 0 ? (
-            <View style={styles.emptyCard}>
-              <View style={[styles.emptyIconWrap, { backgroundColor: theme.border + '40' }]}>
-                <Ionicons name="log-out-outline" size={40} color={theme.textTertiary} />
-              </View>
-              <ThemedText style={[styles.emptyTitle, { color: theme.text }]}>No exit records</ThemedText>
-              <ThemedText style={[styles.emptySub, { color: theme.textSecondary }]}>
-                No exits found for the selected period.{'\n'}Use Date Range to filter by a specific date.
+          ListHeaderComponent={
+            <>
+              {/* Hint */}
+              <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
+                {rangeLabel} — {loading ? 'Loading…' : `${exitLogs.length} record${exitLogs.length !== 1 ? 's' : ''}`}
               </ThemedText>
-            </View>
-          ) : (
-            exitLogs.map((item) => (
-              <View key={`exit-${item.id}`} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={styles.cardTop}>
-                  <View style={[styles.avatar, { backgroundColor: theme.error + '18' }]}>
-                    <ThemedText style={[styles.avatarText, { color: theme.error }]}>{getInitials(item.name || item.userId)}</ThemedText>
-                  </View>
-                  <View style={styles.cardInfo}>
-                    <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{item.name || item.userId || 'Unknown'}</ThemedText>
-                    <ThemedText style={[styles.cardSub, { color: theme.textSecondary }]} numberOfLines={1}>
-                      {item.userId}{item.department ? ` • ${item.department}` : ''}
-                    </ThemedText>
-                  </View>
-                  <View style={[styles.badge, { backgroundColor: theme.error + '15' }]}>
-                    <ThemedText style={[styles.badgeText, { color: theme.error }]}>{item.userType || 'EXIT'}</ThemedText>
-                  </View>
+
+              {/* Action buttons */}
+              <View style={styles.actions}>
+                <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => setRangeModalVisible(true)}>
+                  <Ionicons name="calendar-outline" size={16} color="#fff" />
+                  <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Date Range</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: exitLogs.length > 0 ? theme.success : theme.border }]}
+                  onPress={exportPdf}
+                  disabled={isDownloading}
+                >
+                  {isDownloading
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : <Ionicons name="download-outline" size={16} color="#fff" />}
+                  <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Download PDF</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </>
+          }
+          renderItem={({ item }) => (
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border, marginHorizontal: 4 }]}>
+              <View style={styles.cardTop}>
+                <View style={[styles.avatar, { backgroundColor: theme.error + '18' }]}>
+                  <ThemedText style={[styles.avatarText, { color: theme.error }]}>{getInitials(item.name || item.userId)}</ThemedText>
                 </View>
-                <View style={[styles.cardDetails, { backgroundColor: theme.inputBackground }]}>
-                  {item.purpose ? (
-                    <View style={styles.detailRow}>
-                      <Ionicons name="document-text-outline" size={13} color={theme.textTertiary} />
-                      <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{item.purpose}</ThemedText>
-                    </View>
-                  ) : null}
-                  <View style={styles.detailRow}>
-                    <Ionicons name="time-outline" size={13} color={theme.error} />
-                    <ThemedText style={[styles.detailText, { color: theme.error }]}>{formatDateShort(item.exitTime)}</ThemedText>
-                  </View>
+                <View style={styles.cardInfo}>
+                  <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{item.name || item.userId || 'Unknown'}</ThemedText>
+                  <ThemedText style={[styles.cardSub, { color: theme.textSecondary }]} numberOfLines={1}>
+                    {item.userId}{item.department ? ` • ${item.department}` : ''}
+                  </ThemedText>
+                </View>
+                <View style={[styles.badge, { backgroundColor: theme.error + '15' }]}>
+                  <ThemedText style={[styles.badgeText, { color: theme.error }]}>{item.userType || 'EXIT'}</ThemedText>
                 </View>
               </View>
-            ))
+              <View style={[styles.cardDetails, { backgroundColor: theme.inputBackground }]}>
+                {item.purpose ? (
+                  <View style={styles.detailRow}>
+                    <Ionicons name="document-text-outline" size={13} color={theme.textTertiary} />
+                    <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{item.purpose}</ThemedText>
+                  </View>
+                ) : null}
+                <View style={styles.detailRow}>
+                  <Ionicons name="time-outline" size={13} color={theme.error} />
+                  <ThemedText style={[styles.detailText, { color: theme.error }]}>{formatDateShort(item.exitTime)}</ThemedText>
+                </View>
+              </View>
+            </View>
           )}
-        </VerticalScrollView>
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyCard}>
+                <View style={[styles.emptyIconWrap, { backgroundColor: theme.border + '40' }]}>
+                  <Ionicons name="log-out-outline" size={40} color={theme.textTertiary} />
+                </View>
+                <ThemedText style={[styles.emptyTitle, { color: theme.text }]}>No exit records</ThemedText>
+                <ThemedText style={[styles.emptySub, { color: theme.textSecondary }]}>
+                  No exits found for the selected period.{'\n'}Use Date Range to filter by a specific date.
+                </ThemedText>
+              </View>
+            ) : (
+              <View style={styles.centered}>
+                <ActivityIndicator size="large" color={theme.primary} />
+              </View>
+            )
+          }
+        />
       </ScreenContentContainer>
 
       {/* Date Range Modal */}

@@ -136,7 +136,7 @@ const HODGatePassRequestScreen: React.FC<HODGatePassRequestScreenProps> = ({ use
         <View style={{ width: 44 }} />
       </View>
 
-      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <VerticalScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 120 }}>
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
 
           {/* User Info Card */}

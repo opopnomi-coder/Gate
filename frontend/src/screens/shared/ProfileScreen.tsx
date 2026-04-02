@@ -321,7 +321,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <Ionicons name="log-out-outline" size={20} color={theme.error} style={{ marginRight: 8 }} />
           <ThemedText style={[styles.logoutText, { color: theme.error }]}>Log Out</ThemedText>
         </TouchableOpacity>
-        <View style={{ height: showBottomNav ? 100 : 40 }} />
+        <View style={{ height: showBottomNav ? 120 : 40 }} />
       </VerticalScrollView>
       </ScreenContentContainer>
 

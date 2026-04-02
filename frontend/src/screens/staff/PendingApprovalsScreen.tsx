@@ -21,7 +21,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface PendingApprovalsScreenProps {
@@ -168,23 +168,13 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
       </View>
 
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
-          </View>
-        ) : pendingRequests.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="checkmark-done" size={64} color={theme.textTertiary} />
-            <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No pending requests</ThemedText>
-            <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>All gate pass requests have been processed</ThemedText>
-          </View>
-        ) : (
-          pendingRequests.map((request) => (
+        <VerticalFlatList
+          style={styles.content}
+          data={pendingRequests}
+          keyExtractor={(request) => request.id.toString()}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={styles.scrollContent}
+          renderItem={({ item: request }) => (
             <TouchableOpacity
               key={request.id}
               style={[styles.requestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -300,9 +290,22 @@ const PendingApprovalsScreen: React.FC<PendingApprovalsScreenProps> = ({ user, n
                 </View>
               </View>
             </TouchableOpacity>
-          ))
-        )}
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="checkmark-done" size={64} color={theme.textTertiary} />
+                <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No pending requests</ThemedText>
+                <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>All gate pass requests have been processed</ThemedText>
+              </View>
+            )
+          }
+        />
       </ScreenContentContainer>
 
       <BulkDetailsModal
@@ -347,7 +350,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1 },
   backButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' },
-  content: { flex: 1, padding: 16 },
+  content: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   loadingText: { marginTop: 16, fontSize: 16 },
   emptyState: { alignItems: 'center', padding: 40 },

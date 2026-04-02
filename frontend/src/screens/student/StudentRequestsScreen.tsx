@@ -21,7 +21,7 @@ import { useErrorModal } from '../../hooks/useErrorModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 
 interface StudentRequestsScreenProps {
@@ -128,15 +128,15 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
       >
         {/* Top row */}
         <View style={styles.cardTopRow}>
-          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-            <ThemedText style={[styles.avatarText, { color: '#FFFFFF' }]}>{initials}</ThemedText>
+          <View style={[styles.avatar, { backgroundColor: theme.warning + '22' }]}>
+            <ThemedText style={[styles.avatarText, { color: theme.warning }]}>{initials}</ThemedText>
           </View>
           <View style={styles.nameBlock}>
             <View style={styles.nameRow}>
               <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</ThemedText>
               <View style={[styles.typePill, { backgroundColor: theme.inputBackground }]}>
-                <ThemedText style={[styles.typePillText, { color: theme.text }]}>
-                  {isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}
+                <ThemedText style={[styles.typePillText, { color: theme.textSecondary }]}>
+                  {isBulk ? 'Bulk Pass' : 'Single Pass'}
                 </ThemedText>
               </View>
             </View>
@@ -150,15 +150,23 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
         {/* Info box */}
         <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
           <View style={styles.infoRow}>
-            <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
+            <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
             <ThemedText style={[styles.infoText, { color: theme.text }]} numberOfLines={1}>
               {request.purpose || request.reason || 'Gate Pass Request'}
             </ThemedText>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
+            <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
             <ThemedText style={[styles.infoText, { color: theme.text }]}>{formatDate(dateStr)}</ThemedText>
           </View>
+          {isBulk && (
+            <View style={styles.infoRow}>
+              <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
+              <ThemedText style={[styles.infoText, { color: theme.text }]}>
+                {request.participantCount || 1} Participants
+              </ThemedText>
+            </View>
+          )}
         </View>
 
         {/* Status pill */}
@@ -178,34 +186,44 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
         <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
       </View>
 
-      <View style={[styles.searchWrap, { backgroundColor: theme.surface }]}>
-        <Ionicons name="search" size={20} color={theme.textTertiary} />
-        <TextInput
-          style={[styles.searchInput, { color: theme.text }]}
-          placeholder="Search requests..."
-          placeholderTextColor={theme.textTertiary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.requestsContainer}>
-        {filteredRequests.length === 0 ? (
-          <View style={styles.empty}>
-            <Ionicons name="document-text-outline" size={64} color={theme.border} />
-            <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>No requests found</ThemedText>
-          </View>
-        ) : (
-          filteredRequests.map(r => renderCard(r))
-        )}
-        </View>
-      </VerticalScrollView>
+        <VerticalFlatList
+          style={styles.scroll}
+          data={filteredRequests}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              tintColor={theme.primary} 
+            />
+          }
+          ListHeaderComponent={
+            <View style={[styles.searchWrap, { backgroundColor: theme.surface }]}>
+              <Ionicons name="search" size={20} color={theme.textTertiary} />
+              <TextInput
+                style={[styles.searchInput, { color: theme.text }]}
+                placeholder="Search requests..."
+                placeholderTextColor={theme.textTertiary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          }
+          renderItem={({ item }) => renderCard(item)}
+          ListEmptyComponent={
+            !refreshing ? (
+              <View style={styles.empty}>
+                <Ionicons name="document-text-outline" size={64} color={theme.border} />
+                <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>
+                  No requests found
+                </ThemedText>
+              </View>
+            ) : null
+          }
+        />
       </ScreenContentContainer>
 
       {/* Bottom nav */}
@@ -276,30 +294,29 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 16 },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 },
-  requestsContainer: { borderRadius: 16, padding: 12 },
   empty: { paddingVertical: 80, alignItems: 'center' },
   emptyText: { fontSize: 16, fontWeight: '600', marginTop: 16 },
 
   /* Card */
-  card: { borderRadius: 16, padding: 14, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
-  cardTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
-  avatar: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
-  avatarText: { fontSize: 16, fontWeight: '700' },
+  card: { borderRadius: 16, padding: 16, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  cardTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 12 },
+  avatar: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  avatarText: { fontSize: 18, fontWeight: '700' },
   nameBlock: { flex: 1 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  cardName: { fontSize: 15, fontWeight: '700', flexShrink: 1 },
-  typePill: { borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1 },
-  typePillText: { fontSize: 9, fontWeight: '600' },
-  cardSub: { fontSize: 12, marginTop: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  cardName: { fontSize: 16, fontWeight: '700', flexShrink: 1 },
+  typePill: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  typePillText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
+  cardSub: { fontSize: 13, marginTop: 2 },
   timeAgo: { fontSize: 12, flexShrink: 0 },
 
-  infoBox: { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10, gap: 5 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  infoText: { fontSize: 13, flexShrink: 1 },
+  infoBox: { borderRadius: 12, padding: 16, marginBottom: 12, gap: 12 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  infoText: { fontSize: 15, fontWeight: '500', flexShrink: 1 },
 
-  statusPill: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, gap: 5 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 12, fontWeight: '700' },
+  statusText: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
 
   /* Bottom nav */
   bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 8, borderTopWidth: 1, elevation: 8 },

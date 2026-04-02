@@ -18,7 +18,7 @@ import RequestTimeline from '../../components/RequestTimeline';
 import Modal from 'react-native-modal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 
 const TypedModal = Modal as any;
@@ -284,115 +284,109 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
           <View style={{ width: 40 }} />
         </View>
 
-        {/* Requests List */}
-        <VerticalScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={onRefresh} 
-              tintColor={theme.primary} 
-            />
-          }
+        <Animated.View 
+          style={{ 
+            flex: 1,
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }] 
+          }}
         >
-          {loading && requests.length === 0 ? (
-            <View style={styles.loadingContainer}>
-              <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>
-                Loading requests...
-              </ThemedText>
-            </View>
-          ) : filteredRequests.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="document-text-outline" size={64} color={theme.textSecondary} />
-              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-                No requests found
-              </ThemedText>
-            </View>
-          ) : (
-            <Animated.View 
-              style={{ 
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }] 
-              }}
-            >
-              {filteredRequests.map((request, index) => (
-                <TouchableOpacity
-                  key={request.id || index}
-                  style={[styles.requestCard, { backgroundColor: theme.cardBackground }]}
-                  onPress={() => handleCardPress(request)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.cardHeader}>
-                    <View style={{ flex: 1 }}>
-                      <ThemedText style={[styles.cardTitle, { color: theme.text }]}>
-                        {request.purpose || 'Gate Pass Request'}
-                      </ThemedText>
-                      <ThemedText style={[styles.cardDate, { color: theme.textSecondary }]}>
-                        {formatDate(request.requestDate)}
-                      </ThemedText>
-                    </View>
-                    <View
+          <VerticalFlatList
+            style={styles.content}
+            data={filteredRequests}
+            keyExtractor={(request, index) => request.id?.toString() || index.toString()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 120 }} // Extra padding for student navbar
+            refreshControl={
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={onRefresh} 
+                tintColor={theme.primary} 
+              />
+            }
+            renderItem={({ item: request, index }) => (
+              <TouchableOpacity
+                key={request.id || index}
+                style={[styles.requestCard, { backgroundColor: theme.cardBackground }]}
+                onPress={() => handleCardPress(request)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={[styles.cardTitle, { color: theme.text }]}>
+                      {request.purpose || 'Gate Pass Request'}
+                    </ThemedText>
+                    <ThemedText style={[styles.cardDate, { color: theme.textSecondary }]}>
+                      {formatDate(request.requestDate)}
+                    </ThemedText>
+                  </View>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { 
+                        backgroundColor: (request.status === 'APPROVED_BY_HOD' || request.status === 'USED') ? theme.success : 
+                                       request.status === 'REJECTED' ? theme.error : theme.warning
+                      }
+                    ]}
+                  >
+                    <ThemedText
                       style={[
-                        styles.statusBadge,
-                        { 
-                          backgroundColor: (request.status === 'APPROVED_BY_HOD' || request.status === 'USED') ? theme.success : 
-                                         request.status === 'REJECTED' ? theme.error : theme.warning
-                        }
+                        styles.statusText,
+                        { color: '#FFFFFF' }
                       ]}
                     >
-                      <ThemedText
-                       
-                        style={[
-                          styles.statusText,
-                          { color: '#FFFFFF' }
-                        ]}
-                      >
-                        {request.status || 'PENDING'}
-                      </ThemedText>
-                    </View>
+                      {request.status || 'PENDING'}
+                    </ThemedText>
                   </View>
+                </View>
 
-                  {/* Removed individual reason display from card to keep it clean, available in tracking modal if needed */}
-
-                  {((request.status === 'APPROVED' || request.status === 'APPROVED_BY_HOD' || request.status === 'USED') && 
-                    (request.passType !== 'BULK' || (request.qrCode && request.qrOwnerId === user.regNo))) ? (
-                    <TouchableOpacity
-                      style={[styles.quickQrButton, { backgroundColor: theme.primary + '15' }]}
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleViewQR(request);
-                      }}
-                    >
-                      <View style={styles.cardFooter}>
-                        <Ionicons name="qr-code-outline" size={16} color={theme.primary} />
-                        <ThemedText style={[styles.cardFooterText, { color: theme.primary }]}>
-                          {request.passType === 'BULK' ? 'View Group Pass QR' : 'View QR Code'}
-                        </ThemedText>
-                      </View>
-                    </TouchableOpacity>
-                  ) : (
+                {((request.status === 'APPROVED' || request.status === 'APPROVED_BY_HOD' || request.status === 'USED') && 
+                  (request.passType !== 'BULK' || (request.qrCode && request.qrOwnerId === user.regNo))) ? (
+                  <TouchableOpacity
+                    style={[styles.quickQrButton, { backgroundColor: theme.primary + '15' }]}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleViewQR(request);
+                    }}
+                  >
                     <View style={styles.cardFooter}>
-                      <Ionicons name="time-outline" size={16} color={theme.textSecondary} />
-                      <ThemedText style={[styles.cardFooterText, { color: theme.textSecondary }]}>
-                        {request.passType === 'BULK' && request.status !== 'REJECTED' ? 'Waiting for HOD approval' : 'Tap to track status'}
+                      <Ionicons name="qr-code-outline" size={16} color={theme.primary} />
+                      <ThemedText style={[styles.cardFooterText, { color: theme.primary }]}>
+                        {request.passType === 'BULK' ? 'View Group Pass QR' : 'View QR Code'}
                       </ThemedText>
                     </View>
-                  )}
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.cardFooter}>
+                    <Ionicons name="time-outline" size={16} color={theme.textSecondary} />
+                    <ThemedText style={[styles.cardFooterText, { color: theme.textSecondary }]}>
+                      {request.passType === 'BULK' && request.status !== 'REJECTED' ? 'Waiting for HOD approval' : 'Tap to track status'}
+                    </ThemedText>
+                  </View>
+                )}
 
-                  {request.status === 'REJECTED' && request.rejectionReason && (
-                    <View style={[styles.rejectionContainer, { backgroundColor: theme.background }]}>
-                      <Ionicons name="close-circle" size={16} color="#EF4444" />
-                      <ThemedText style={[styles.rejectionText, { color: theme.text }]} numberOfLines={2}>
-                        {request.rejectionReason}
-                      </ThemedText>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </Animated.View>
-          )}
-        </VerticalScrollView>
+                {request.status === 'REJECTED' && request.rejectionReason && (
+                  <View style={[styles.rejectionContainer, { backgroundColor: theme.background }]}>
+                    <Ionicons name="close-circle" size={16} color="#EF4444" />
+                    <ThemedText style={[styles.rejectionText, { color: theme.text }]} numberOfLines={2}>
+                      {request.rejectionReason}
+                    </ThemedText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              !loading ? (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="document-text-outline" size={64} color={theme.textSecondary} />
+                  <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+                    No requests found
+                  </ThemedText>
+                </View>
+              ) : null
+            }
+          />
+        </Animated.View>
 
         {/* QR Code Modal */}
         <QRCodeModal

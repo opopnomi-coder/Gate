@@ -12,12 +12,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { apiService } from '../../services/api';
-import { Staff } from '../../types';
+import { Staff, GatePassRequest } from '../../types';
 import { THEME } from '../../config/api.config';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useTheme } from '../../context/ThemeContext';
 
 
@@ -126,133 +126,142 @@ const HRApprovalScreen: React.FC<HRApprovalScreenProps> = ({ user, request, onBa
         <View style={{ width: 40 }} />
       </View>
 
-      <VerticalScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Request Info Card */}
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
-            <Ionicons name="document-text" size={24} color={theme.primary} />
-            <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Request Information</ThemedText>
-          </View>
-
-          <View style={styles.infoRow}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Request ID:</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>#{request.id}</ThemedText>
-          </View>
-
-          <View style={styles.infoRow}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Purpose:</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.purpose}</ThemedText>
-          </View>
-
-          <View style={styles.infoRow}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.reason}</ThemedText>
-          </View>
-
-          <View style={styles.infoRow}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Exit Schedule:</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>
-              {new Date(request.requestDate).toLocaleString()}
-            </ThemedText>
-          </View>
-        </View>
-
-        {/* HOD Info Card */}
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
-          <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
-            <Ionicons name="person" size={24} color={theme.primary} />
-            <ThemedText style={[styles.cardTitle, { color: theme.text }]}>HOD Information</ThemedText>
-          </View>
-
-          <View style={styles.infoRow}>
-            <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>HOD Code:</ThemedText>
-            <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.regNo}</ThemedText>
-          </View>
-
-          {request.studentName && (
-            <View style={styles.infoRow}>
-              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Name:</ThemedText>
-              <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.studentName}</ThemedText>
-            </View>
-          )}
-
-          {request.department && (
-            <View style={styles.infoRow}>
-              <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Department:</ThemedText>
-              <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.department}</ThemedText>
-            </View>
-          )}
-        </View>
-
-        {/* Attachment Section */}
-        {request.attachmentUri && (
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
-            <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
-              <Ionicons name="attach-outline" size={24} color={theme.textSecondary} />
-              <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Attachment</ThemedText>
-            </View>
-            <TouchableOpacity 
-              style={[styles.vAttachmentCard, { backgroundColor: theme.inputBackground }]}
-              onPress={() => {
-                setPreviewAttachmentUri(request.attachmentUri);
-                setShowAttachmentPreview(true);
-              }}
-            >
-              <Image
-                source={{ uri: request.attachmentUri }}
-                style={styles.vAttachmentImage}
-                resizeMode="cover"
-              />
-              <View style={[styles.vPreviewButton, { backgroundColor: theme.surface }]}>
-                <Ionicons name="expand-outline" size={20} color={theme.text} />
-                <ThemedText style={[styles.vPreviewText, { color: theme.text }]}>Preview Attachment</ThemedText>
+      <VerticalFlatList
+        style={styles.scrollView}
+        data={[request]}
+        keyExtractor={(item: GatePassRequest) => (item.id ?? Math.random()).toString()}
+        renderItem={null}
+        ListHeaderComponent={
+          <View style={styles.scrollContent}>
+            {/* Request Info Card */}
+            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+              <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
+                <Ionicons name="document-text" size={24} color={theme.primary} />
+                <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Request Information</ThemedText>
               </View>
-            </TouchableOpacity>
-          </View>
-        )}
 
-        {/* Action Buttons */}
-        {request.status === 'PENDING_HR' && (
-          <View style={styles.actionContainer}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.approveButton, { backgroundColor: theme.success }]}
-              onPress={handleApprove}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#FFF" />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle" size={20} color="#FFF" />
-                  <ThemedText style={styles.actionButtonText}>Approve Request</ThemedText>
-                </>
+              <View style={styles.infoRow}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Request ID:</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]}>#{request.id}</ThemedText>
+              </View>
+
+              <View style={styles.infoRow}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Purpose:</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.purpose}</ThemedText>
+              </View>
+
+              <View style={styles.infoRow}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.reason}</ThemedText>
+              </View>
+
+              <View style={styles.infoRow}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Exit Schedule:</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]}>
+                  {new Date(request.requestDate).toLocaleString()}
+                </ThemedText>
+              </View>
+            </View>
+
+            {/* HOD Info Card */}
+            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+              <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
+                <Ionicons name="person" size={24} color={theme.primary} />
+                <ThemedText style={[styles.cardTitle, { color: theme.text }]}>HOD Information</ThemedText>
+              </View>
+
+              <View style={styles.infoRow}>
+                <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>HOD Code:</ThemedText>
+                <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.regNo}</ThemedText>
+              </View>
+
+              {request.studentName && (
+                <View style={styles.infoRow}>
+                  <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Name:</ThemedText>
+                  <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.studentName}</ThemedText>
+                </View>
               )}
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.rejectButton, { backgroundColor: theme.error }]}
-              onPress={() => setRejectModalVisible(true)}
-              disabled={loading}
-            >
-              <Ionicons name="close-circle" size={20} color="#FFF" />
-              <ThemedText style={styles.actionButtonText}>Reject Request</ThemedText>
-            </TouchableOpacity>
-          </View>
-        )}
+              {request.department && (
+                <View style={styles.infoRow}>
+                  <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>Department:</ThemedText>
+                  <ThemedText style={[styles.infoValue, { color: theme.text }]}>{request.department}</ThemedText>
+                </View>
+              )}
+            </View>
 
-        {request.status !== 'PENDING_HR' && (
-          <View style={[styles.statusCard, { backgroundColor: theme.surface }]}>
-            <Ionicons
-              name={request.status === 'APPROVED' ? 'checkmark-circle' : 'close-circle'}
-              size={48}
-              color={request.status === 'APPROVED' ? theme.success : theme.error}
-            />
-            <ThemedText style={[styles.statusText, { color: theme.text }]}>
-              This request has been {request.status.toLowerCase()}
-            </ThemedText>
+            {/* Attachment Section */}
+            {request.attachmentUri && (
+              <View style={[styles.card, { backgroundColor: theme.surface }]}>
+                <View style={[styles.cardHeader, { borderBottomColor: theme.border }]}>
+                  <Ionicons name="attach-outline" size={24} color={theme.textSecondary} />
+                  <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Attachment</ThemedText>
+                </View>
+                <TouchableOpacity 
+                  style={[styles.vAttachmentCard, { backgroundColor: theme.inputBackground }]}
+                  onPress={() => {
+                    setPreviewAttachmentUri(request.attachmentUri);
+                    setShowAttachmentPreview(true);
+                  }}
+                >
+                  <Image
+                    source={{ uri: request.attachmentUri }}
+                    style={styles.vAttachmentImage}
+                    resizeMode="cover"
+                  />
+                  <View style={[styles.vPreviewButton, { backgroundColor: theme.surface }]}>
+                    <Ionicons name="expand-outline" size={20} color={theme.text} />
+                    <ThemedText style={[styles.vPreviewText, { color: theme.text }]}>Preview Attachment</ThemedText>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            {request.status === 'PENDING_HR' && (
+              <View style={styles.actionContainer}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.approveButton, { backgroundColor: theme.success }]}
+                  onPress={handleApprove}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                      <ThemedText style={styles.actionButtonText}>Approve Request</ThemedText>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.rejectButton, { backgroundColor: theme.error }]}
+                  onPress={() => setRejectModalVisible(true)}
+                  disabled={loading}
+                >
+                  <Ionicons name="close-circle" size={20} color="#FFF" />
+                  <ThemedText style={styles.actionButtonText}>Reject Request</ThemedText>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {request.status !== 'PENDING_HR' && (
+              <View style={[styles.statusCard, { backgroundColor: theme.surface }]}>
+                <Ionicons
+                  name={request.status === 'APPROVED' ? 'checkmark-circle' : 'close-circle'}
+                  size={48}
+                  color={request.status === 'APPROVED' ? theme.success : theme.error}
+                />
+                <ThemedText style={[styles.statusText, { color: theme.text }]}>
+                  This request has been {request.status.toLowerCase()}
+                </ThemedText>
+              </View>
+            )}
           </View>
-        )}
-      </VerticalScrollView>
+        }
+        contentContainerStyle={{ paddingBottom: 120 }}
+      />
 
       {/* Fullscreen Attachment Preview Modal */}
       <Modal

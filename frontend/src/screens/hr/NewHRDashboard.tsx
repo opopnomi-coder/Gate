@@ -33,7 +33,7 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 // GuestPreRequestScreen is navigated to via onNavigate('GUEST_PRE_REQUEST') — not rendered inline
 // HRExitsScreen is navigated to via onNavigate('HR_EXITS') — rendered by HRDashboardContainer
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 
 interface NewHRDashboardProps {
@@ -350,161 +350,161 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       {bottomTab === 'HOME' && (
         <>
           {/* Search Bar */}
-          <ScreenContentContainer>
-            <VerticalScrollView
+          <ScreenContentContainer style={{ flex: 1 }}>
+            <VerticalFlatList
               style={styles.content}
               refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+              data={filteredRequests}
+              keyExtractor={(request) => `${request.requestType}-${request.id}`}
               contentContainerStyle={{ paddingBottom: 100 }}
-              showsVerticalScrollIndicator={false} decelerationRate="normal"
-            >
-              <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
-                <Ionicons name="search" size={20} color={theme.textTertiary} />
-                <TextInput
-                  style={[styles.searchInput, { color: theme.text }]}
-                  placeholder="Search requests..."
-                  placeholderTextColor={theme.textTertiary}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              </View>
-
-              {/* Stats Tabs */}
-              <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
-                <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.primary }]} onPress={() => setActiveTab('PENDING')}>
-                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.primary }]}>PENDING</ThemedText>
-                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]} onPress={() => setActiveTab('APPROVED')}>
-                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</ThemedText>
-                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]} onPress={() => setActiveTab('REJECTED')}>
-                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</ThemedText>
-                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
-                </TouchableOpacity>
-              </View>
-
-              {/* Request List */}
-              <View style={styles.scrollContent}>
-                {filteredRequests.length === 0 ? (
-                  <View style={styles.emptyState}>
-                    <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-                    <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+              showsVerticalScrollIndicator={false}
+              decelerationRate="normal"
+              ListHeaderComponent={
+                <>
+                  <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
+                    <Ionicons name="search" size={20} color={theme.textTertiary} />
+                    <TextInput
+                      style={[styles.searchInput, { color: theme.text }]}
+                      placeholder="Search requests..."
+                      placeholderTextColor={theme.textTertiary}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                    />
                   </View>
-                ) : (
-                  filteredRequests.map((request) => (
-                    <TouchableOpacity
-                      key={`${request.requestType}-${request.id}`}
-                      style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
-                      onPress={() => {
-                        const normalized = request.requestType === 'VISITOR' ? {
-                          ...request,
-                          studentName: request.visitorName || request.studentName,
-                        } : request;
-                        setSelectedRequest(normalized);
-                        setSelectedBulkId(request.id);
-                        if (request.requestType === 'BULK') {
-                          setSelectedBulkRequester({ name: request.requestedByStaffName || request.hodCode || 'HOD', role: request.userType || 'HOD', department: request.department || 'Department' });
-                          setShowBulkModal(true);
-                        } else {
-                          setShowDetailModal(true);
-                        }
-                      }}
-                    >
-                      <View style={styles.cardTopRow}>
-                        <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
-                          <ThemedText style={[styles.cardAvatarText, { color: theme.textSecondary }]}>
-                            {getInitials(request.requestType === 'BULK' ? (request.hodCode || 'HOD') : request.requestType === 'VISITOR' ? (request.visitorName || 'VR') : (request.requestedByStaffName || request.studentName || 'ST'))}
-                          </ThemedText>
-                        </View>
-                        <View style={styles.headerMainInfo}>
-                          <View style={styles.nameRow}>
-                            <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                              {request.requestType === 'VISITOR'
-                                ? (request.visitorName || request.studentName || 'Visitor')
-                                : request.requestType === 'SINGLE'
-                                  ? (request.requestedByStaffName || request.studentName || request.regNo || `Request #${request.id}`)
-                                  : `${request.requestedByStaffName || request.hodCode || 'Staff'}`}
-                            </ThemedText>
-                            <ThemedText style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
-                              {request.requestType === 'BULK'
-                                ? '(Bulk Gatepass)'
-                                : request.requestType === 'VISITOR'
-                                  ? `(${(request.role || 'VISITOR').toUpperCase()} Request)`
-                                  : '(Single Gatepass)'}
-                            </ThemedText>
-                          </View>
-                          <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                            {request.requestType === 'VISITOR'
-                              ? `${request.visitorPhone || ''} • ${request.department || 'Department'}`
-                              : request.requestType === 'SINGLE'
-                                ? `${request.requestedByStaffCode || request.regNo || 'N/A'} • ${request.department || 'Department'}`
-                                : `${request.userType || 'HOD'} • ${request.department || 'N/A'}`}
-                          </ThemedText>
-                        </View>
-                        <View style={styles.timeAgoContainer}>
-                          <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</ThemedText>
-                        </View>
-                      </View>
 
-                      <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
-                        <View style={styles.detailItem}>
-                          <Ionicons name="medical" size={16} color={theme.textSecondary} />
-                          <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
-                        </View>
-                        <View style={styles.detailItem}>
-                          <Ionicons name="calendar" size={16} color={theme.textSecondary} />
-                          <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                            Exit: {formatDateShort(request.exitDateTime || request.requestDate)}
-                          </ThemedText>
-                        </View>
-                        {request.requestType === 'BULK' && (
-                          <View style={styles.detailItem}>
-                            <Ionicons name="people" size={16} color={theme.textSecondary} />
-                            <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                              {(() => {
-                                const parts: string[] = [];
-                                const total = request.participantCount || 0;
-                                const students = request.studentCount || 0;
-                                const staffCount = Math.max(0, total - students);
-                                if (staffCount > 0) parts.push(`Staff - ${staffCount}`);
-                                if (students > 0) parts.push(`Students - ${students}`);
-                                return parts.join(', ') || `${total} Participants`;
-                              })()}
-                            </ThemedText>
-                          </View>
-                        )}
-                      </View>
-
-                      <View style={styles.cardFooter}>
-                        <View style={[
-                          styles.statusBadge,
-                          (() => {
-                            const s = (request.requestType === 'VISITOR' ? request.status : (request.hrApproval || request.status)) || 'PENDING';
-                            if (s === 'APPROVED') return { backgroundColor: theme.success };
-                            if (s === 'REJECTED') return { backgroundColor: theme.error };
-                            return { backgroundColor: theme.warning };
-                          })(),
-                        ]}>
-                          <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>
-                            {(() => {
-                              const s = (request.requestType === 'VISITOR' ? request.status : (request.hrApproval || request.status)) || 'PENDING';
-                              return (s === 'PENDING_HR' || s === 'PENDING' || !s) ? 'PENDING' : s;
-                            })()}
-                          </ThemedText>
-                        </View>
-                        {request.requestType === 'BULK' && (
-                          <View style={[styles.viewBadge, { backgroundColor: theme.surfaceHighlight }]}>
-                            <Ionicons name="people" size={14} color={theme.textSecondary} />
-                            <ThemedText style={[styles.viewBadgeText, { color: theme.textSecondary }]}>Bulk Gatepass</ThemedText>
-                          </View>
-                        )}
-                      </View>
+                  {/* Stats Tabs */}
+                  <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
+                    <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.primary }]} onPress={() => setActiveTab('PENDING')}>
+                      <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.primary }]}>PENDING</ThemedText>
+                      <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>{stats.pending}</ThemedText>
                     </TouchableOpacity>
-                  ))
-                )}
-              </View>
-            </VerticalScrollView>
+                    <TouchableOpacity style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]} onPress={() => setActiveTab('APPROVED')}>
+                      <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>APPROVED</ThemedText>
+                      <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>{stats.approved}</ThemedText>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]} onPress={() => setActiveTab('REJECTED')}>
+                      <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>REJECTED</ThemedText>
+                      <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              }
+              renderItem={({ item: request }) => (
+                <TouchableOpacity
+                  style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border, marginHorizontal: 20 }]}
+                  onPress={() => {
+                    const normalized = request.requestType === 'VISITOR' ? {
+                      ...request,
+                      studentName: request.visitorName || request.studentName,
+                    } : request;
+                    setSelectedRequest(normalized);
+                    setSelectedBulkId(request.id);
+                    if (request.requestType === 'BULK') {
+                      setSelectedBulkRequester({ name: request.requestedByStaffName || request.hodCode || 'HOD', role: request.userType || 'HOD', department: request.department || 'Department' });
+                      setShowBulkModal(true);
+                    } else {
+                      setShowDetailModal(true);
+                    }
+                  }}
+                >
+                  <View style={styles.cardTopRow}>
+                    <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
+                      <ThemedText style={[styles.cardAvatarText, { color: theme.textSecondary }]}>
+                        {getInitials(request.requestType === 'BULK' ? (request.hodCode || 'HOD') : request.requestType === 'VISITOR' ? (request.visitorName || 'VR') : (request.requestedByStaffName || request.studentName || 'ST'))}
+                      </ThemedText>
+                    </View>
+                    <View style={styles.headerMainInfo}>
+                      <View style={styles.nameRow}>
+                        <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                          {request.requestType === 'VISITOR'
+                            ? (request.visitorName || request.studentName || 'Visitor')
+                            : request.requestType === 'SINGLE'
+                              ? (request.requestedByStaffName || request.studentName || request.regNo || `Request #${request.id}`)
+                              : `${request.requestedByStaffName || request.hodCode || 'Staff'}`}
+                        </ThemedText>
+                        <ThemedText style={[styles.passTypeLabel, { color: theme.textSecondary }]}>
+                          {request.requestType === 'BULK'
+                            ? '(Bulk Gatepass)'
+                            : request.requestType === 'VISITOR'
+                              ? `(${(request.role || 'VISITOR').toUpperCase()} Request)`
+                              : '(Single Gatepass)'}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                        {request.requestType === 'VISITOR'
+                          ? `${request.visitorPhone || ''} • ${request.department || 'Department'}`
+                          : request.requestType === 'SINGLE'
+                            ? `${request.requestedByStaffCode || request.regNo || 'N/A'} • ${request.department || 'Department'}`
+                            : `${request.userType || 'HOD'} • ${request.department || 'N/A'}`}
+                      </ThemedText>
+                    </View>
+                    <View style={styles.timeAgoContainer}>
+                      <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>{request.requestDate ? '2h ago' : ''}</ThemedText>
+                    </View>
+                  </View>
+
+                  <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
+                    <View style={styles.detailItem}>
+                      <Ionicons name="medical" size={16} color={theme.textSecondary} />
+                      <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Ionicons name="calendar" size={16} color={theme.textSecondary} />
+                      <ThemedText style={[styles.detailText, { color: theme.text }]}>
+                        Exit: {formatDateShort(request.exitDateTime || request.requestDate)}
+                      </ThemedText>
+                    </View>
+                    {request.requestType === 'BULK' && (
+                      <View style={styles.detailItem}>
+                        <Ionicons name="people" size={16} color={theme.textSecondary} />
+                        <ThemedText style={[styles.detailText, { color: theme.text }]}>
+                          {(() => {
+                            const parts: string[] = [];
+                            const total = request.participantCount || 0;
+                            const students = request.studentCount || 0;
+                            const staffCount = Math.max(0, total - students);
+                            if (staffCount > 0) parts.push(`Staff - ${staffCount}`);
+                            if (students > 0) parts.push(`Students - ${students}`);
+                            return parts.join(', ') || `${total} Participants`;
+                          })()}
+                        </ThemedText>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.cardFooter}>
+                    <View style={[
+                      styles.statusBadge,
+                      (() => {
+                        const s = (request.requestType === 'VISITOR' ? request.status : (request.hrApproval || request.status)) || 'PENDING';
+                        if (s === 'APPROVED') return { backgroundColor: theme.success };
+                        if (s === 'REJECTED') return { backgroundColor: theme.error };
+                        return { backgroundColor: theme.warning };
+                      })(),
+                    ]}>
+                      <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>
+                        {(() => {
+                          const s = (request.requestType === 'VISITOR' ? request.status : (request.hrApproval || request.status)) || 'PENDING';
+                          return (s === 'PENDING_HR' || s === 'PENDING' || !s) ? 'PENDING' : s;
+                        })()}
+                      </ThemedText>
+                    </View>
+                    {request.requestType === 'BULK' && (
+                      <View style={[styles.viewBadge, { backgroundColor: theme.surfaceHighlight }]}>
+                        <Ionicons name="people" size={14} color={theme.textSecondary} />
+                        <ThemedText style={[styles.viewBadgeText, { color: theme.textSecondary }]}>Bulk Gatepass</ThemedText>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
+                  <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+                </View>
+              }
+            />
           </ScreenContentContainer>
         </>
       )}

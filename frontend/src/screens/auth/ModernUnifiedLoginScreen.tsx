@@ -375,7 +375,7 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   keyboardView: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 16 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40 },
   backBtn: { width: 44, height: 44, justifyContent: 'center' },
   mainContent: { flex: 1, alignItems: 'center', paddingTop: 8 },
   hero: { width: '100%', alignItems: 'center', marginBottom: 16 },

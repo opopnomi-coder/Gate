@@ -14,6 +14,7 @@ import { API_CONFIG } from '../../config/api.config';
 import { useTheme } from '../../context/ThemeContext';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface Notification {
@@ -208,7 +209,7 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
             </ThemedText>
           </View>
         ) : (
-          <FlatList
+          <VerticalFlatList
             data={notifications}
             renderItem={({ item }) => {
               const icon = getNotificationIcon(item.notificationType);
@@ -245,9 +246,6 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
-            decelerationRate="normal"
-            nestedScrollEnabled={false}
-            keyboardShouldPersistTaps="handled"
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -273,7 +271,7 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', gap: 10 },
   headerTitle: { fontSize: 20, fontWeight: '900', letterSpacing: -0.2 },
   headerSubtitle: { fontSize: 13, marginTop: 2 },
-  listContainer: { padding: 16 },
+  listContainer: { padding: 16, paddingBottom: 100 },
   notificationCard: {
     flexDirection: 'row',
     borderRadius: 12,

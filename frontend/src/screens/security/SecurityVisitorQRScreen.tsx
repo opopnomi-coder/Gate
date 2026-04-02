@@ -18,7 +18,7 @@ import SecurityBottomNav from '../../components/SecurityBottomNav';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useTheme } from '../../context/ThemeContext';
 
 
@@ -130,85 +130,96 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
-        {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
-          <TouchableOpacity
-            key={f}
-            style={[
-              styles.filterTab, 
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              selectedFilter === f && { backgroundColor: theme.primary + '15', borderColor: theme.primary }
-            ]}
-            onPress={() => setSelectedFilter(f)}
-          >
-            <ThemedText style={[
-              styles.filterText, 
-              { color: theme.textSecondary },
-              selectedFilter === f && { color: theme.primary, fontWeight: '700' }
-            ]}>{f}</ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {/* List */}
-      <VerticalScrollView
+      <VerticalFlatList
         style={styles.scrollView}
+        data={filteredVisitors}
+        keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#00BCD4']} />}
-      >
-        {filteredVisitors.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={64} color="#D1D5DB" />
-            <ThemedText style={styles.emptyText}>No visitor requests found</ThemedText>
-            <ThemedText style={styles.emptySubtext}>
-              {selectedFilter === 'ALL' ? 'Visitor requests will appear here' : `No ${selectedFilter.toLowerCase()} requests`}
-            </ThemedText>
-          </View>
-        ) : (
-          filteredVisitors.map(visitor => (
-            <TouchableOpacity
-              key={visitor.id}
-              style={[styles.card, { backgroundColor: theme.surface }]}
-              onPress={() => openQRModal(visitor)}
-              disabled={visitor.status !== 'APPROVED'}
-              activeOpacity={0.7}
-            >
-              <View style={styles.cardHeader}>
-                <View style={[styles.avatar, { backgroundColor: theme.primary + '15' }]}>
-                  <ThemedText style={[styles.avatarText, { color: theme.primary }]}>{getInitials(visitor.name)}</ThemedText>
-                </View>
-                <View style={styles.cardInfo}>
-                  <ThemedText style={[styles.visitorName, { color: theme.text }]}>{visitor.name}</ThemedText>
-                  <ThemedText style={[styles.visitorPhone, { color: theme.textSecondary }]}>{visitor.phone}</ThemedText>
-                </View>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusBg(visitor.status) }]}>
-                  <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>{visitor.status}</ThemedText>
-                </View>
-              </View>
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={['#00BCD4']} 
+          />
+        }
+        ListHeaderComponent={
+          <>
+            {/* Filter Tabs */}
+            <View style={styles.filterContainer}>
+              {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
+                <TouchableOpacity
+                  key={f}
+                  style={[
+                    styles.filterTab, 
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    selectedFilter === f && { backgroundColor: theme.primary + '15', borderColor: theme.primary }
+                  ]}
+                  onPress={() => setSelectedFilter(f)}
+                >
+                  <ThemedText style={[
+                    styles.filterText, 
+                    { color: theme.textSecondary },
+                    selectedFilter === f && { color: theme.primary, fontWeight: '700' }
+                  ]}>{f}</ThemedText>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-              <View style={[styles.cardDivider, { backgroundColor: theme.border }]} />
-
-              <View style={styles.cardBody}>
-                <View style={styles.infoRow}>
-                  <Ionicons name="document-text-outline" size={16} color={theme.textTertiary} />
-                  <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>{visitor.purpose}</ThemedText>
-                </View>
-                <View style={styles.infoRow}>
-                  <Ionicons name="person-outline" size={16} color={theme.textTertiary} />
-                  <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>Meeting: {visitor.personToMeet}</ThemedText>
-                </View>
-                {visitor.status === 'APPROVED' && (
-                  <View style={[styles.qrHint, { backgroundColor: theme.primary + '10' }]}>
-                    <Ionicons name="qr-code" size={14} color={theme.primary} />
-                    <ThemedText style={[styles.qrHintText, { color: theme.primary }]}>Tap to view QR code</ThemedText>
-                  </View>
-                )}
+            {filteredVisitors.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="people-outline" size={64} color="#D1D5DB" />
+                <ThemedText style={styles.emptyText}>No visitor requests found</ThemedText>
+                <ThemedText style={styles.emptySubtext}>
+                  {selectedFilter === 'ALL' ? 'Visitor requests will appear here' : `No ${selectedFilter.toLowerCase()} requests`}
+                </ThemedText>
               </View>
-            </TouchableOpacity>
-          ))
+            )}
+          </>
+        }
+        renderItem={({ item: visitor }) => (
+          <TouchableOpacity
+            key={visitor.id}
+            style={[styles.card, { backgroundColor: theme.surface }]}
+            onPress={() => openQRModal(visitor)}
+            disabled={visitor.status !== 'APPROVED'}
+            activeOpacity={0.7}
+          >
+            <View style={styles.cardHeader}>
+              <View style={[styles.avatar, { backgroundColor: theme.primary + '15' }]}>
+                <ThemedText style={[styles.avatarText, { color: theme.primary }]}>{getInitials(visitor.name)}</ThemedText>
+              </View>
+              <View style={styles.cardInfo}>
+                <ThemedText style={[styles.visitorName, { color: theme.text }]}>{visitor.name}</ThemedText>
+                <ThemedText style={[styles.visitorPhone, { color: theme.textSecondary }]}>{visitor.phone}</ThemedText>
+              </View>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusBg(visitor.status) }]}>
+                <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>{visitor.status}</ThemedText>
+              </View>
+            </View>
+
+            <View style={[styles.cardDivider, { backgroundColor: theme.border }]} />
+
+            <View style={styles.cardBody}>
+              <View style={styles.infoRow}>
+                <Ionicons name="document-text-outline" size={16} color={theme.textTertiary} />
+                <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>{visitor.purpose}</ThemedText>
+              </View>
+              <View style={styles.infoRow}>
+                <Ionicons name="person-outline" size={16} color={theme.textTertiary} />
+                <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>Meeting: {visitor.personToMeet}</ThemedText>
+              </View>
+              {visitor.status === 'APPROVED' && (
+                <View style={[styles.qrHint, { backgroundColor: theme.primary + '10' }]}>
+                  <Ionicons name="qr-code" size={14} color={theme.primary} />
+                  <ThemedText style={[styles.qrHintText, { color: theme.primary }]}>Tap to view QR code</ThemedText>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
         )}
-      </VerticalScrollView>
+      />
 
       {/* QR Modal — floating card style */}
       <Modal visible={showQRModal} animationType="fade" transparent={true} statusBarTranslucent onRequestClose={() => setShowQRModal(false)}>
@@ -300,7 +311,7 @@ const styles = StyleSheet.create({
   filterContainer: { flexDirection: 'row', paddingHorizontal: 20, marginTop: 16, marginBottom: 12, gap: 8 },
   filterTab: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: '#FFFFFF', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   filterTabActive: { backgroundColor: '#E0F7FA', borderColor: '#00BCD4' },
-  filterText: { fontSize: 11, fontWeight: '600', color: '#6B7280' },
+  filterText: { fontSize: 11, fontWeight: '600' },
   filterTextActive: { color: '#00BCD4' },
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 100 },

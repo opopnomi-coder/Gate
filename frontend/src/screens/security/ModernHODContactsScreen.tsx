@@ -9,15 +9,17 @@ import {
   Platform,
   Linking,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { apiService } from '../../services/api';
 import { HODContact, SecurityPersonnel, ScreenName } from '../../types';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useTheme } from '../../context/ThemeContext';
 
 interface HODContactsScreenProps {
@@ -159,61 +161,13 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
         <View style={styles.headerRight} />
       </View>
 
-      {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-        <Ionicons name="search" size={20} color={theme.textTertiary} style={styles.searchIcon} />
-        <TextInput
-          style={[styles.searchInput, { color: theme.text }]}
-          placeholder="Search by HOD name or department"
-          placeholderTextColor={theme.textTertiary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
-            <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Department Filter */}
-      <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterContent}
-        >
-          {departments.map(dept => (
-            <TouchableOpacity
-              key={dept}
-              style={[
-                styles.filterChip,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                selectedDepartment === dept && { backgroundColor: theme.primary, borderColor: theme.primary },
-              ]}
-              onPress={() => setSelectedDepartment(dept)}
-              activeOpacity={0.7}
-            >
-              <ThemedText
-                style={[
-                  styles.filterChipText,
-                  { color: theme.textSecondary },
-                  selectedDepartment === dept && { color: '#FFFFFF' },
-                ]}
-              >
-                {dept}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* HOD List */}
-      <VerticalScrollView
+      <VerticalFlatList
         style={styles.listContainer}
+        data={filteredHods}
+        keyExtractor={(item: HODContact) => (item.id ?? Math.random()).toString()}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false} decelerationRate="normal"
-            refreshControl={
+        refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
@@ -221,80 +175,133 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
             tintColor={theme.primary}
           />
         }
-      >
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading HOD contacts...</ThemedText>
-          </View>
-        ) : filteredHods.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
-            <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No HOD contact records found</ThemedText>
-            <ThemedText style={[styles.emptyStateSubtext, { color: theme.textTertiary }]}>
-              {searchQuery || selectedDepartment !== 'ALL'
-                ? 'Try adjusting your search or filter'
-                : 'No HOD contacts available'}
-            </ThemedText>
-          </View>
-        ) : (
-          filteredHods.map(hod => (
-            <View key={hod.id} style={[styles.hodCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              {/* Avatar and Info */}
-              <View style={styles.hodHeader}>
-                <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={[styles.avatarText, { color: '#FFFFFF' }]}>{getInitials(hod.name)}</ThemedText>
-                </View>
-                <View style={styles.hodInfo}>
-                  <ThemedText style={[styles.hodName, { color: theme.text }]}>{hod.name || 'Unknown HOD'}</ThemedText>
-                  <ThemedText style={[styles.hodDepartment, { color: theme.textSecondary }]}>
-                    {hod.department || 'N/A'} • {hod.department || 'N/A'}
-                  </ThemedText>
-                  <View style={[styles.designationBadge, { backgroundColor: theme.surfaceHighlight }]}>
-                    <ThemedText style={[styles.designationText, { color: theme.textSecondary }]}>Head of Department</ThemedText>
-                  </View>
-                </View>
-                <View style={styles.statusIndicator}>
-                  <View style={[styles.statusDot, { backgroundColor: theme.primary }]} />
-                  <ThemedText style={[styles.statusText, { color: theme.primary }]}>Active</ThemedText>
+        ListHeaderComponent={
+          <>
+            {/* Search Bar */}
+            <View style={[styles.searchContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
+              <Ionicons name="search" size={20} color={theme.textTertiary} style={styles.searchIcon} />
+              <TextInput
+                style={[styles.searchInput, { color: theme.text }]}
+                placeholder="Search by HOD name or department"
+                placeholderTextColor={theme.textTertiary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
+                  <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Department Filter */}
+            <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterContent}
+              >
+                {departments.map(dept => (
+                  <TouchableOpacity
+                    key={dept}
+                    style={[
+                      styles.filterChip,
+                      { backgroundColor: theme.surface, borderColor: theme.border },
+                      selectedDepartment === dept && { backgroundColor: theme.primary, borderColor: theme.primary },
+                    ]}
+                    onPress={() => setSelectedDepartment(dept)}
+                    activeOpacity={0.7}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.filterChipText,
+                        { color: theme.textSecondary },
+                        selectedDepartment === dept && { color: '#FFFFFF' },
+                      ]}
+                    >
+                      {dept}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading HOD contacts...</ThemedText>
+              </View>
+            )}
+
+            {!isLoading && filteredHods.length === 0 && (
+              <View style={styles.emptyState}>
+                <Ionicons name="people-outline" size={64} color={theme.textTertiary} />
+                <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No HOD contact records found</ThemedText>
+                <ThemedText style={[styles.emptyStateSubtext, { color: theme.textTertiary }]}>
+                  {searchQuery || selectedDepartment !== 'ALL'
+                    ? 'Try adjusting your search or filter'
+                    : 'No HOD contacts available'}
+                </ThemedText>
+              </View>
+            )}
+          </>
+        }
+        renderItem={({ item: hod }) => (
+          <View key={hod.id} style={[styles.hodCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {/* Avatar and Info */}
+            <View style={styles.hodHeader}>
+              <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                <ThemedText style={[styles.avatarText, { color: '#FFFFFF' }]}>{getInitials(hod.name)}</ThemedText>
+              </View>
+              <View style={styles.hodInfo}>
+                <ThemedText style={[styles.hodName, { color: theme.text }]}>{hod.name || 'Unknown HOD'}</ThemedText>
+                <ThemedText style={[styles.hodDepartment, { color: theme.textSecondary }]}>
+                  {hod.department || 'N/A'} • {hod.department || 'N/A'}
+                </ThemedText>
+                <View style={[styles.designationBadge, { backgroundColor: theme.surfaceHighlight }]}>
+                  <ThemedText style={[styles.designationText, { color: theme.textSecondary }]}>Head of Department</ThemedText>
                 </View>
               </View>
-
-              {/* Contact Info */}
-              <View style={[styles.contactSection, { backgroundColor: theme.surfaceHighlight }]}>
-                <View style={styles.contactRow}>
-                  <Ionicons name="call-outline" size={16} color={theme.textSecondary} />
-                  <ThemedText style={[styles.contactText, { color: theme.text }]}>{hod.phone || 'N/A'}</ThemedText>
-                </View>
-                <View style={styles.contactRow}>
-                  <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
-                  <ThemedText style={[styles.contactEmail, { color: theme.textSecondary }]}>{hod.email || 'N/A'}</ThemedText>
-                </View>
-              </View>
-
-              {/* Action Buttons */}
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={[styles.callButton, { backgroundColor: theme.primary }]}
-                  onPress={() => handleCall(hod.phone)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="call" size={18} color="#FFFFFF" />
-                  <ThemedText style={styles.callButtonText}>Call</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.messageButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                  onPress={() => handleMessage(hod.phone)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="chatbubble-outline" size={18} color={theme.textSecondary} />
-                  <ThemedText style={[styles.messageButtonText, { color: theme.textSecondary }]}>Message</ThemedText>
-                </TouchableOpacity>
+              <View style={styles.statusIndicator}>
+                <View style={[styles.statusDot, { backgroundColor: theme.primary }]} />
+                <ThemedText style={[styles.statusText, { color: theme.primary }]}>Active</ThemedText>
               </View>
             </View>
-          ))
+
+            {/* Contact Info */}
+            <View style={[styles.contactSection, { backgroundColor: theme.surfaceHighlight }]}>
+              <View style={styles.contactRow}>
+                <Ionicons name="call-outline" size={16} color={theme.textSecondary} />
+                <ThemedText style={[styles.contactText, { color: theme.text }]}>{hod.phone || 'N/A'}</ThemedText>
+              </View>
+              <View style={styles.contactRow}>
+                <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
+                <ThemedText style={[styles.contactEmail, { color: theme.textSecondary }]}>{hod.email || 'N/A'}</ThemedText>
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.callButton, { backgroundColor: theme.primary }]}
+                onPress={() => handleCall(hod.phone || '')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="call" size={18} color="#FFFFFF" />
+                <ThemedText style={styles.callButtonText}>Call</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.messageButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => handleMessage(hod.phone || '')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="chatbubble-outline" size={18} color={theme.textSecondary} />
+                <ThemedText style={[styles.messageButtonText, { color: theme.textSecondary }]}>Message</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
-      </VerticalScrollView>
+      />
 
       {/* Bottom Navigation */}
       <SecurityBottomNav activeTab="contacts" onNavigate={onNavigate} />

@@ -14,7 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { formatDateTime } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface EntryExitHistoryScreenProps {
@@ -93,25 +93,13 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
       </View>
 
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
-      >
-        {isLoading ? (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={theme.primary} />
-            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading history...</ThemedText>
-          </View>
-        ) : history.length === 0 ? (
-          <View style={styles.centered}>
-            <Ionicons name="time-outline" size={64} color={theme.border} />
-            <ThemedText style={[styles.emptyTitle, { color: theme.text }]}>No history yet</ThemedText>
-            <ThemedText style={[styles.emptySubtext, { color: theme.textSecondary }]}>
-              Your campus entry and exit records will appear here
-            </ThemedText>
-          </View>
-        ) : (
-          history.map((entry) => (
+        <VerticalFlatList
+          style={styles.content}
+          data={history}
+          keyExtractor={(item) => item.id.toString()}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
+          contentContainerStyle={styles.scrollContent}
+          renderItem={({ item: entry }) => (
             <View key={entry.id} style={[styles.card, { backgroundColor: theme.surface }]}>
               <View style={[
                 styles.typeIcon,
@@ -152,9 +140,24 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
                 )}
               </View>
             </View>
-          ))
-        )}
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            isLoading ? (
+              <View style={styles.centered}>
+                <ActivityIndicator size="large" color={theme.primary} />
+                <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading history...</ThemedText>
+              </View>
+            ) : (
+              <View style={styles.centered}>
+                <Ionicons name="time-outline" size={64} color={theme.border} />
+                <ThemedText style={[styles.emptyTitle, { color: theme.text }]}>No history yet</ThemedText>
+                <ThemedText style={[styles.emptySubtext, { color: theme.textSecondary }]}>
+                  Your campus entry and exit records will appear here
+                </ThemedText>
+              </View>
+            )
+          }
+        />
       </ScreenContentContainer>
     </SafeAreaView>
   );
@@ -168,7 +171,8 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700' },
-  content: { flex: 1, padding: 16 },
+  content: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   centered: { alignItems: 'center', paddingVertical: 60 },
   loadingText: { marginTop: 12, fontSize: 15 },
   emptyTitle: { fontSize: 18, fontWeight: '600', marginTop: 16 },

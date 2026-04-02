@@ -241,7 +241,7 @@ const ModernBulkGatePassScreen: React.FC<ModernBulkGatePassScreenProps> = ({ use
         <ThemedText style={[styles.infoBannerText, { color: theme.primary }]}>Create a gate pass for multiple students at once</ThemedText>
       </View>
 
-      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <VerticalScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Include Staff toggle */}
         <View style={[styles.section, { backgroundColor: theme.surface }]}>
           <TouchableOpacity

@@ -29,7 +29,7 @@ import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface NewStaffDashboardProps {
@@ -347,168 +347,169 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       </View>
 
       <ScreenContentContainer>
-        <VerticalScrollView
+        <VerticalFlatList
           style={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false} decelerationRate="normal"
-        >
-          {/* Search Input */}
-          <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
-            <Ionicons name="search" size={20} color={theme.textTertiary} />
-            <TextInput
-              style={[styles.searchInput, { color: theme.text }]}
-              placeholder="Search requests..."
-              placeholderTextColor={theme.textTertiary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-
-          {/* Stats Tabs */}
-          <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
-            <TouchableOpacity
-              style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]}
-              onPress={() => setActiveTab('PENDING')}
-            >
-              <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>
-                PENDING
-              </ThemedText>
-              <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>
-                {stats.pending}
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]}
-              onPress={() => setActiveTab('APPROVED')}
-            >
-              <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>
-                APPROVED
-              </ThemedText>
-              <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>
-                {stats.approved}
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]}
-              onPress={() => setActiveTab('REJECTED')}
-            >
-              <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>
-                REJECTED
-              </ThemedText>
-              <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>
-                {stats.rejected}
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-
-          {/* Request List */}
-          <View style={styles.scrollContent}>
-            {filteredRequests.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
-                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          data={filteredRequests}
+          keyExtractor={(request) => request.id.toString()}
+          ListHeaderComponent={
+            <>
+              {/* Search Input */}
+              <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
+                <Ionicons name="search" size={20} color={theme.textTertiary} />
+                <TextInput
+                  style={[styles.searchInput, { color: theme.text }]}
+                  placeholder="Search requests..."
+                  placeholderTextColor={theme.textTertiary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
               </View>
-            ) : (
-              filteredRequests.map((request) => (
+
+              {/* Stats Tabs */}
+              <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
                 <TouchableOpacity
-                  key={request.id}
-                  style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
-                  onPress={() => {
-                    setSelectedRequest(request);
-                    setShowDetailModal(true);
-                  }}
+                  style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]}
+                  onPress={() => setActiveTab('PENDING')}
                 >
-                  <View style={styles.cardTopRow}>
-                    <View style={[styles.avatarContainer, { backgroundColor: request.requestType === 'VISITOR' ? theme.surfaceHighlight : theme.surfaceHighlight }]}>
-                      <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
-                        {getInitials(request.studentName || 'ST')}
-                      </ThemedText>
-                    </View>
+                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>
+                    PENDING
+                  </ThemedText>
+                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'PENDING' && { color: theme.text }]}>
+                    {stats.pending}
+                  </ThemedText>
+                </TouchableOpacity>
 
-                    <View style={styles.headerMainInfo}>
-                      <View style={styles.nameRow}>
-                        <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                          {request.studentName || 'Unknown'}
-                        </ThemedText>
-                        {request.requestType === 'VISITOR' ? (
-                          <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                            <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
-                          </View>
-                        ) : (
-                          <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                            <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>
-                              {request.passType === 'BULK' ? 'Bulk Gatepass' : 'Single Gatepass'}
-                            </ThemedText>
-                          </View>
-                        )}
+                <TouchableOpacity
+                  style={[styles.statTab, activeTab === 'APPROVED' && { borderBottomColor: theme.success }]}
+                  onPress={() => setActiveTab('APPROVED')}
+                >
+                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'APPROVED' && { color: theme.success }]}>
+                    APPROVED
+                  </ThemedText>
+                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'APPROVED' && { color: theme.text }]}>
+                    {stats.approved}
+                  </ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.statTab, activeTab === 'REJECTED' && { borderBottomColor: theme.error }]}
+                  onPress={() => setActiveTab('REJECTED')}
+                >
+                  <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'REJECTED' && { color: theme.error }]}>
+                    REJECTED
+                  </ThemedText>
+                  <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>
+                    {stats.rejected}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            </>
+          }
+          renderItem={({ item: request }) => (
+            <TouchableOpacity
+              key={request.id}
+              style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+              onPress={() => {
+                setSelectedRequest(request);
+                setShowDetailModal(true);
+              }}
+            >
+              <View style={styles.cardTopRow}>
+                <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
+                  <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
+                    {getInitials(request.studentName || 'ST')}
+                  </ThemedText>
+                </View>
+
+                <View style={styles.headerMainInfo}>
+                  <View style={styles.nameRow}>
+                    <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
+                      {request.studentName || 'Unknown'}
+                    </ThemedText>
+                    {request.requestType === 'VISITOR' ? (
+                      <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
+                        <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
                       </View>
-                      <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                        {request.requestType === 'VISITOR'
-                          ? `Visitor • ${request.visitorPhone || ''}`
-                          : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
-                      </ThemedText>
-                    </View>
-
-                    <View style={styles.timeAgoContainer}>
-                      <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>
-                        {getRelativeTime(request.requestDate || request.createdAt)}
-                      </ThemedText>
-                    </View>
-                  </View>
-
-                  <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
-                    <View style={styles.detailItem}>
-                      <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
-                      <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                      <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                        {request.requestType === 'VISITOR' && request.visitDate
-                          ? `${request.visitDate}${request.visitTime ? ` at ${request.visitTime}` : ''}`
-                          : formatDateShort(request.requestDate || request.createdAt)}
-                      </ThemedText>
-                    </View>
-                    {request.passType === 'BULK' && (
-                      <View style={styles.detailItem}>
-                        <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
-                        <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                          {(() => {
-                            const parts: string[] = [];
-                            const sc = request.staffCount ?? 0;
-                            const stc = request.studentCount ?? 0;
-                            if (sc > 0) parts.push(`Staff - ${sc}`);
-                            if (stc > 0) parts.push(`Students - ${stc}`);
-                            return parts.join(', ') || `${request.participantCount || 0} Participants`;
-                          })()}
+                    ) : (
+                      <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
+                        <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>
+                          {request.passType === 'BULK' ? 'Bulk Gatepass' : 'Single Gatepass'}
                         </ThemedText>
                       </View>
                     )}
                   </View>
+                  <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
+                    {request.requestType === 'VISITOR'
+                      ? `Visitor • ${request.visitorPhone || ''}`
+                      : `${request.regNo || 'N/A'} • ${request.department || 'Department'}`}
+                  </ThemedText>
+                </View>
 
-                  <View style={styles.cardFooter}>
-                    <View style={[
-                      styles.statusBadge,
-                      (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF') && { backgroundColor: theme.warning },
-                      request.staffApproval === 'APPROVED' && { backgroundColor: theme.success },
-                      request.staffApproval === 'REJECTED' && { backgroundColor: theme.error },
-                    ]}>
-                      <ThemedText style={[
-                        styles.statusText,
-                        { color: '#FFFFFF' }
-                      ]}>
-                        {request.staffApproval}
-                      </ThemedText>
-                    </View>
+                <View style={styles.timeAgoContainer}>
+                  <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>
+                    {getRelativeTime(request.requestDate || request.createdAt)}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
+                <View style={styles.detailItem}>
+                  <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>{request.purpose || 'General'}</ThemedText>
+                </View>
+                <View style={styles.detailItem}>
+                  <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
+                  <ThemedText style={[styles.detailText, { color: theme.text }]}>
+                    {request.requestType === 'VISITOR' && request.visitDate
+                      ? `${request.visitDate}${request.visitTime ? ` at ${request.visitTime}` : ''}`
+                      : formatDateShort(request.requestDate || request.createdAt)}
+                  </ThemedText>
+                </View>
+                {request.passType === 'BULK' && (
+                  <View style={styles.detailItem}>
+                    <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
+                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
+                      {(() => {
+                        const parts: string[] = [];
+                        const sc = request.staffCount ?? 0;
+                        const stc = request.studentCount ?? 0;
+                        if (sc > 0) parts.push(`Staff - ${sc}`);
+                        if (stc > 0) parts.push(`Students - ${stc}`);
+                        return parts.join(', ') || `${request.participantCount || 0} Participants`;
+                      })()}
+                    </ThemedText>
                   </View>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        </VerticalScrollView>
+                )}
+              </View>
+
+              <View style={styles.cardFooter}>
+                <View style={[
+                  styles.statusBadge,
+                  (request.staffApproval === 'PENDING' || request.staffApproval === 'PENDING_STAFF') && { backgroundColor: theme.warning },
+                  request.staffApproval === 'APPROVED' && { backgroundColor: theme.success },
+                  request.staffApproval === 'REJECTED' && { backgroundColor: theme.error },
+                ]}>
+                  <ThemedText style={[
+                    styles.statusText,
+                    { color: '#FFFFFF' }
+                  ]}>
+                    {request.staffApproval}
+                  </ThemedText>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="checkmark-done-circle-outline" size={64} color={theme.border} />
+              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No {activeTab.toLowerCase()} requests</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}
@@ -625,67 +626,73 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
               </TouchableOpacity>
             </View>
 
-            <VerticalScrollView
+            <VerticalFlatList
               style={styles.qrModalContent}
               contentContainerStyle={styles.qrModalScrollContent}
-              showsVerticalScrollIndicator={false} decelerationRate="normal"
-            >
-              {/* Staff Info */}
-              <View style={styles.qrStaffInfo}>
-                <ThemedText style={[styles.qrStaffName, { color: theme.text }]}>{staff.staffName}</ThemedText>
-                <ThemedText style={[styles.qrStaffCode, { color: theme.textSecondary }]}>{staff.staffCode}</ThemedText>
-              </View>
-
-              {/* QR Code Display */}
-              <View style={styles.qrCodeContainer}>
-                {qrCodeData ? (
-                  <View style={[styles.qrCodeWrapper, { backgroundColor: theme.surface }]}>
-                    <Image source={{ uri: qrCodeData }} style={styles.qrCodeImage} />
+              showsVerticalScrollIndicator={false}
+              decelerationRate="normal"
+              data={['content']}
+              keyExtractor={(item) => item}
+              renderItem={() => (
+                <>
+                  {/* Staff Info */}
+                  <View style={styles.qrStaffInfo}>
+                    <ThemedText style={[styles.qrStaffName, { color: theme.text }]}>{staff.staffName}</ThemedText>
+                    <ThemedText style={[styles.qrStaffCode, { color: theme.textSecondary }]}>{staff.staffCode}</ThemedText>
                   </View>
-                ) : (
-                  <View style={styles.qrLoadingContainer}>
-                    <ThemedText style={[styles.qrLoadingText, { color: theme.textSecondary }]}>Loading QR...</ThemedText>
-                  </View>
-                )}
-              </View>
 
-              {/* Manual Entry Code */}
-              {manualEntryCode && (
-                <View style={[styles.manualCodeContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.primary }]}>
-                  <ThemedText style={[styles.manualCodeLabel, { color: theme.textSecondary }]}>Manual Entry Code</ThemedText>
-                  <ThemedText style={[styles.manualCodeText, { color: theme.primary }]}>{manualEntryCode}</ThemedText>
-                </View>
+                  {/* QR Code Display */}
+                  <View style={styles.qrCodeContainer}>
+                    {qrCodeData ? (
+                      <View style={[styles.qrCodeWrapper, { backgroundColor: theme.surface }]}>
+                        <Image source={{ uri: qrCodeData }} style={styles.qrCodeImage} />
+                      </View>
+                    ) : (
+                      <View style={styles.qrLoadingContainer}>
+                        <ThemedText style={[styles.qrLoadingText, { color: theme.textSecondary }]}>Loading QR...</ThemedText>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Manual Entry Code */}
+                  {manualEntryCode && (
+                    <View style={[styles.manualCodeContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.primary }]}>
+                      <ThemedText style={[styles.manualCodeLabel, { color: theme.textSecondary }]}>Manual Entry Code</ThemedText>
+                      <ThemedText style={[styles.manualCodeText, { color: theme.primary }]}>{manualEntryCode}</ThemedText>
+                    </View>
+                  )}
+
+                  {/* Instructions */}
+                  <ThemedText style={[styles.qrInstructions, { color: theme.textSecondary }]}>
+                    Scan at Main Gate Exit
+                  </ThemedText>
+
+                  {/* Request Details */}
+                  {selectedRequest && (
+                    <View style={[styles.qrRequestDetails, { backgroundColor: theme.inputBackground }]}>
+                      <View style={styles.qrDetailRow}>
+                        <ThemedText style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
+                        <ThemedText style={[styles.qrDetailValue, { color: theme.text }]}>
+                          {selectedRequest.reason || 'Staff Exit'}
+                        </ThemedText>
+                      </View>
+                      <View style={styles.qrDetailRow}>
+                        <ThemedText style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Valid Until:</ThemedText>
+                        <ThemedText style={[styles.qrDetailValue, { color: theme.text }]}>One time</ThemedText>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    style={[styles.qrCloseButton, { backgroundColor: theme.primary }]}
+                    onPress={() => setShowQRModal(false)}
+                  >
+                    <ThemedText style={styles.qrCloseButtonText}>Close</ThemedText>
+                  </TouchableOpacity>
+                </>
               )}
-
-              {/* Instructions */}
-              <ThemedText style={[styles.qrInstructions, { color: theme.textSecondary }]}>
-                Scan at Main Gate Exit
-              </ThemedText>
-
-              {/* Request Details */}
-              {selectedRequest && (
-                <View style={[styles.qrRequestDetails, { backgroundColor: theme.inputBackground }]}>
-                  <View style={styles.qrDetailRow}>
-                    <ThemedText style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Reason:</ThemedText>
-                    <ThemedText style={[styles.qrDetailValue, { color: theme.text }]}>
-                      {selectedRequest.reason || 'Staff Exit'}
-                    </ThemedText>
-                  </View>
-                  <View style={styles.qrDetailRow}>
-                    <ThemedText style={[styles.qrDetailLabel, { color: theme.textSecondary }]}>Valid Until:</ThemedText>
-                    <ThemedText style={[styles.qrDetailValue, { color: theme.text }]}>One time</ThemedText>
-                  </View>
-                </View>
-              )}
-
-              {/* Close Button */}
-              <TouchableOpacity
-                style={[styles.qrCloseButton, { backgroundColor: theme.primary }]}
-                onPress={() => setShowQRModal(false)}
-              >
-                <ThemedText style={styles.qrCloseButtonText}>Close</ThemedText>
-              </TouchableOpacity>
-            </VerticalScrollView>
+            />
           </View>
         </View>
       </Modal>

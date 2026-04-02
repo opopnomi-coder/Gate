@@ -17,7 +17,7 @@ import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import GatePassQRModal from '../../components/GatePassQRModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface MyRequestsScreenProps {
@@ -143,14 +143,14 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
     return (
       <TouchableOpacity style={[styles.requestCard, { backgroundColor: theme.surface }]} onPress={() => handleReviewRequest(request)} activeOpacity={0.85}>
         <View style={styles.cardTopRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: theme.warning }]}>
-            <ThemedText style={[styles.avatarText, { color: '#FFFFFF' }]}>{initials}</ThemedText>
+          <View style={[styles.avatarCircle, { backgroundColor: theme.warning + '22' }]}>
+            <ThemedText style={[styles.avatarText, { color: theme.warning }]}>{initials}</ThemedText>
           </View>
           <View style={styles.cardNameBlock}>
             <View style={styles.cardNameRow}>
               <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{name}</ThemedText>
               <View style={[styles.typePillInline, { backgroundColor: theme.inputBackground }]}>
-                <ThemedText style={[styles.typePillInlineText, { color: theme.text }]}>{isBulk ? 'Bulk Gatepass' : 'Single Gatepass'}</ThemedText>
+                <ThemedText style={[styles.typePillInlineText, { color: theme.textSecondary }]}>{isBulk ? 'Bulk Pass' : 'Single Pass'}</ThemedText>
               </View>
             </View>
             <ThemedText style={[styles.cardSubtitle, { color: theme.textSecondary }]}>Staff • {user.department || 'Department'}</ThemedText>
@@ -160,16 +160,16 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
 
         <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
           <View style={styles.infoBoxRow}>
-            <Ionicons name="document-text-outline" size={14} color={theme.textSecondary} />
-            <ThemedText style={[styles.infoBoxText, { color: theme.text }]} numberOfLines={1}>{request.purpose || 'General'}</ThemedText>
+            <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
+            <ThemedText style={[styles.infoBoxText, { color: theme.text }]} numberOfLines={1}>{request.purpose || request.reason || 'Gate Pass Request'}</ThemedText>
           </View>
           <View style={styles.infoBoxRow}>
-            <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
+            <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
             <ThemedText style={[styles.infoBoxText, { color: theme.text }]}>{formatDate(dateStr)}</ThemedText>
           </View>
           {isBulk && (
             <View style={styles.infoBoxRow}>
-              <Ionicons name="people-outline" size={14} color={theme.textSecondary} />
+              <Ionicons name="people-outline" size={16} color={theme.textSecondary} />
               <ThemedText style={[styles.infoBoxText, { color: theme.text }]}>
                 {(() => {
                   const parts: string[] = [];
@@ -186,8 +186,9 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
         </View>
 
         <View style={styles.cardBottomRow}>
-          <View style={[styles.statusTag, { backgroundColor: badge.bgColor }]}>
-            <ThemedText style={[styles.statusTagText, { color: badge.color }]}>{badge.text}</ThemedText>
+          <View style={[styles.statusTag, { backgroundColor: badge.bgColor + '22' }]}>
+            <View style={[styles.statusDot, { backgroundColor: badge.bgColor }]} />
+            <ThemedText style={[styles.statusTagText, { color: badge.bgColor }]}>{badge.text}</ThemedText>
           </View>
         </View>
       </TouchableOpacity>
@@ -223,28 +224,27 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
       </View>
 
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={[styles.content, { backgroundColor: theme.background }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
-        showsVerticalScrollIndicator={false} decelerationRate="normal"
-      >
-        <View style={styles.requestsContainer}>
-        {allRequests.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="document-text-outline" size={64} color={theme.textTertiary} />
-            <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No requests found</ThemedText>
-            <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>Your requests will appear here</ThemedText>
-          </View>
-        ) : (
-          allRequests.map((request, index) => (
-            <View key={`${request.passType === 'BULK' ? 'bulk' : 'single'}-${request.id}-${index}`}>
+        <VerticalFlatList
+          style={[styles.content, { backgroundColor: theme.background }]}
+          data={allRequests}
+          keyExtractor={(request, index) => `${request.passType === 'BULK' ? 'bulk' : 'single'}-${request.id}-${index}`}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          contentContainerStyle={styles.scrollContent}
+          renderItem={({ item: request }) => (
+            <View>
               {renderRequestCard(request)}
             </View>
-          ))
-        )}
-        </View>
-        <View style={{ height: 100 }} />
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="document-text-outline" size={64} color={theme.textTertiary} />
+              <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No requests found</ThemedText>
+              <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>Your requests will appear here</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
 
       <SinglePassDetailsModal
@@ -316,31 +316,32 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '700' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: 14 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
+  content: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 },
   requestsContainer: { borderRadius: 16, padding: 12 },
   emptyState: { paddingVertical: 80, alignItems: 'center' },
   emptyStateText: { fontSize: 18, fontWeight: '600', marginTop: 16 },
   emptyStateSubtext: { fontSize: 14, marginTop: 8 },
-  requestCard: { borderRadius: 16, padding: 14, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 2 },
-  cardTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
-  avatarCircle: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
-  avatarText: { fontSize: 16, fontWeight: '700' },
+  requestCard: { borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
+  cardTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 12 },
+  avatarCircle: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
+  avatarText: { fontSize: 18, fontWeight: '700' },
   cardNameBlock: { flex: 1 },
-  cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  cardName: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
-  typePillInline: { borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1 },
-  typePillInlineText: { fontSize: 9, fontWeight: '600' },
-  cardSubtitle: { fontSize: 12, marginTop: 2 },
+  cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  cardName: { fontSize: 16, fontWeight: '700', flexShrink: 1 },
+  typePillInline: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  typePillInlineText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
+  cardSubtitle: { fontSize: 13, marginTop: 2 },
   cardTimeAgo: { fontSize: 12, flexShrink: 0 },
-  infoBox: { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 10, gap: 5 },
-  infoBoxRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  infoBoxText: { fontSize: 13, flexShrink: 1 },
-  cardBottomRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, gap: 5 },
+  infoBox: { borderRadius: 12, padding: 16, marginBottom: 12, gap: 12 },
+  infoBoxRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  infoBoxText: { fontSize: 15, fontWeight: '500', flexShrink: 1 },
+  cardBottomRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusPillText: { fontSize: 12, fontWeight: '700' },
-  statusTag: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusTagText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  statusPillText: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
+  statusTag: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6 },
+  statusTagText: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 20, paddingHorizontal: 20, paddingBottom: 40, maxHeight: '85%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },

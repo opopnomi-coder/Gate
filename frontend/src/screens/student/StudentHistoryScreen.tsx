@@ -15,7 +15,7 @@ import { apiService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
-import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 
 
 interface StudentHistoryScreenProps {
@@ -152,18 +152,13 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
         <ThemedText style={[styles.headerTitle, { color: theme.text }]}>History</ThemedText>
       </View>
       <ScreenContentContainer>
-      <VerticalScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {historyData.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="time-outline" size={64} color={theme.border} />
-            <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>No history records</ThemedText>
-          </View>
-        ) : (
-          historyData.map((item) => (
+        <VerticalFlatList
+          style={styles.content}
+          data={historyData}
+          keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
+          contentContainerStyle={styles.scrollContent}
+          renderItem={({ item }) => (
             <View key={item.id} style={[styles.historyCard, { backgroundColor: theme.cardBackground }]}>
               <View style={[styles.iconContainer, { backgroundColor: getIconColor(item.type) + '20' }]}>
                 <Ionicons name={getIconName(item.type)} size={24} color={getIconColor(item.type)} />
@@ -184,9 +179,14 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
                 )}
               </View>
             </View>
-          ))
-        )}
-      </VerticalScrollView>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="time-outline" size={64} color={theme.border} />
+              <ThemedText style={[styles.emptyText, { color: theme.textTertiary }]}>No history records</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}>
