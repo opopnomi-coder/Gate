@@ -102,11 +102,10 @@ export async function unregisterPushToken(): Promise<void> {
  * Set up foreground FCM message handler.
  * When the app is open, FCM doesn't show a notification automatically —
  * we display it via notifee (same as the polling path).
+ * The user tapping the notifee banner is handled by onNotificationTap in localNotification.service.
  * Returns an unsubscribe function.
  */
-export function setupFCMForegroundHandler(
-  onNavigate?: (route: string) => void
-): () => void {
+export function setupFCMForegroundHandler(): () => void {
   const unsub = messaging().onMessage(async (remoteMessage) => {
     const title = remoteMessage.notification?.title || remoteMessage.data?.title as string || 'RIT Gate';
     const body  = remoteMessage.notification?.body  || remoteMessage.data?.body  as string || '';

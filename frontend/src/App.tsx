@@ -52,6 +52,7 @@ import SwipeBackWrapper from './components/SwipeBackWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
 import ExitConfirmModal from './components/navigation/ExitConfirmModal';
 import { initPushNotifications, unregisterPushToken, setupNotificationTapHandler, handleInitialNotification, setupFCMForegroundHandler } from './services/pushNotification.service';
+import { getInitialNotificationData } from './services/localNotification.service';
 import { biometricAuthService } from './services/biometricAuth.service';
 
 // Inner component that can access ThemeContext for transition animation
@@ -115,23 +116,49 @@ const App: React.FC = () => {
   const [showExitModal, setShowExitModal] = React.useState(false);
 
   // ── Notification tap → screen navigation ────────────────────────────────
-  // Maps actionRoute strings (set by backend) to ScreenName values
-  const handleNotificationRoute = React.useCallback((route: string) => {
+  // Use a ref so handlers always read the latest userType without re-registering
+  const userTypeRef = useRef<UserType | null>(null);
+  userTypeRef.current = userType;
+
+  // Pending route from killed-state notification (fires before auth is restored)
+  const pendingRouteRef = useRef<string | null>(null);
+
+  const applyRoute = React.useCallback((route: string) => {
     if (!route) return;
     const r = route.toLowerCase();
+    const ut = userTypeRef.current;
     if (r.includes('my-requests') || r.includes('my_requests')) {
-      if (userType === 'STUDENT') setCurrentScreen('REQUESTS');
-      else if (userType === 'STAFF') setCurrentScreen('MY_REQUESTS');
-      else if (userType === 'HOD') setCurrentScreen('HOD_MY_REQUESTS');
+      if (ut === 'STUDENT') setCurrentScreen('REQUESTS');
+      else if (ut === 'STAFF') setCurrentScreen('MY_REQUESTS');
+      else if (ut === 'HOD') setCurrentScreen('HOD_MY_REQUESTS');
     } else if (r.includes('pending-approvals') || r.includes('pending_approvals')) {
-      if (userType === 'STAFF') setCurrentScreen('REQUESTS');
-      else if (userType === 'HOD') setCurrentScreen('HOD_DASHBOARD');
-      else if (userType === 'HR') setCurrentScreen('HR_DASHBOARD');
+      if (ut === 'STAFF') setCurrentScreen('REQUESTS');
+      else if (ut === 'HOD') setCurrentScreen('HOD_DASHBOARD');
+      else if (ut === 'HR') setCurrentScreen('HR_DASHBOARD');
     } else if (r.includes('hod/pending') || r.includes('hr/pending')) {
-      if (userType === 'HOD') setCurrentScreen('HOD_DASHBOARD');
-      else if (userType === 'HR') setCurrentScreen('HR_DASHBOARD');
+      if (ut === 'HOD') setCurrentScreen('HOD_DASHBOARD');
+      else if (ut === 'HR') setCurrentScreen('HR_DASHBOARD');
     }
-  }, [userType]);
+  }, []);
+
+  const handleNotificationRoute = React.useCallback((route: string) => {
+    if (!route) return;
+    if (!userTypeRef.current) {
+      // App was killed — auth not restored yet; store and apply after login
+      pendingRouteRef.current = route;
+      return;
+    }
+    applyRoute(route);
+  }, [applyRoute]);
+
+  // Once userType is set (auth restored), flush any pending notification route
+  React.useEffect(() => {
+    if (userType && pendingRouteRef.current) {
+      const route = pendingRouteRef.current;
+      pendingRouteRef.current = null;
+      applyRoute(route);
+    }
+  }, [userType, applyRoute]);
 
   // Set up notification tap listener (foreground + background tap)
   React.useEffect(() => {
@@ -141,13 +168,25 @@ const App: React.FC = () => {
 
   // Set up FCM foreground message handler (shows notifee notification when app is open)
   React.useEffect(() => {
-    const cleanup = setupFCMForegroundHandler(handleNotificationRoute);
+    const cleanup = setupFCMForegroundHandler();
     return cleanup;
-  }, [handleNotificationRoute]);
+  }, []);
 
   // Handle app opened from a notification while it was KILLED
+  // Covers both FCM (messaging().getInitialNotification) and
+  // notifee (notifee.getInitialNotification) killed-state taps.
+  // A dedup flag ensures only the first resolved route wins.
   React.useEffect(() => {
-    handleInitialNotification(handleNotificationRoute);
+    let handled = false;
+    const apply = (route: string) => {
+      if (handled || !route) return;
+      handled = true;
+      handleNotificationRoute(route);
+    };
+    handleInitialNotification(apply);
+    getInitialNotificationData().then((data) => {
+      if (data?.actionRoute) apply(data.actionRoute);
+    });
   }, []); // run once on mount
 
   React.useEffect(() => {

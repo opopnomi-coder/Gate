@@ -12,6 +12,7 @@ import com.example.visitor.repository.StaffRepository;
 import com.example.visitor.repository.HODRepository;
 import com.example.visitor.repository.HRRepository;
 import com.example.visitor.service.EmailService;
+import com.example.visitor.util.DepartmentMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1091,9 +1092,26 @@ public class AuthController {
                         staff.getDepartment(),
                         staff.getIsActive()
                     );
-                    userDTO.setStaffName(staff.getStaffName());
-                    userDTO.setStaffCode(staff.getStaffCode());
-                    userKey = "staff";
+
+                    // --- Role Refinement for QR Login ---
+                    String staffRole = staff.getRole() != null ? staff.getRole().toUpperCase() : "";
+                    String staffDept = staff.getDepartment() != null ? staff.getDepartment().trim() : "";
+                    String staffName = staff.getStaffName() != null ? staff.getStaffName().trim() : "";
+
+                    if (staffRole.contains("HR") || DepartmentMapper.isAdminDepartment(staffDept) || staffRole.contains("ADMIN")) {
+                        role = "HR";
+                        userKey = "hr";
+                        userDTO.setHrName(staff.getStaffName());
+                        userDTO.setHrCode(staff.getStaffCode());
+                    } else if (staffRole.contains("HOD") || (!staffName.isEmpty() && isHodByNameMatch(staffName))) {
+                        role = "HOD";
+                        userKey = "hod";
+                        userDTO.setHodName(staff.getStaffName());
+                    } else {
+                        userDTO.setStaffName(staff.getStaffName());
+                        userDTO.setStaffCode(staff.getStaffCode());
+                        userKey = "staff";
+                    }
                     break;
                 }
                 case "HOD": {
@@ -1377,7 +1395,13 @@ public class AuthController {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }
 
-            // 2. Check students.hod column using shared robust matching
+            // 2. Check department (Non-Teaching Admin mapping)
+            String department = staff.getDepartment() != null ? staff.getDepartment().trim() : "";
+            if (DepartmentMapper.isAdminDepartment(department) || role.contains("ADMIN")) {
+                return ResponseEntity.ok(Map.of("success", true, "role", "HR"));
+            }
+
+            // 3. Check students.hod column using shared robust matching
             if (!staffName.isEmpty() && isHodByNameMatch(staffName)) {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }

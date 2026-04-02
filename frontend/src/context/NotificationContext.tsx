@@ -4,7 +4,6 @@ import {
   showLocalNotification,
   requestNotificationPermission,
   onNotificationTap,
-  getInitialNotificationData,
 } from '../services/localNotification.service';
 
 interface Notification {
@@ -45,19 +44,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
   useEffect(() => {
     requestNotificationPermission();
 
-    // Handle tap on notification (foreground)
+    // Handle tap on a notifee notification while app is in foreground
     const unsub = onNotificationTap((data) => {
       if (data.actionRoute && onNavigateRef.current) {
         onNavigateRef.current(data.actionRoute);
       }
     });
 
-    // Handle tap that opened app from background/quit
-    getInitialNotificationData().then((data) => {
-      if (data?.actionRoute && onNavigateRef.current) {
-        onNavigateRef.current(data.actionRoute);
-      }
-    });
+    // NOTE: getInitialNotificationData (notifee killed-state) is intentionally NOT
+    // called here. App.tsx handles both FCM and notifee killed-state via
+    // handleInitialNotification to avoid double-navigation.
 
     return () => { unsub(); };
   }, []);

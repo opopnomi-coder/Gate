@@ -181,6 +181,14 @@ public class DepartmentMapper {
         return toStaffDeptFormat(dept);
     }
 
+    /**
+     * Returns true if the department or short code refers to administration/HR.
+     */
+    public static boolean isAdminDepartment(String dept) {
+        String code = toShortCode(dept);
+        return "ADMIN".equalsIgnoreCase(code);
+    }
+
     // Legacy alias kept for backward compatibility
     public static String toCode(String dept) { return toShortCode(dept); }
 }
