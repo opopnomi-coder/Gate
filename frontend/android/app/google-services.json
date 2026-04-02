@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "rit-gate-placeholder",
-    "storage_bucket": "rit-gate-placeholder.appspot.com"
+    "project_number": "85128070182",
+    "project_id": "ritgate-fdb73",
+    "storage_bucket": "ritgate-fdb73.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:85128070182:android:adffa23b34ad2aab8452e7",
         "android_client_info": {
           "package_name": "com.mygate.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "REPLACE_WITH_REAL_API_KEY"
+          "current_key": "AIzaSyDHg4WFy6uOjbecr4uYdfAlaO3K83vniaY"
         }
       ],
       "services": {

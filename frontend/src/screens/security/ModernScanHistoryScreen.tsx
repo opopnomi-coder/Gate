@@ -458,6 +458,95 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
       </View>
 
       <ScreenContentContainer style={{ flex: 1 }}>
+        <View style={{ paddingHorizontal: 16 }}>
+          {/* Main Tab Switcher */}
+          <View style={[styles.mainTabContainer, { backgroundColor: theme.surfaceHighlight, marginTop: 10 }]}>
+            <TouchableOpacity
+              style={[styles.mainTab, activeTab === 'SCANS' && [styles.mainTabActive, { backgroundColor: theme.surface }]]}
+              onPress={() => {
+                setActiveTab('SCANS');
+                setSearchQuery('');
+                setActiveFilter('ALL');
+              }}
+            >
+              <Ionicons 
+                name="qr-code" 
+                size={20} 
+                color={activeTab === 'SCANS' ? theme.primary : theme.textTertiary} 
+              />
+              <ThemedText style={[styles.mainTabText, activeTab === 'SCANS' ? { color: theme.primary, fontWeight: '700' } : { color: theme.textTertiary }]}>
+                Scan History
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.mainTab, activeTab === 'VEHICLES' && [styles.mainTabActive, { backgroundColor: theme.surface }]]}
+              onPress={() => {
+                setActiveTab('VEHICLES');
+                setSearchQuery('');
+              }}
+            >
+              <Ionicons 
+                name="car" 
+                size={20} 
+                color={activeTab === 'VEHICLES' ? theme.primary : theme.textTertiary} 
+              />
+              <ThemedText style={[styles.mainTabText, activeTab === 'VEHICLES' ? { color: theme.primary, fontWeight: '700' } : { color: theme.textTertiary }]}>
+                Vehicle History
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          {/* Search Bar */}
+          <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Ionicons name="search" size={20} color={theme.textTertiary} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.text }]}
+              placeholder={activeTab === 'SCANS' ? "Search by name or type..." : "Search by owner, plate, or type..."}
+              placeholderTextColor={theme.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+
+          {/* Filter Tabs - Only for Scan History */}
+          {activeTab === 'SCANS' && (
+            <>
+            <View style={styles.rangeActionsRow}>
+              <TouchableOpacity style={[styles.rangeActionBtn, { backgroundColor: theme.surface, borderColor: theme.primary + '33' }]} onPress={() => setRangePickerPage(true)}>
+                <Ionicons name="calendar-outline" size={16} color={theme.primary} />
+                <ThemedText style={[styles.rangeActionText, { color: theme.primary }]}>From / To</ThemedText>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.filterContainer, { marginBottom: 16 }]}>
+              <TouchableOpacity
+                style={[styles.filterTab, activeFilter === 'ALL' && styles.filterTabActive]}
+                onPress={() => setActiveFilter('ALL')}
+              >
+                <ThemedText style={[styles.filterText, activeFilter === 'ALL' && styles.filterTextActive]}>
+                  All
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterTab, activeFilter === 'ENTRY' && styles.filterTabActive]}
+                onPress={() => setActiveFilter('ENTRY')}
+              >
+                <ThemedText style={[styles.filterText, activeFilter === 'ENTRY' && styles.filterTextActive]}>
+                  Entry
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterTab, activeFilter === 'EXIT' && styles.filterTabActive]}
+                onPress={() => setActiveFilter('EXIT')}
+              >
+                <ThemedText style={[styles.filterText, activeFilter === 'EXIT' && styles.filterTextActive]}>
+                  Exit
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            </>
+          )}
+        </View>
+
         <VerticalFlatList
           style={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -466,96 +555,6 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           data={activeTab === 'SCANS' ? filteredScans : filteredVehicles}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           contentContainerStyle={styles.scrollContent}
-          ListHeaderComponent={
-            <>
-              {/* Main Tab Switcher */}
-              <View style={[styles.mainTabContainer, { backgroundColor: theme.surfaceHighlight, marginTop: 10 }]}>
-                <TouchableOpacity
-                  style={[styles.mainTab, activeTab === 'SCANS' && [styles.mainTabActive, { backgroundColor: theme.surface }]]}
-                  onPress={() => {
-                    setActiveTab('SCANS');
-                    setSearchQuery('');
-                    setActiveFilter('ALL');
-                  }}
-                >
-                  <Ionicons 
-                    name="qr-code" 
-                    size={20} 
-                    color={activeTab === 'SCANS' ? theme.primary : theme.textTertiary} 
-                  />
-                  <ThemedText style={[styles.mainTabText, activeTab === 'SCANS' ? { color: theme.primary, fontWeight: '700' } : { color: theme.textTertiary }]}>
-                    Scan History
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.mainTab, activeTab === 'VEHICLES' && [styles.mainTabActive, { backgroundColor: theme.surface }]]}
-                  onPress={() => {
-                    setActiveTab('VEHICLES');
-                    setSearchQuery('');
-                  }}
-                >
-                  <Ionicons 
-                    name="car" 
-                    size={20} 
-                    color={activeTab === 'VEHICLES' ? theme.primary : theme.textTertiary} 
-                  />
-                  <ThemedText style={[styles.mainTabText, activeTab === 'VEHICLES' ? { color: theme.primary, fontWeight: '700' } : { color: theme.textTertiary }]}>
-                    Vehicle History
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
-
-              {/* Search Bar */}
-              <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <Ionicons name="search" size={20} color={theme.textTertiary} />
-                <TextInput
-                  style={[styles.searchInput, { color: theme.text }]}
-                  placeholder={activeTab === 'SCANS' ? "Search by name or type..." : "Search by owner, plate, or type..."}
-                  placeholderTextColor={theme.textTertiary}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              </View>
-
-              {/* Filter Tabs - Only for Scan History */}
-              {activeTab === 'SCANS' && (
-                <>
-                <View style={styles.rangeActionsRow}>
-                  <TouchableOpacity style={[styles.rangeActionBtn, { backgroundColor: theme.surface, borderColor: theme.primary + '33' }]} onPress={() => setRangePickerPage(true)}>
-                    <Ionicons name="calendar-outline" size={16} color={theme.primary} />
-                    <ThemedText style={[styles.rangeActionText, { color: theme.primary }]}>From / To</ThemedText>
-                  </TouchableOpacity>
-                </View>
-                <View style={[styles.filterContainer, { marginBottom: 16 }]}>
-                  <TouchableOpacity
-                    style={[styles.filterTab, activeFilter === 'ALL' && styles.filterTabActive]}
-                    onPress={() => setActiveFilter('ALL')}
-                  >
-                    <ThemedText style={[styles.filterText, activeFilter === 'ALL' && styles.filterTextActive]}>
-                      All
-                    </ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.filterTab, activeFilter === 'ENTRY' && styles.filterTabActive]}
-                    onPress={() => setActiveFilter('ENTRY')}
-                  >
-                    <ThemedText style={[styles.filterText, activeFilter === 'ENTRY' && styles.filterTextActive]}>
-                      Entry
-                    </ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.filterTab, activeFilter === 'EXIT' && styles.filterTabActive]}
-                    onPress={() => setActiveFilter('EXIT')}
-                  >
-                    <ThemedText style={[styles.filterText, activeFilter === 'EXIT' && styles.filterTextActive]}>
-                      Exit
-                    </ThemedText>
-                  </TouchableOpacity>
-                </View>
-                </>
-              )}
-            </>
-          }
           renderItem={({ item }) => {
             if (activeTab === 'SCANS') {
               const scan = item as ScanRecord;

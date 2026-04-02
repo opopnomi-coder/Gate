@@ -161,6 +161,57 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
         <View style={styles.headerRight} />
       </View>
 
+      <View style={{ paddingHorizontal: 20 }}>
+        {/* Search Bar */}
+        <View style={[styles.searchContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
+          <Ionicons name="search" size={20} color={theme.textTertiary} style={styles.searchIcon} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search by HOD name or department"
+            placeholderTextColor={theme.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
+              <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Department Filter */}
+        <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterContent}
+          >
+            {departments.map(dept => (
+              <TouchableOpacity
+                key={dept}
+                style={[
+                  styles.filterChip,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  selectedDepartment === dept && { backgroundColor: theme.primary, borderColor: theme.primary },
+                ]}
+                onPress={() => setSelectedDepartment(dept)}
+                activeOpacity={0.7}
+              >
+                <ThemedText
+                  style={[
+                    styles.filterChipText,
+                    { color: theme.textSecondary },
+                    selectedDepartment === dept && { color: '#FFFFFF' },
+                  ]}
+                >
+                  {dept}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+
       <VerticalFlatList
         style={styles.listContainer}
         data={filteredHods}
@@ -177,55 +228,6 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
         }
         ListHeaderComponent={
           <>
-            {/* Search Bar */}
-            <View style={[styles.searchContainer, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-              <Ionicons name="search" size={20} color={theme.textTertiary} style={styles.searchIcon} />
-              <TextInput
-                style={[styles.searchInput, { color: theme.text }]}
-                placeholder="Search by HOD name or department"
-                placeholderTextColor={theme.textTertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
-                  <Ionicons name="close-circle" size={20} color={theme.textTertiary} />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Department Filter */}
-            <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterContent}
-              >
-                {departments.map(dept => (
-                  <TouchableOpacity
-                    key={dept}
-                    style={[
-                      styles.filterChip,
-                      { backgroundColor: theme.surface, borderColor: theme.border },
-                      selectedDepartment === dept && { backgroundColor: theme.primary, borderColor: theme.primary },
-                    ]}
-                    onPress={() => setSelectedDepartment(dept)}
-                    activeOpacity={0.7}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.filterChipText,
-                        { color: theme.textSecondary },
-                        selectedDepartment === dept && { color: '#FFFFFF' },
-                      ]}
-                    >
-                      {dept}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
             {isLoading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={theme.primary} />

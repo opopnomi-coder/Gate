@@ -187,6 +187,19 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
       </View>
 
       <ScreenContentContainer>
+        <View style={{ paddingHorizontal: 20 }}>
+          <View style={[styles.searchWrap, { backgroundColor: theme.surface }]}>
+            <Ionicons name="search" size={20} color={theme.textTertiary} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.text }]}
+              placeholder="Search requests..."
+              placeholderTextColor={theme.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </View>
+
         <VerticalFlatList
           style={styles.scroll}
           data={filteredRequests}
@@ -199,18 +212,6 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
               onRefresh={onRefresh} 
               tintColor={theme.primary} 
             />
-          }
-          ListHeaderComponent={
-            <View style={[styles.searchWrap, { backgroundColor: theme.surface }]}>
-              <Ionicons name="search" size={20} color={theme.textTertiary} />
-              <TextInput
-                style={[styles.searchInput, { color: theme.text }]}
-                placeholder="Search requests..."
-                placeholderTextColor={theme.textTertiary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
           }
           renderItem={({ item }) => renderCard(item)}
           ListEmptyComponent={

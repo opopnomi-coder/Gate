@@ -119,6 +119,31 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
       </View>
 
       <ScreenContentContainer style={{ flex: 1 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          {/* Hint */}
+          <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
+            {rangeLabel} — {loading ? 'Loading…' : `${exitLogs.length} record${exitLogs.length !== 1 ? 's' : ''}`}
+          </ThemedText>
+
+          {/* Action buttons */}
+          <View style={styles.actions}>
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => setRangeModalVisible(true)}>
+              <Ionicons name="calendar-outline" size={16} color="#fff" />
+              <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Date Range</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: exitLogs.length > 0 ? theme.success : theme.border }]}
+              onPress={exportPdf}
+              disabled={isDownloading}
+            >
+              {isDownloading
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Ionicons name="download-outline" size={16} color="#fff" />}
+              <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Download PDF</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <VerticalFlatList
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
           data={exitLogs}
@@ -126,32 +151,7 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
           contentContainerStyle={[styles.listContent, { paddingBottom: 100 }]}
           showsVerticalScrollIndicator={false}
           decelerationRate="normal"
-          ListHeaderComponent={
-            <>
-              {/* Hint */}
-              <ThemedText style={[styles.hint, { color: theme.textSecondary }]}>
-                {rangeLabel} — {loading ? 'Loading…' : `${exitLogs.length} record${exitLogs.length !== 1 ? 's' : ''}`}
-              </ThemedText>
-
-              {/* Action buttons */}
-              <View style={styles.actions}>
-                <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.primary }]} onPress={() => setRangeModalVisible(true)}>
-                  <Ionicons name="calendar-outline" size={16} color="#fff" />
-                  <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Date Range</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, { backgroundColor: exitLogs.length > 0 ? theme.success : theme.border }]}
-                  onPress={exportPdf}
-                  disabled={isDownloading}
-                >
-                  {isDownloading
-                    ? <ActivityIndicator size="small" color="#fff" />
-                    : <Ionicons name="download-outline" size={16} color="#fff" />}
-                  <ThemedText style={[styles.actionBtnText, { color: '#FFF' }]}>Download PDF</ThemedText>
-                </TouchableOpacity>
-              </View>
-            </>
-          }
+          ListHeaderComponent={null}
           renderItem={({ item }) => (
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border, marginHorizontal: 4 }]}>
               <View style={styles.cardTop}>
