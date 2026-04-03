@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, StyleSheet, TouchableOpacity, RefreshControl,
-  StatusBar, Image, ActivityIndicator,
+  View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
+  StatusBar, Image, ActivityIndicator, TextInput, BackHandler
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -33,6 +33,8 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
   const [refreshing, setRefreshing] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
   const [bottomTab, setBottomTab] = useState<'HOME' | 'NEW_PASS' | 'MY_REQUESTS' | 'PROFILE'>('HOME');
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -80,23 +82,25 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
     }
   };
 
+  const filteredRequests = requests.filter(request => {
+    const matchesSearch = searchQuery === '' ||
+      request.reason?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      request.purpose?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      request.id?.toString().includes(searchQuery);
+
+    let matchesTab = false;
+    if (activeTab === 'PENDING') {
+      matchesTab = request.status === 'PENDING' || request.status === 'PENDING_HR';
+    } else if (activeTab === 'APPROVED') {
+      matchesTab = request.status === 'APPROVED';
+    } else if (activeTab === 'REJECTED') {
+      matchesTab = request.status === 'REJECTED';
+    }
+
+    return matchesSearch && matchesTab;
+  });
+
   const onRefresh = () => { setRefreshing(true); loadRequests(); };
-
-  const getInitials = (name: string) =>
-    name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-
-  const getStatusColor = (status: string) => {
-    if (status === 'APPROVED') return theme.success;
-    if (status === 'REJECTED') return theme.error;
-    return theme.warning;
-  };
-
-  const getStatusLabel = (status: string) => {
-    if (status === 'PENDING_HR') return 'Pending HR';
-    if (status === 'APPROVED') return 'Approved';
-    if (status === 'REJECTED') return 'Rejected';
-    return status;
-  };
 
   const handleViewQR = async (request: any) => {
     setSelectedRequest(request);
@@ -118,6 +122,29 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
       setModalMessage('Failed to load QR code.');
       setShowErrorModal(true);
     }
+  };
+
+  const getInitials = (name: string) =>
+    name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  const getStatusLabel = (status: string) => {
+    if (status === 'APPROVED') return 'ACTIVE';
+    if (status === 'REJECTED') return 'REJECTED';
+    if (status === 'PENDING_HR') return 'PENDING';
+    return 'PENDING';
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const diffMs = new Date().getTime() - new Date(dateString).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${Math.floor(diffHours / 24)}d ago`;
+  };
+
+  const formatDateShort = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
   return (
@@ -157,108 +184,117 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
       </View>
 
       <ScreenContentContainer>
+        <View style={[styles.requestsHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+          <ThemedText style={[styles.requestsTitle, { color: theme.text }]}>My Requests</ThemedText>
+        </View>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
+            <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
           </View>
         ) : (
-          <VerticalFlatList
-            style={styles.content}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            decelerationRate="normal"
-            data={requests}
-            keyExtractor={(item) => item.id?.toString()}
-            renderItem={({ item: req }) => (
-              <TouchableOpacity
-                style={[styles.requestCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
-                onPress={() => {
-                  if (req.status === 'APPROVED') {
-                    handleViewQR(req);
-                  } else {
-                    setSelectedRequest(req);
-                    setShowDetailModal(true);
-                  }
-                }}
-              >
-                <View style={styles.cardTopRow}>
-                  <View style={[styles.avatarContainer, { backgroundColor: theme.surfaceHighlight }]}>
-                    <ThemedText style={[styles.requestAvatarText, { color: theme.textSecondary }]}>
-                      {getInitials(ntf.staffName)}
-                    </ThemedText>
-                  </View>
-
-                  <View style={styles.headerMainInfo}>
-                    <View style={styles.nameRow}>
-                      <ThemedText style={[styles.requestStudentName, { color: theme.text }]} numberOfLines={1}>
-                        {req.purpose || 'Gate Pass'}
-                      </ThemedText>
-                      <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                        <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>Single Pass</ThemedText>
-                      </View>
+          <View style={{ paddingHorizontal: 20 }}>
+            <View style={[styles.searchWrap, { backgroundColor: theme.surface }]}>
+              <Ionicons name="search" size={20} color={theme.textTertiary} />
+              <TextInput
+                style={[styles.searchInput, { color: theme.text }]}
+                placeholder="Search requests..."
+                placeholderTextColor={theme.textTertiary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </View>
+        )}
+        <VerticalFlatList
+          style={styles.content}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} />}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          data={filteredRequests}
+          keyExtractor={(item) => item.id?.toString()}
+          renderItem={({ item: req }) => (
+            <TouchableOpacity
+              style={[styles.requestCard, { backgroundColor: theme.surface }]}
+              onPress={() => {
+                if (req.status === 'APPROVED') {
+                  handleViewQR(req);
+                } else {
+                  setSelectedRequest(req);
+                  setShowDetailModal(true);
+                }
+              }}
+              activeOpacity={0.85}
+            >
+              <View style={styles.cardTopRow}>
+                <View style={[styles.avatarCircle, { backgroundColor: theme.warning + '22' }]}>
+                  <ThemedText style={[styles.avatarText, { color: theme.warning }]}>{getInitials(ntf.staffName)}</ThemedText>
+                </View>
+                <View style={styles.cardNameBlock}>
+                  <View style={styles.cardNameRow}>
+                    <ThemedText style={[styles.cardName, { color: theme.text }]} numberOfLines={1}>{ntf.staffName || 'Non-Teaching Faculty'}</ThemedText>
+                    <View style={[styles.typePillInline, { backgroundColor: theme.inputBackground }]}>
+                      <ThemedText style={[styles.typePillInlineText, { color: theme.textSecondary }]}>Single Pass</ThemedText>
                     </View>
-                    <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
-                      {ntf.staffCode} • {ntf.department || 'Department'}
-                    </ThemedText>
                   </View>
-
-                  <View style={styles.timeAgoContainer}>
-                    <ThemedText style={[styles.timeAgoText, { color: theme.textTertiary }]}>
-                      {getRelativeTime(req.requestDate || req.createdAt)}
-                    </ThemedText>
-                  </View>
+                  <ThemedText style={[styles.cardSubtitle, { color: theme.textSecondary }]}>Non-Teaching Faculty • {ntf.department || 'Department'}</ThemedText>
                 </View>
+                <ThemedText style={[styles.cardTimeAgo, { color: theme.textTertiary }]}>{getRelativeTime(req.requestDate || req.createdAt)}</ThemedText>
+              </View>
 
-                <View style={[styles.detailsBlock, { backgroundColor: theme.inputBackground }]}>
-                  <View style={styles.detailItem}>
-                    <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
-                    <ThemedText style={[styles.detailText, { color: theme.text }]}>{req.reason || 'General Exit'}</ThemedText>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                    <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                      {formatDateShort(req.requestDate || req.createdAt)}
-                    </ThemedText>
-                  </View>
+              <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
+                <View style={styles.infoBoxRow}>
+                  <Ionicons name="document-text-outline" size={16} color={theme.textSecondary} />
+                  <ThemedText style={[styles.infoBoxText, { color: theme.text }]} numberOfLines={1}>{req.purpose || req.reason || 'Gate Pass Request'}</ThemedText>
                 </View>
+                <View style={styles.infoBoxRow}>
+                  <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
+                  <ThemedText style={[styles.infoBoxText, { color: theme.text }]}>{formatDateShort(req.requestDate || req.createdAt)}</ThemedText>
+                </View>
+              </View>
 
-                <View style={styles.cardFooter}>
+              <View style={styles.cardBottomRow}>
+                <View style={[
+                  styles.statusTag,
+                  req.status === 'PENDING' && { backgroundColor: theme.warning + '22' },
+                  req.status === 'PENDING_HR' && { backgroundColor: theme.warning + '22' },
+                  req.status === 'APPROVED' && { backgroundColor: theme.success + '22' },
+                  req.status === 'REJECTED' && { backgroundColor: theme.error + '22' },
+                ]}>
                   <View style={[
-                    styles.statusBadge,
+                    styles.statusDot,
                     req.status === 'PENDING' && { backgroundColor: theme.warning },
                     req.status === 'PENDING_HR' && { backgroundColor: theme.warning },
                     req.status === 'APPROVED' && { backgroundColor: theme.success },
                     req.status === 'REJECTED' && { backgroundColor: theme.error },
-                  ]}>
-                    <ThemedText style={[
-                      styles.statusText,
-                      { color: '#FFFFFF' }
-                    ]}>
-                      {getStatusLabel(req.status)}
-                    </ThemedText>
-                  </View>
+                  ]} />
+                  <ThemedText style={[
+                    styles.statusTagText,
+                    req.status === 'PENDING' && { color: theme.warning },
+                    req.status === 'PENDING_HR' && { color: theme.warning },
+                    req.status === 'APPROVED' && { color: theme.success },
+                    req.status === 'REJECTED' && { color: theme.error },
+                  ]}>{getStatusLabel(req.status)}</ThemedText>
                 </View>
-
-                {req.status === 'APPROVED' && (
-                  <View style={[styles.qrHint, { borderTopColor: theme.border }]}>
-                    <Ionicons name="qr-code-outline" size={14} color={theme.primary} />
-                    <ThemedText style={[styles.qrHintText, { color: theme.primary }]}>Tap to view QR</ThemedText>
-                  </View>
-                )}
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Ionicons name="document-outline" size={56} color={theme.border} />
-                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No requests yet</ThemedText>
-                <ThemedText style={[styles.emptySubText, { color: theme.textTertiary }]}>
-                  Tap New Pass to create a gate pass
-                </ThemedText>
               </View>
-            }
-          />
-        )}
+
+              {req.status === 'APPROVED' && (
+                <View style={[styles.qrHint, { borderTopColor: theme.border }]}>
+                  <Ionicons name="qr-code-outline" size={14} color={theme.primary} />
+                  <ThemedText style={[styles.qrHintText, { color: theme.primary }]}>Tap to view QR</ThemedText>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="document-text-outline" size={64} color={theme.textTertiary} />
+              <ThemedText style={[styles.emptyStateText, { color: theme.text }]}>No requests found</ThemedText>
+              <ThemedText style={[styles.emptyStateSubtext, { color: theme.textSecondary }]}>Your requests will appear here</ThemedText>
+            </View>
+          }
+        />
       </ScreenContentContainer>
 
       {/* Bottom Navigation */}
@@ -409,6 +445,29 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1.5,
   },
+  requestsHeader: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  requestsTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
   content: {
     flex: 1,
   },
@@ -428,80 +487,83 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
   },
-  avatarContainer: {
+  avatarCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  requestAvatarText: {
+  avatarText: {
     fontSize: 14,
     fontWeight: '700',
   },
-  headerMainInfo: {
+  cardNameBlock: {
     flex: 1,
     gap: 4,
   },
-  nameRow: {
+  cardNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  requestStudentName: {
+  cardName: {
     fontSize: 15,
     fontWeight: '700',
     flex: 1,
   },
-  passTypePill: {
+  typePillInline: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
   },
-  passTypePillText: {
+  typePillInlineText: {
     fontSize: 10,
     fontWeight: '600',
   },
-  studentIdSub: {
+  cardSubtitle: {
     fontSize: 12,
   },
-  timeAgoContainer: {
-    alignItems: 'flex-end',
-  },
-  timeAgoText: {
+  cardTimeAgo: {
     fontSize: 11,
     fontWeight: '500',
+    textAlign: 'right',
   },
-  detailsBlock: {
+  infoBox: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
   },
-  detailItem: {
+  infoBoxRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  detailText: {
+  infoBoxText: {
     fontSize: 13,
     fontWeight: '500',
+    flex: 1,
   },
-  cardFooter: {
+  cardBottomRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  statusBadge: {
+  statusTag: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
   },
-  statusText: {
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusTagText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
   qrHint: {
     flexDirection: 'row',
@@ -519,17 +581,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 13,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
     paddingTop: 60,
     gap: 8,
   },
-  emptyText: {
+  emptyStateText: {
     fontSize: 16,
     fontWeight: '700',
   },
-  emptySubText: {
+  emptyStateSubtext: {
     fontSize: 13,
   },
   bottomNav: {
