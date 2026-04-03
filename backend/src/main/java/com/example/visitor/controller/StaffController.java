@@ -352,6 +352,37 @@ public class StaffController {
         }
     }
     
+    // Get staff directory (includes NTF users for guest pre-registration)
+    @GetMapping("/directory")
+    public ResponseEntity<List<Map<String, Object>>> getStaffDirectory() {
+        try {
+            // Get regular staff
+            List<Staff> staffList = staffRepository.findAll();
+            List<Map<String, Object>> directoryList = staffList.stream()
+                .filter(staff -> staff.getIsActive())
+                .map(staff -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", staff.getStaffCode());
+                    map.put("staffId", staff.getStaffCode());
+                    map.put("staff_id", staff.getStaffCode());
+                    map.put("name", staff.getStaffName());
+                    map.put("role", staff.getDepartment());
+                    map.put("phone", staff.getPhone());
+                    map.put("email", staff.getEmail());
+                    map.put("department", staff.getDepartment());
+                    return map;
+                })
+                .collect(Collectors.toList());
+            
+            System.out.println("📋 Staff directory fetched: " + directoryList.size() + " entries");
+            return ResponseEntity.ok(directoryList);
+        } catch (Exception e) {
+            System.err.println("❌ Error fetching staff directory: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
     private Map<String, Object> createErrorResponse(String message) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);

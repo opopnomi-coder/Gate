@@ -223,8 +223,8 @@ public class VisitorGatepassService {
             throw new Exception("Creator staff not found: " + creatorStaffCode);
         }
         String role = creatorRole != null ? creatorRole.trim().toUpperCase() : "STAFF";
-        if (!role.equals("STAFF") && !role.equals("HOD") && !role.equals("HR")) {
-            throw new Exception("creatorRole must be STAFF, HOD, or HR");
+        if (!role.equals("STAFF") && !role.equals("HOD") && !role.equals("HR") && !role.equals("NTF")) {
+            throw new Exception("creatorRole must be STAFF, HOD, HR, or NTF");
         }
         request.setRegisteredBy("INSTANT-" + role + ":" + creatorStaffCode);
         Visitor saved = createRequest(request);
