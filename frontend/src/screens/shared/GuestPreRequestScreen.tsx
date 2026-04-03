@@ -24,7 +24,7 @@ import ThemedText from '../../components/ThemedText';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 
 
-export type GuestPreRequestRole = 'STAFF' | 'HOD' | 'HR';
+export type GuestPreRequestRole = 'STAFF' | 'HOD' | 'HR' | 'NTF';
 
 interface GuestPreRequestScreenProps {
   creatorRole: GuestPreRequestRole;

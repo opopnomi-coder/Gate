@@ -170,25 +170,12 @@ const ModernUnifiedLoginScreen: React.FC<ModernUnifiedLoginScreenProps> = ({ onL
     try {
       let role = detectUserRole(effectiveUserId);
 
-      // For staff-pattern IDs (HOD/HR/STAFF all share the same ID format),
+      // For staff-pattern IDs (HOD/HR/STAFF/NON_TEACHING all share the same ID format),
       // always ask the backend to confirm the actual role FIRST.
-      // This prevents HODs from being misrouted to the Staff dashboard.
       if (role === 'STAFF') {
         setLoadingMessage('Verifying credentials...');
         role = await apiService.detectRole(effectiveUserId);
         console.log(`🔍 Backend detected role for ${effectiveUserId}: ${role}`);
-      }
-
-      // For NTF IDs, check if their backend role contains HR
-      // (e.g. department="Non-Teaching Admin", role="Senior Manager-HR")
-      // If HR → route to HR dashboard; otherwise keep NON_TEACHING
-      if (role === 'NON_TEACHING') {
-        setLoadingMessage('Verifying credentials...');
-        const backendRole = await apiService.detectRole(effectiveUserId);
-        console.log(`🔍 Backend detected role for NTF ${effectiveUserId}: ${backendRole}`);
-        if (backendRole === 'HR') {
-          role = 'HR';
-        }
       }
 
       // Update detected role immediately so UI reflects it

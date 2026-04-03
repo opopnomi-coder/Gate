@@ -1377,7 +1377,7 @@ public class AuthController {
                 return ResponseEntity.ok(Map.of("success", true, "role", "STUDENT"));
             }
 
-            // Check staff table
+            // Look up in staff table
             Optional<Staff> staffOpt = staffRepository.findByStaffCode(code);
             if (staffOpt.isEmpty()) {
                 return ResponseEntity.ok(Map.of("success", false, "role", "UNKNOWN", "message", "User not found"));
@@ -1385,9 +1385,23 @@ public class AuthController {
 
             Staff staff = staffOpt.get();
             String staffName = staff.getStaffName() != null ? staff.getStaffName().trim() : "";
-            String role = staff.getRole() != null ? staff.getRole().toUpperCase() : "";
+            String role      = staff.getRole()      != null ? staff.getRole().trim().toUpperCase() : "";
+            String department = staff.getDepartment() != null ? staff.getDepartment().trim() : "";
 
-            // 1. Check role field directly
+            // ── Non-Teaching department (any variant: Admin, Accounts, Library, etc.) ──
+            // department starts with "Non-Teaching" (case-insensitive)
+            //   role contains "HR"  → HR dashboard
+            //   any other role      → NON_TEACHING dashboard
+            if (department.toLowerCase().startsWith("non-teaching") ||
+                department.toLowerCase().startsWith("non teaching")) {
+                if (role.contains("HR")) {
+                    return ResponseEntity.ok(Map.of("success", true, "role", "HR"));
+                }
+                return ResponseEntity.ok(Map.of("success", true, "role", "NON_TEACHING"));
+            }
+
+            // ── Teaching / other departments ──────────────────────────────────
+            // Explicit role field overrides
             if (role.contains("HR")) {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HR"));
             }
@@ -1395,13 +1409,7 @@ public class AuthController {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }
 
-            // 2. Check department (Non-Teaching Admin mapping)
-            String department = staff.getDepartment() != null ? staff.getDepartment().trim() : "";
-            if (DepartmentMapper.isAdminDepartment(department) || role.contains("ADMIN")) {
-                return ResponseEntity.ok(Map.of("success", true, "role", "HR"));
-            }
-
-            // 3. Check students.hod column using shared robust matching
+            // Name-based HOD match against students table
             if (!staffName.isEmpty() && isHodByNameMatch(staffName)) {
                 return ResponseEntity.ok(Map.of("success", true, "role", "HOD"));
             }

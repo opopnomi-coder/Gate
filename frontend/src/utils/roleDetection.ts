@@ -7,8 +7,7 @@ export function detectUserRole(userId: string): UserRole {
   if (ROLE_PATTERNS.HOD.test(trimmedId)) return 'HOD';
   if (ROLE_PATTERNS.HR.test(trimmedId)) return 'HR';
   if (ROLE_PATTERNS.SECURITY.test(trimmedId)) return 'SECURITY';
-  // NTF IDs start with NTF (e.g. NTF001)
-  if (/^NTF\d+$/i.test(trimmedId)) return 'NON_TEACHING';
+  // NTF users have normal staff-pattern IDs — detect-role backend call will return NON_TEACHING
   if (ROLE_PATTERNS.STAFF.test(trimmedId)) return 'STAFF';
   if (ROLE_PATTERNS.STUDENT.test(trimmedId)) return 'STUDENT';
   return 'STUDENT';

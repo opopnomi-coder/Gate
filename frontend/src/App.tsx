@@ -493,6 +493,7 @@ const App: React.FC = () => {
       await offlineStorage.clearCurrentHOD();
       await offlineStorage.clearCurrentHR();
       await offlineStorage.clearCurrentSecurity();
+      await offlineStorage.clearCurrentNTF();
       
       // Reset all state
       setStudent(null);
@@ -1022,7 +1023,7 @@ const App: React.FC = () => {
           case 'GUEST_PRE_REQUEST':
             return (
               <GuestPreRequestScreen
-                creatorRole="STAFF"
+                creatorRole="NTF"
                 creatorStaffCode={ntf.staffCode}
                 creatorName={ntf.staffName || ntf.name || ''}
                 creatorDepartment={ntf.department || ''}
