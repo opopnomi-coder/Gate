@@ -330,6 +330,8 @@ public class GatePassRequestService {
                 }
                 request.setStatus(GatePassRequest.RequestStatus.PENDING_HR);
                 request.setHrApproval(GatePassRequest.ApprovalStatus.PENDING);
+                // DO NOT generate QR yet - wait for HR approval
+                log.info("Request {} forwarded to HR after HOD approval, QR pending", requestId);
             } else {
                 // Student single passes and ALL bulk passes: approved after HOD, generate QR now
                 request.setStatus(GatePassRequest.RequestStatus.APPROVED);
@@ -893,6 +895,24 @@ public class GatePassRequestService {
         if (request.getStatus() != GatePassRequest.RequestStatus.APPROVED) {
             log.warn("QR code requested for non-approved request {} (status: {})", requestId, request.getStatus());
             throw new RuntimeException("QR code is only available for approved requests");
+        }
+
+        // Check if at least 1 day has passed since approval
+        LocalDateTime approvalTime = null;
+        if (request.getHrApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
+            approvalTime = request.getHrApprovalDate();
+        } else if (request.getHodApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
+            approvalTime = request.getHodApprovalDate();
+        } else if (request.getStaffApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
+            approvalTime = request.getStaffApprovalDate();
+        }
+
+        if (approvalTime != null) {
+            LocalDateTime oneDayAfterApproval = approvalTime.plusDays(1);
+            if (LocalDateTime.now().isBefore(oneDayAfterApproval)) {
+                log.warn("QR code requested for request {} before 1 day delay (approval: {}, now: {})", requestId, approvalTime, LocalDateTime.now());
+                throw new RuntimeException("QR code will be available 1 day after approval");
+            }
         }
 
         // Staff and HOD gate passes: QR only after HR approval (even if status were ever APPROVED without HR)

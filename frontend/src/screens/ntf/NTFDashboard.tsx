@@ -103,25 +103,37 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
   const onRefresh = () => { setRefreshing(true); loadRequests(); };
 
   const handleViewQR = async (request: any) => {
+    if (request.status !== 'APPROVED') return;
     setSelectedRequest(request);
     setQrCodeData(null);
     setManualCode(null);
     setShowQRModal(true);
     try {
-      const res = await apiService.getGatePassQRCode(request.id, ntf.staffCode, true);
-      if (res.success && res.qrCode) {
-        setQrCodeData(res.qrCode.startsWith('data:image') ? res.qrCode : `data:image/png;base64,${res.qrCode}`);
-        if (res.manualCode) setManualCode(res.manualCode);
+      const result = await apiService.getGatePassQRCode(request.id, ntf.staffCode, true);
+      if (result.success && result.qrCode) { 
+        setQrCodeData(result.qrCode); 
+        setManualCode(result.manualCode || null); 
       } else {
         setShowQRModal(false);
-        setModalMessage(res.message || 'Could not fetch QR code.');
+        setModalMessage(result.message || 'Could not fetch QR code.');
         setShowErrorModal(true);
       }
-    } catch {
+    } catch (error: any) {
       setShowQRModal(false);
-      setModalMessage('Failed to load QR code.');
+      setModalMessage(error.message || 'Failed to load QR code.');
       setShowErrorModal(true);
     }
+  };
+
+  const isQRAvailable = (request: any) => {
+    if (request.status !== 'APPROVED') return false;
+    
+    // Check if at least 1 day has passed since approval
+    const approvalTime = request.hrApprovalDate || request.hodApprovalDate || request.staffApprovalDate;
+    if (!approvalTime) return false;
+    
+    const oneDayAfterApproval = new Date(approvalTime).getTime() + (24 * 60 * 60 * 1000);
+    return Date.now() >= oneDayAfterApproval;
   };
 
   const getInitials = (name: string) =>
@@ -218,7 +230,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
             <TouchableOpacity
               style={[styles.requestCard, { backgroundColor: theme.surface }]}
               onPress={() => {
-                if (req.status === 'APPROVED') {
+                if (req.status === 'APPROVED' && isQRAvailable(req)) {
                   handleViewQR(req);
                 } else {
                   setSelectedRequest(req);
@@ -240,7 +252,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
                   </View>
                   <ThemedText style={[styles.cardSubtitle, { color: theme.textSecondary }]}>Non-Teaching Faculty • {ntf.department || 'Department'}</ThemedText>
                 </View>
-                <ThemedText style={[styles.cardTimeAgo, { color: theme.textTertiary }]}>{getRelativeTime(req.requestDate || req.createdAt)}</ThemedText>
+                <ThemedText style={[styles.cardTimeAgo, { color: theme.textTertiary }]}>{getTimeAgo(req.requestDate || req.createdAt)}</ThemedText>
               </View>
 
               <View style={[styles.infoBox, { backgroundColor: theme.inputBackground }]}>
@@ -281,8 +293,17 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
 
               {req.status === 'APPROVED' && (
                 <View style={[styles.qrHint, { borderTopColor: theme.border }]}>
-                  <Ionicons name="qr-code-outline" size={14} color={theme.primary} />
-                  <ThemedText style={[styles.qrHintText, { color: theme.primary }]}>Tap to view QR</ThemedText>
+                  {isQRAvailable(req) ? (
+                    <>
+                      <Ionicons name="qr-code-outline" size={14} color={theme.primary} />
+                      <ThemedText style={[styles.qrHintText, { color: theme.primary }]}>Tap to view QR</ThemedText>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons name="time-outline" size={14} color={theme.textTertiary} />
+                      <ThemedText style={[styles.qrHintText, { color: theme.textTertiary }]}>QR available 1 day after approval</ThemedText>
+                    </>
+                  )}
                 </View>
               )}
             </TouchableOpacity>
