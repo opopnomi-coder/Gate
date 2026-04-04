@@ -200,6 +200,16 @@ const App: React.FC = () => {
           apply(route);
         }
       });
+      // Open file if tapped from download notification while app was backgrounded
+      AsyncStorage.getItem('@pending_open_file').then(async (raw) => {
+        if (!raw) return;
+        await AsyncStorage.removeItem('@pending_open_file');
+        try {
+          const { filePath } = JSON.parse(raw);
+          const { Linking } = require('react-native');
+          await Linking.openURL(`file://${filePath}`);
+        } catch {}
+      });
     });
   }, []); // run once on mount
 

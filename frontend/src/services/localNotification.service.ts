@@ -109,19 +109,15 @@ export function onNotificationTap(
 /** Open a file using Android's file viewer intent */
 async function openFile(filePath: string, mimeType: string): Promise<void> {
   try {
-    const { Linking, NativeModules, Platform } = require('react-native');
-    if (Platform.OS === 'android') {
-      // Use FileProvider URI via react-native-fs
-      const RNFS = require('react-native-fs').default || require('react-native-fs');
-      // Try opening via Linking with content:// URI
-      const uri = `file://${filePath}`;
-      const canOpen = await Linking.canOpenURL(uri);
-      if (canOpen) {
-        await Linking.openURL(uri);
-      } else {
-        // Fallback: open Downloads folder
-        await Linking.openURL('content://com.android.externalstorage.documents/root/primary');
-      }
+    const { Linking } = require('react-native');
+    // Try opening via Linking — works for content:// and file:// URIs
+    const uri = `file://${filePath}`;
+    const canOpen = await Linking.canOpenURL(uri);
+    if (canOpen) {
+      await Linking.openURL(uri);
+    } else {
+      // Fallback: open Downloads folder
+      await Linking.openURL('content://com.android.externalstorage.documents/root/primary');
     }
   } catch (e) {
     console.warn('Could not open file:', e);

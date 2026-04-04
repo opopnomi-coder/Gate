@@ -520,6 +520,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           }
         />
       </ScreenContentContainer>
+      </ScrollView>
 
       {/* Bottom Navigation */}
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>

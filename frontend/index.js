@@ -13,29 +13,14 @@ registerBackgroundHandler();
 // ── Notifee background handler ───────────────────────────────────────────────
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   const data = detail.notification?.data || {};
-  const actionId = detail.pressAction?.id;
 
   if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
-    // Download notification — open the file
+    // Download notification — store file path so app opens it on resume
     if (data.type === 'download' && data.filePath) {
-      try {
-        const { NativeModules, Platform } = require('react-native');
-        if (Platform.OS === 'android') {
-          // Use Android Intent to open the file
-          const IntentLauncher = require('expo-intent-launcher');
-          await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-            data: `file://${data.filePath}`,
-            flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-            type: data.mimeType || 'application/pdf',
-          });
-        }
-      } catch (e) {
-        // Fallback: store path so app can open it on resume
-        await AsyncStorage.setItem('@pending_open_file', JSON.stringify({
-          filePath: data.filePath,
-          mimeType: data.mimeType,
-        }));
-      }
+      await AsyncStorage.setItem('@pending_open_file', JSON.stringify({
+        filePath: data.filePath,
+        mimeType: data.mimeType || 'application/pdf',
+      }));
       return;
     }
 
