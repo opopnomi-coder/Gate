@@ -356,7 +356,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           data={filteredRequests}
           keyExtractor={(request) => request.id.toString()}
           ListHeaderComponent={
-            <View style={{ paddingHorizontal: 20 }}>
+            <View style={{ paddingHorizontal: 20, paddingTop: 4 }}>
               <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
                 <Ionicons name="search" size={20} color={theme.textTertiary} />
                 <TextInput

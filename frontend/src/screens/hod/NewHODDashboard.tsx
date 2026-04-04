@@ -276,7 +276,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
           keyExtractor={(request) => request.id.toString()}
           contentContainerStyle={styles.scrollContent}
           ListHeaderComponent={
-            <View style={{ paddingHorizontal: 20 }}>
+            <View style={{ paddingHorizontal: 20, paddingTop: 4 }}>
               <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
                 <Ionicons name="search" size={20} color={theme.textTertiary} />
                 <TextInput
