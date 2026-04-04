@@ -6,6 +6,7 @@ import { NonTeachingFaculty } from '../../types';
 import { apiService } from '../../services/api.service';
 import { useTheme } from '../../context/ThemeContext';
 import GatePassQRModal from '../../components/GatePassQRModal';
+import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
@@ -22,6 +23,7 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState<string | null>(null);
@@ -102,7 +104,18 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
             renderItem={({ item: req }) => {
               const st = getStatusStyle(req.status);
               return (
-                <View style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    if (req.status === 'APPROVED') {
+                      handleViewQR(req);
+                    } else {
+                      setSelectedRequest(req);
+                      setShowDetailModal(true);
+                    }
+                  }}
+                >
                   {/* Top row: avatar + name + pass type + time */}
                   <View style={styles.cardTop}>
                     <View style={styles.avatarWrap}>
@@ -134,23 +147,17 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
                     </View>
                   </View>
 
-                  {/* Status + View QR */}
+                  {/* Status */}
                   <View style={styles.cardFooter}>
                     <View style={[styles.statusBadge, { backgroundColor: st.bg }]}>
                       <View style={[styles.statusDot, { backgroundColor: st.dot }]} />
                       <ThemedText style={[styles.statusText, { color: st.text }]}>{st.label}</ThemedText>
                     </View>
                     {req.status === 'APPROVED' && (
-                      <TouchableOpacity
-                        style={styles.viewQRBtn}
-                        onPress={() => handleViewQR(req)}
-                      >
-                        <Ionicons name="qr-code-outline" size={15} color="#FFF" />
-                        <ThemedText style={styles.viewQRText}>View QR</ThemedText>
-                      </TouchableOpacity>
+                      <ThemedText style={styles.tapHint}>Tap to view QR</ThemedText>
                     )}
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             }}
             ListEmptyComponent={
@@ -162,6 +169,14 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
           />
         )}
       </ScreenContentContainer>
+
+      <SinglePassDetailsModal
+        visible={showDetailModal}
+        onClose={() => { setShowDetailModal(false); setSelectedRequest(null); }}
+        request={selectedRequest}
+        onApprove={undefined}
+        onReject={undefined}
+      />
 
       <GatePassQRModal
         visible={showQRModal}
@@ -202,8 +217,8 @@ const styles = StyleSheet.create({
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   statusText: { fontSize: 12, fontWeight: '700' },
-  viewQRBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#0F172A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   viewQRText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  tapHint: { fontSize: 12, color: '#64748B', fontStyle: 'italic' },
   emptyState: { alignItems: 'center', paddingTop: 60, gap: 8 },
   emptyText: { fontSize: 15, fontWeight: '600', color: '#94A3B8' },
 });

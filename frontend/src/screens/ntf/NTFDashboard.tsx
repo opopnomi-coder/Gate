@@ -174,21 +174,6 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
             </View>
           </View>
 
-          {/* Guest Pre-Register */}
-          <TouchableOpacity
-            style={[styles.guestCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            onPress={() => onNavigate('GUEST_PRE_REQUEST')}
-          >
-            <View style={[styles.guestIcon, { backgroundColor: theme.surfaceHighlight }]}>
-              <Ionicons name="person-add-outline" size={22} color={theme.primary} />
-            </View>
-            <View style={styles.guestInfo}>
-              <ThemedText style={[styles.guestTitle, { color: theme.text }]}>Pre-register Guest</ThemedText>
-              <ThemedText style={[styles.guestSub, { color: theme.textSecondary }]}>Generate instant visitor pass</ThemedText>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
-          </TouchableOpacity>
-
           {/* Recent Requests */}
           <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
 
@@ -234,8 +219,8 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         {[
           { key: 'HOME', icon: 'home', label: 'Home', screen: undefined },
-          { key: 'REQUESTS', icon: 'document-text', label: 'Requests', screen: 'NTF_MY_REQUESTS' as ScreenName },
           { key: 'GUEST', icon: 'person-add', label: 'Guest', screen: 'GUEST_PRE_REQUEST' as ScreenName },
+          { key: 'REQUESTS', icon: 'document-text', label: 'Requests', screen: 'NTF_MY_REQUESTS' as ScreenName },
           { key: 'PROFILE', icon: 'person', label: 'Profile', screen: 'PROFILE' as ScreenName },
         ].map(({ key, icon, label, screen }) => {
           const active = bottomTab === key;
