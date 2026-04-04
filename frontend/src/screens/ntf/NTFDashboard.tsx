@@ -29,9 +29,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
   const [refreshing, setRefreshing] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [entries, setEntries] = useState(0);
-  const [exits, setExits] = useState(0);
-  const [bottomTab, setBottomTab] = useState<'HOME' | 'REQUESTS' | 'HISTORY' | 'PROFILE'>('HOME');
+  const [bottomTab, setBottomTab] = useState<'HOME' | 'REQUESTS' | 'GUEST' | 'PROFILE'>('HOME');
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState<string | null>(null);
@@ -59,11 +57,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
 
   const loadData = async () => {
     try {
-      const [reqRes, histRes] = await Promise.all([
-        apiService.getNTFOwnGatePassRequests(ntf.staffCode),
-        apiService.getUserEntryHistory(ntf.staffCode),
-      ]);
-
+      const reqRes = await apiService.getNTFOwnGatePassRequests(ntf.staffCode);
       const all: any[] = (reqRes as any).requests || reqRes.data || [];
       const isUsed = (r: any) => r.qrUsed === true || r.status === 'USED' || r.status === 'EXITED';
       const isToday = (v?: string) => {
@@ -76,11 +70,6 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
         .filter(r => r.status === 'PENDING' || r.status === 'PENDING_HR' || r.status === 'REJECTED' || r.status === 'APPROVED' || isToday(r.requestDate || r.createdAt))
         .sort((a, b) => new Date(b.requestDate || b.createdAt).getTime() - new Date(a.requestDate || a.createdAt).getTime());
       setRequests(filtered);
-
-      // Count today's entries/exits
-      const todayHistory = (histRes || []).filter((h: any) => isToday(h.timestamp || h.createdAt));
-      setEntries(todayHistory.filter((h: any) => h.type === 'ENTRY' || h.scanType === 'ENTRY').length);
-      setExits(todayHistory.filter((h: any) => h.type === 'EXIT' || h.scanType === 'EXIT').length);
     } catch (e) {
       console.error('NTF load error:', e);
     } finally {
@@ -162,19 +151,6 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Stats Card */}
-          <View style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.statItem}>
-              <ThemedText style={[styles.statNumber, { color: theme.text }]}>{entries}</ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>ENTRIES</ThemedText>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.statItem}>
-              <ThemedText style={[styles.statNumber, { color: theme.text }]}>{exits}</ThemedText>
-              <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>EXITS</ThemedText>
-            </View>
-          </View>
-
           {/* Request Gate Pass Card */}
           <View style={[styles.gatePassCard, { backgroundColor: theme.surface }]}>
             <LinearGradient
@@ -259,7 +235,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
         {[
           { key: 'HOME', icon: 'home', label: 'Home', screen: undefined },
           { key: 'REQUESTS', icon: 'document-text', label: 'Requests', screen: 'NTF_MY_REQUESTS' as ScreenName },
-          { key: 'HISTORY', icon: 'time', label: 'History', screen: 'HISTORY' as ScreenName },
+          { key: 'GUEST', icon: 'person-add', label: 'Guest', screen: 'GUEST_PRE_REQUEST' as ScreenName },
           { key: 'PROFILE', icon: 'person', label: 'Profile', screen: 'PROFILE' as ScreenName },
         ].map(({ key, icon, label, screen }) => {
           const active = bottomTab === key;
@@ -321,11 +297,6 @@ const styles = StyleSheet.create({
   notifBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   notifDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, borderWidth: 1.5 },
   scrollContent: { padding: 16, paddingBottom: 24, gap: 14 },
-  statsCard: { flexDirection: 'row', borderRadius: 16, padding: 20, elevation: 2 },
-  statItem: { flex: 1, alignItems: 'center' },
-  statNumber: { fontSize: 32, fontWeight: '800' },
-  statLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, marginTop: 4 },
-  statDivider: { width: 1, marginVertical: 4 },
   gatePassCard: { borderRadius: 16, overflow: 'hidden', elevation: 2 },
   gatePassBanner: { height: 100, alignItems: 'center', justifyContent: 'center' },
   gatePassBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
