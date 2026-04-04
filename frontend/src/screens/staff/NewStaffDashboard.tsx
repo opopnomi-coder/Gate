@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   TextInput,
@@ -346,6 +347,11 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
         </View>
       </View>
 
+      <ScrollView
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
       <View style={{ paddingHorizontal: 20 }}>
         {/* Search Input */}
         <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
@@ -378,7 +384,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       <ScreenContentContainer>
         <VerticalFlatList
           style={styles.content}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          scrollEnabled={false}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           decelerationRate="normal"
@@ -486,8 +492,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           }
         />
       </ScreenContentContainer>
-
-      {/* Bottom Navigation */}
+      </ScrollView>
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity
           style={styles.navItem}

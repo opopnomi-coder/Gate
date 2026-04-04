@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   TextInput,
@@ -266,6 +267,11 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         </View>
       </View>
 
+      <ScrollView
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
       <View style={{ paddingHorizontal: 20 }}>
         {/* Search Bar */}
         <View style={[styles.searchContainer, { backgroundColor: theme.surface }]}>
@@ -298,7 +304,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
       <ScreenContentContainer>
         <VerticalFlatList
           style={styles.content}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          scrollEnabled={false}
           showsVerticalScrollIndicator={false}
           decelerationRate="normal"
           data={filteredRequests}
@@ -413,6 +419,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
           }
         />
       </ScreenContentContainer>
+      </ScrollView>
 
       {/* Bottom Navigation */}
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>

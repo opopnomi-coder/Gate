@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   StatusBar,
@@ -219,6 +220,11 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
         </View>
       </View>
 
+      <ScrollView
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
       <ScreenContentContainer>
           <View style={styles.staticHeaderContainer}>
             <View style={[styles.statsCard, { backgroundColor: theme.cardBackground, marginTop: 0 }]}>
@@ -254,7 +260,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
 
           <VerticalFlatList
             style={styles.content}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            scrollEnabled={false}
             showsVerticalScrollIndicator={false}
             decelerationRate="normal"
             data={recentRequests}
@@ -287,6 +293,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           }
         />
       </ScreenContentContainer>
+      </ScrollView>
 
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => onTabChange('HOME')}>
