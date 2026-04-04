@@ -10,7 +10,6 @@ import { HR } from '../../types';
 import { apiService } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { notificationService } from '../../services/NotificationService';
-import { exportStyledPdfReport } from '../../utils/pdfReport';
 import { formatDateShort } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
@@ -69,9 +68,8 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
     }
     setIsDownloading(true);
     const filename = `Exit_Report_${new Date().toISOString().slice(0, 10)}`;
-    notificationService.notifyDownloadStarted(filename);
     try {
-      const savedPath = await exportStyledPdfReport({
+      const result = await notificationService.generatePdfReport({
         title: 'Staff & Student Exit Report',
         subtitle: rangeLabel,
         sectionHeading: 'Exit records',
@@ -94,9 +92,13 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
           exitTime: formatDateShort(r.exitTime),
         })),
       });
-      notificationService.notifyDownloadSuccess(filename, savedPath || undefined);
-      setModalMsg('PDF saved to Downloads.');
-      setShowSuccess(true);
+      if (result.success) {
+        setModalMsg('PDF saved to Downloads. Tap the notification to open it.');
+        setShowSuccess(true);
+      } else {
+        setModalMsg(result.message || 'Failed to generate PDF.');
+        setShowError(true);
+      }
     } catch (e: any) {
       setModalMsg(e?.message || 'Failed to generate PDF.');
       setShowError(true);

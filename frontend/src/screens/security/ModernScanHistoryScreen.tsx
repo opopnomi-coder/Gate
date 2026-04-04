@@ -17,11 +17,10 @@ import { SecurityPersonnel, ScreenName } from '../../types';
 import { apiService } from '../../services/api';
 import SecurityBottomNav from '../../components/SecurityBottomNav';
 import { formatDateTime } from '../../utils/dateUtils';
-import { exportStyledPdfReport } from '../../utils/pdfReport';
+import { notificationService } from '../../services/NotificationService';
 import { Calendar } from 'react-native-calendars';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
-import { notificationService } from '../../services/NotificationService';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import { useTheme } from '../../context/ThemeContext';
@@ -199,10 +198,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   const exportScanPdf = async () => {
     setIsDownloading(true);
     const filename = `Scan_History_${rangeMode ? 'Range' : 'Today'}_${new Date().toISOString().slice(0, 10)}`;
-    notificationService.notifyDownloadStarted(filename);
-
     try {
-      const savedPath = await exportStyledPdfReport({
+      const result = await notificationService.generatePdfReport({
         title: 'Security Scan History Report',
         subtitle: rangeMode
           ? `From ${fromDate ? fromDate.toLocaleDateString() : '-'} To ${toDate ? toDate.toLocaleDateString() : '-'}`
@@ -225,10 +222,13 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           time: formatTime(scan.outTime || scan.inTime),
         })),
       });
-      
-      notificationService.notifyDownloadSuccess(filename, savedPath || undefined);
-      setDownloadMessage('PDF report has been saved to your Downloads folder.');
-      setShowDownloadSuccess(true);
+      if (result.success) {
+        setDownloadMessage('PDF saved to Downloads. Tap the notification to open it.');
+        setShowDownloadSuccess(true);
+      } else {
+        setDownloadErrorMessage(result.message || 'Failed to generate PDF.');
+        setShowDownloadError(true);
+      }
     } catch (e: any) {
       setDownloadErrorMessage(e?.message || 'Failed to generate PDF.');
       setShowDownloadError(true);

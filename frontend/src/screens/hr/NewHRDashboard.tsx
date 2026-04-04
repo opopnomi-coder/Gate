@@ -29,7 +29,6 @@ import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
-import { exportStyledPdfReport } from '../../utils/pdfReport';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 // GuestPreRequestScreen is navigated to via onNavigate('GUEST_PRE_REQUEST') — not rendered inline
 // HRExitsScreen is navigated to via onNavigate('HR_EXITS') — rendered by HRDashboardContainer
@@ -177,10 +176,8 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
   const exportExitsPdf = async (rows: any[]) => {
     setIsDownloading(true);
     const filename = `Exit_Report_${new Date().toISOString().slice(0, 10)}`;
-    notificationService.notifyDownloadStarted(filename);
-
     try {
-      const savedPath = await exportStyledPdfReport({
+      const result = await notificationService.generatePdfReport({
         title: 'Staff & Student Exit Report',
         subtitle: 'Consolidated exit activity — Registrar / HR view',
         sectionHeading: 'Exit records',
@@ -203,11 +200,15 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
           exitTime: formatDateShort(r.exitTime),
         })),
       });
-
-      notificationService.notifyDownloadSuccess(filename, savedPath || undefined);
-      setModalTitle('Download Complete');
-      setModalMessage('PDF report has been saved to your Downloads folder.');
-      setShowSuccessModal(true);
+      if (result.success) {
+        setModalTitle('Download Complete');
+        setModalMessage('PDF saved to Downloads. Tap the notification to open it.');
+        setShowSuccessModal(true);
+      } else {
+        setModalTitle('Download Failed');
+        setModalMessage(result.message || 'Failed to generate PDF.');
+        setShowErrorModal(true);
+      }
     } catch (e: any) {
       setModalTitle('Download Failed');
       setModalMessage(e?.message || 'Failed to download PDF.');

@@ -110,14 +110,22 @@ export function onNotificationTap(
 async function openFile(filePath: string, mimeType: string): Promise<void> {
   try {
     const { Linking } = require('react-native');
-    // Try opening via Linking — works for content:// and file:// URIs
-    const uri = `file://${filePath}`;
-    const canOpen = await Linking.canOpenURL(uri);
-    if (canOpen) {
-      await Linking.openURL(uri);
+    // On Android, file:// URIs are blocked since Android 7 (FileUriExposedException).
+    // Use the content:// URI from MediaStore after scanning, or open Downloads folder.
+    if (require('react-native').Platform.OS === 'android') {
+      try {
+        // Try opening the Downloads folder directly — most reliable cross-device approach
+        await Linking.openURL('content://com.android.externalstorage.documents/root/primary:Download');
+      } catch {
+        // Fallback: open the Downloads app
+        try {
+          await Linking.openURL('content://downloads/public_downloads');
+        } catch {
+          await Linking.openURL('https://play.google.com/store/apps/details?id=com.google.android.documentsui');
+        }
+      }
     } else {
-      // Fallback: open Downloads folder
-      await Linking.openURL('content://com.android.externalstorage.documents/root/primary');
+      await Linking.openURL(`file://${filePath}`);
     }
   } catch (e) {
     console.warn('Could not open file:', e);

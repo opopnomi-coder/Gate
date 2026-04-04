@@ -15,12 +15,13 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
   const data = detail.notification?.data || {};
 
   if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
-    // Download notification — store file path so app opens it on resume
-    if (data.type === 'download' && data.filePath) {
-      await AsyncStorage.setItem('@pending_open_file', JSON.stringify({
-        filePath: data.filePath,
-        mimeType: data.mimeType || 'application/pdf',
-      }));
+    // Download notification — open Downloads folder
+    if (data.type === 'download') {
+      try {
+        await Linking.openURL('content://com.android.externalstorage.documents/root/primary:Download');
+      } catch {
+        try { await Linking.openURL('content://downloads/public_downloads'); } catch {}
+      }
       return;
     }
 
