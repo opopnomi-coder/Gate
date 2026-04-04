@@ -31,9 +31,11 @@ interface GatePassQRModalProps {
   visitorName?: string;
 }
 
-const isQRString = (val: string) =>
-  val.startsWith('GP|') || val.startsWith('ST|') || val.startsWith('SF|') ||
-  val.startsWith('VG|') || val.startsWith('HD|');
+const isQRString = (val: string) => {
+  const v = val.trim();
+  return v.startsWith('GP|') || v.startsWith('ST|') || v.startsWith('SF|') ||
+         v.startsWith('VG|') || v.startsWith('HD|');
+};
 
 const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
   visible,
@@ -136,17 +138,19 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
               {qrCodeData ? (
                 isQRString(qrCodeData) ? (
                   <QRCode
-                    value={qrCodeData}
+                    value={qrCodeData.trim()}
                     size={220}
                     color="#000000"
                     backgroundColor="#FFFFFF"
                     getRef={(c: any) => { qrRef.current = c; }}
+                    quietZone={10}
                   />
                 ) : (
                   <Image
                     source={{ uri: qrCodeData.startsWith('data:image') ? qrCodeData : `data:image/png;base64,${qrCodeData}` }}
                     style={styles.qrImage}
                     resizeMode="contain"
+                    onError={() => console.warn('QR image failed to load:', qrCodeData?.substring(0, 50))}
                   />
                 )
               ) : (

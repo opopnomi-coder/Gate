@@ -88,7 +88,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
     try {
       const res = await apiService.getGatePassQRCode(req.id, ntf.staffCode, true);
       if (res.success && res.qrCode) {
-        setQrCodeData(res.qrCode.startsWith('data:image') ? res.qrCode : `data:image/png;base64,${res.qrCode}`);
+        setQrCodeData(res.qrCode);
         if (res.manualCode) setManualCode(res.manualCode);
       } else {
         setShowQRModal(false);
