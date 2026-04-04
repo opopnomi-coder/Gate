@@ -152,7 +152,11 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
           contentContainerStyle={styles.scrollContent}
         >
           {/* Request Gate Pass Card */}
-          <View style={[styles.gatePassCard, { backgroundColor: theme.surface }]}>
+          <TouchableOpacity
+            style={[styles.gatePassCard, { backgroundColor: theme.surface }]}
+            onPress={() => onNavigate('NEW_PASS_REQUEST')}
+            activeOpacity={0.9}
+          >
             <LinearGradient
               colors={['#0F172A', '#1E293B']}
               style={styles.gatePassBanner}
@@ -161,10 +165,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
               <Ionicons name="shield-checkmark" size={56} color="rgba(255,255,255,0.3)" />
             </LinearGradient>
             <View style={styles.gatePassBottom}>
-              <View>
-                <ThemedText style={[styles.gatePassTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
-                <ThemedText style={[styles.gatePassSub, { color: theme.textSecondary }]}>Apply for exit permission</ThemedText>
-              </View>
+              <ThemedText style={[styles.gatePassTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
               <TouchableOpacity
                 style={styles.applyBtn}
                 onPress={() => onNavigate('NEW_PASS_REQUEST')}
@@ -172,7 +173,7 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
                 <ThemedText style={styles.applyBtnText}>Apply Now</ThemedText>
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* Recent Requests */}
           <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
@@ -284,9 +285,8 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 24, gap: 14 },
   gatePassCard: { borderRadius: 16, overflow: 'hidden', elevation: 2 },
   gatePassBanner: { height: 160, alignItems: 'center', justifyContent: 'center' },
-  gatePassBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
+  gatePassBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 18 },
   gatePassTitle: { fontSize: 20, fontWeight: '800' },
-  gatePassSub: { fontSize: 13, marginTop: 3 },
   applyBtn: { backgroundColor: '#0F172A', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 20 },
   applyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   guestCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 14, borderWidth: 1, gap: 12 },
