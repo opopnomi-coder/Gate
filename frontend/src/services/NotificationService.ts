@@ -1,10 +1,11 @@
-import { Platform, ToastAndroid, NativeModules } from 'react-native';
+import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
+import { showLocalNotification } from './localNotification.service';
 
 /**
- * Shows a real Android system notification for file downloads.
- * Uses Android's MediaScannerConnection via RNFS.scanFile which
- * triggers the system to show the file in Downloads + notification shade.
+ * NotificationService — handles file download notifications.
+ * Uses notifee for real OS notifications (appears in notification shade
+ * even when app is in background/foreground).
  */
 class NotificationService {
   private listeners: Array<(notification: any) => void> = [];
@@ -24,51 +25,38 @@ class NotificationService {
     return true;
   }
 
-  /**
-   * Show a system-level download started toast.
-   */
+  /** Show a real OS notification that download has started. */
   notifyDownloadStarted(filename: string) {
-    if (Platform.OS === 'android') {
-      ToastAndroid.showWithGravity(
-        `⬇️ Generating ${filename}…`,
-        ToastAndroid.SHORT,
-        ToastAndroid.BOTTOM
-      );
-    }
+    showLocalNotification(
+      `download-start-${Date.now()}`,
+      'Download Started',
+      `Generating ${filename}…`,
+    );
     console.log(`📥 Download started: ${filename}`);
   }
 
-  /**
-   * Show a system-level download complete notification.
-   * Triggers Android MediaScanner so the file appears in the
-   * notification shade under "Downloads".
-   */
+  /** Show a real OS notification that download completed. */
   async notifyDownloadSuccess(filename: string, filePath?: string) {
     console.log(`✅ Download complete: ${filename}`);
 
-    if (Platform.OS === 'android') {
-      // Show toast immediately
-      ToastAndroid.showWithGravity(
-        `✅ ${filename} saved to Downloads`,
-        ToastAndroid.LONG,
-        ToastAndroid.BOTTOM
-      );
+    // Show OS notification — appears in notification shade
+    await showLocalNotification(
+      `download-done-${Date.now()}`,
+      'Download Complete',
+      `${filename} saved to Downloads`,
+    );
 
-      // Trigger media scan — this makes Android show the file in the
-      // Downloads notification and Files app
-      if (filePath) {
-        try {
-          await RNFS.scanFile(filePath);
-        } catch (e) {
-          console.warn('Media scan failed:', e);
-        }
+    // Trigger media scan so file appears in Files app
+    if (Platform.OS === 'android' && filePath) {
+      try {
+        await RNFS.scanFile(filePath);
+      } catch (e) {
+        console.warn('Media scan failed:', e);
       }
     }
   }
 
-  /**
-   * Download a file from URL with system notification.
-   */
+  /** Download a file from URL with OS notifications. */
   async downloadFile(url: string, filename: string, mimeType?: string) {
     this.notifyDownloadStarted(filename);
     const dir = Platform.OS === 'android' ? RNFS.DownloadDirectoryPath : RNFS.DocumentDirectoryPath;

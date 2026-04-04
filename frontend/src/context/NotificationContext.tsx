@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { API_CONFIG } from '../config/api.config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   showLocalNotification,
   requestNotificationPermission,
@@ -33,6 +34,28 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+const SHOWN_IDS_KEY = '@ritgate_shown_notif_ids';
+
+/** Load persisted shown IDs from AsyncStorage */
+async function loadShownIds(): Promise<Set<number>> {
+  try {
+    const raw = await AsyncStorage.getItem(SHOWN_IDS_KEY);
+    if (!raw) return new Set();
+    const arr: number[] = JSON.parse(raw);
+    return new Set(arr);
+  } catch {
+    return new Set();
+  }
+}
+
+/** Persist shown IDs — keep only last 200 to avoid unbounded growth */
+async function saveShownIds(ids: Set<number>): Promise<void> {
+  try {
+    const arr = Array.from(ids).slice(-200);
+    await AsyncStorage.setItem(SHOWN_IDS_KEY, JSON.stringify(arr));
+  } catch {}
+}
+
 export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: (route: string) => void }> = ({ children, onNavigate }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const currentUserRef = useRef<{ userId: string; userType: UserType } | null>(null);
@@ -43,6 +66,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
   // Request permission + set up tap handler on mount
   useEffect(() => {
     requestNotificationPermission();
+    // Load persisted shown IDs so we don't re-show notifications after app restart
+    loadShownIds().then(ids => { shownNotificationIdsRef.current = ids; });
 
     // Handle tap on a notifee notification while app is in foreground
     const unsub = onNotificationTap((data) => {
@@ -50,10 +75,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
         onNavigateRef.current(data.actionRoute);
       }
     });
-
-    // NOTE: getInitialNotificationData (notifee killed-state) is intentionally NOT
-    // called here. App.tsx handles both FCM and notifee killed-state via
-    // handleInitialNotification to avoid double-navigation.
 
     return () => { unsub(); };
   }, []);
@@ -94,6 +115,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
               { actionRoute: n.actionRoute || '', notificationId: String(n.id) }
             );
           }
+          // Persist so restarts don't re-show the same notifications
+          if (unreadNew.length > 0) {
+            saveShownIds(shownNotificationIdsRef.current);
+          }
         }
         setNotifications(todaysOnly);
       }
@@ -111,8 +136,12 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
       if (data.success && Array.isArray(data.notifications)) {
         const latest = data.notifications as Notification[];
         const todaysOnly = latest.filter((n) => isToday(n.timestamp || n.createdAt));
-        // Fresh login: do not banner old unread items; only rows that arrive after this point.
-        shownNotificationIdsRef.current = new Set(todaysOnly.map(n => n.id));
+        // Merge today's IDs into the persisted set so we don't re-banner them
+        // (but don't wipe the set — that would cause re-shows on next login)
+        for (const n of todaysOnly) {
+          shownNotificationIdsRef.current.add(n.id);
+        }
+        await saveShownIds(shownNotificationIdsRef.current);
         setNotifications(todaysOnly);
       }
     } catch (error) {
