@@ -103,7 +103,12 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
   const onRefresh = () => { setRefreshing(true); loadRequests(); };
 
   const handleViewQR = async (request: any) => {
-    if (request.status !== 'APPROVED') return;
+    if (!request.id) return;
+    if (request.status !== 'APPROVED') {
+      setSelectedRequest(request);
+      setShowDetailModal(true);
+      return;
+    }
     setSelectedRequest(request);
     setQrCodeData(null);
     setManualCode(null);
@@ -123,17 +128,6 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
       setModalMessage(error.message || 'Failed to load QR code.');
       setShowErrorModal(true);
     }
-  };
-
-  const isQRAvailable = (request: any) => {
-    if (request.status !== 'APPROVED') return false;
-    
-    // Check if at least 1 day has passed since approval
-    const approvalTime = request.hrApprovalDate || request.hodApprovalDate || request.staffApprovalDate;
-    if (!approvalTime) return false;
-    
-    const oneDayAfterApproval = new Date(approvalTime).getTime() + (24 * 60 * 60 * 1000);
-    return Date.now() >= oneDayAfterApproval;
   };
 
   const getInitials = (name: string) =>

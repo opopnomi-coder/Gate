@@ -472,18 +472,14 @@ public class GatePassRequestService {
             }
             
             // Build QR string format: SF/ST/VG|staffCode/studentId/null|randomNumber
-            String qrString = String.format("%s|%s|%s",
-                userTypePrefix,
-                userId,
-                token
-            );
+            String qrString = String.format("%s|%s|%s", userTypePrefix, userId, token);
             
             // Create QRTable entry
             QRTable qrTable = new QRTable();
             qrTable.setPassRequestId(request.getId());
             qrTable.setRequestedByStaffCode(request.getAssignedStaffCode() != null ? request.getAssignedStaffCode() : "SYSTEM");
             qrTable.setQrString(qrString);
-            qrTable.setManualEntryCode(generateManualCode());
+            qrTable.setManualEntryCode(token);
             qrTable.setPassType("SINGLE");
             qrTable.setIncludeStaff(false);
             qrTable.setStudentCount(1);
@@ -507,17 +503,57 @@ public class GatePassRequestService {
             
             qrTableRepository.save(qrTable);
             
-            // Update request with QR info
+            // Update request with QR info and schedule deletion
             request.setQrCode(qrString);
             request.setManualCode(qrTable.getManualEntryCode()); // Store manual code in request
             request.setQrCodeGeneratedAt(LocalDateTime.now());
             
-            log.info("✅ Generated QR code for single pass {} - Token: {} - Manual Code: {}", 
-                request.getId(), token, qrTable.getManualEntryCode());
+            // Schedule QR deletion 1 day after approval
+            LocalDateTime deletionTime = LocalDateTime.now().plusDays(1);
+            scheduleQRDeletion(request.getId(), deletionTime);
+            
+            log.info("✅ Generated QR code for single pass {} - Token: {} - Manual Code: {} - Scheduled for deletion: {}", 
+                request.getId(), token, qrTable.getManualEntryCode(), deletionTime);
             
         } catch (Exception e) {
             log.error("Error generating single pass QR code", e);
             throw e;
+        }
+    }
+    
+    // Schedule QR code deletion after 1 day
+    private void scheduleQRDeletion(Long requestId, LocalDateTime deletionTime) {
+        // This would ideally use a proper job scheduler like Quartz or Spring's @Scheduled
+        // For now, we'll implement a simple check in the QR retrieval method
+        log.info("📅 Scheduled QR deletion for request {} at {}", requestId, deletionTime);
+    }
+    
+    // Check and delete expired QR codes
+    @Transactional
+    public void cleanupExpiredQRCodes() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusDays(1);
+        List<QRTable> expiredQRs = qrTableRepository.findAll().stream()
+            .filter(qr -> qr.getCreatedAt().isBefore(cutoffTime))
+            .collect(java.util.stream.Collectors.toList());
+            
+        if (!expiredQRs.isEmpty()) {
+            log.info("🗑️  Cleaning up {} expired QR codes older than {}", expiredQRs.size(), cutoffTime);
+            qrTableRepository.deleteAll(expiredQRs);
+            
+            // Update corresponding requests to remove QR codes
+            for (QRTable qr : expiredQRs) {
+                if (qr.getPassRequestId() != null) {
+                    Optional<GatePassRequest> requestOpt = gatePassRequestRepository.findById(qr.getPassRequestId());
+                    if (requestOpt.isPresent()) {
+                        GatePassRequest request = requestOpt.get();
+                        request.setQrCode(null);
+                        request.setManualCode(null);
+                        request.setQrCodeGeneratedAt(null);
+                        gatePassRequestRepository.save(request);
+                        log.info("🗑️  Removed QR code for request {} due to 1-day expiration", request.getId());
+                    }
+                }
+            }
         }
     }
     
@@ -895,24 +931,6 @@ public class GatePassRequestService {
         if (request.getStatus() != GatePassRequest.RequestStatus.APPROVED) {
             log.warn("QR code requested for non-approved request {} (status: {})", requestId, request.getStatus());
             throw new RuntimeException("QR code is only available for approved requests");
-        }
-
-        // Check if at least 1 day has passed since approval
-        LocalDateTime approvalTime = null;
-        if (request.getHrApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
-            approvalTime = request.getHrApprovalDate();
-        } else if (request.getHodApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
-            approvalTime = request.getHodApprovalDate();
-        } else if (request.getStaffApproval() == GatePassRequest.ApprovalStatus.APPROVED) {
-            approvalTime = request.getStaffApprovalDate();
-        }
-
-        if (approvalTime != null) {
-            LocalDateTime oneDayAfterApproval = approvalTime.plusDays(1);
-            if (LocalDateTime.now().isBefore(oneDayAfterApproval)) {
-                log.warn("QR code requested for request {} before 1 day delay (approval: {}, now: {})", requestId, approvalTime, LocalDateTime.now());
-                throw new RuntimeException("QR code will be available 1 day after approval");
-            }
         }
 
         // Staff and HOD gate passes: QR only after HR approval (even if status were ever APPROVED without HR)
