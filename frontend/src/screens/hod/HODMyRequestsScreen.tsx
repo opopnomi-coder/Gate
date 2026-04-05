@@ -18,7 +18,8 @@ import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
-import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
+import TopRefreshControl from '../../components/TopRefreshControl';
+import SkeletonList from '../../components/SkeletonList';
 
 
 interface HODMyRequestsScreenProps {
@@ -232,7 +233,6 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
             <ThemedText style={[styles.statusPillText, { color: badge.bgColor }]}>{badge.text}</ThemedText>
           </View>
         </View>
-        <RefreshBlurOverlay cardBg={theme.surface} />
       </TouchableOpacity>
     );
   };
@@ -247,10 +247,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
           <ThemedText style={[styles.headerTitle, { color: theme.text }]}>My Requests</ThemedText>
           <View style={{ width: 40 }} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading requests...</ThemedText>
-        </View>
+        <SkeletonList count={5} />
       </SafeAreaView>
     );
   }

@@ -11,7 +11,8 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 import { getRelativeTime, formatDateShort } from '../../utils/dateUtils';
-import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
+import TopRefreshControl from '../../components/TopRefreshControl';
+import SkeletonList from '../../components/SkeletonList';
 
 interface NTFMyRequestsScreenProps {
   user: NonTeachingFaculty;
@@ -91,9 +92,7 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
       <TopRefreshControl refreshing={refreshing} onRefresh={onRefresh} color={theme.primary} pullEnabled={false}>
       <ScreenContentContainer>
         {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
+          <SkeletonList count={5} />
         ) : (
           <VerticalFlatList
             style={styles.list}
@@ -159,7 +158,6 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
                       <ThemedText style={styles.tapHint}>Tap to view QR</ThemedText>
                     )}
                   </View>
-                  <RefreshBlurOverlay cardBg="#FFFFFF" />
                 </TouchableOpacity>
               );
             }}

@@ -17,7 +17,8 @@ import { apiService } from '../../services/api';
 import { useNotifications } from '../../context/NotificationContext';
 import { useProfile } from '../../context/ProfileContext';
 import { useTheme } from '../../context/ThemeContext';
-import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
+import TopRefreshControl from '../../components/TopRefreshControl';
+import SkeletonList from '../../components/SkeletonList';
 import { useActionLock } from '../../context/ActionLockContext';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
 import NotificationDropdown from '../../components/NotificationDropdown';
@@ -73,6 +74,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
     approved: 0,
     rejected: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadRequests();
@@ -81,6 +83,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
 
   const loadRequests = async () => {
     try {
+      setLoading(true);
       const [gatePassResponse, visitorRequests] = await Promise.all([
         apiService.getAllHODRequests(hod.hodCode),
         apiService.getHODVisitorRequests(hod.hodCode),
@@ -122,6 +125,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
       console.error('Error loading requests:', error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
@@ -297,7 +301,10 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
       </View>
 
       <ScreenContentContainer style={{ flex: 1 }}>
-        <VerticalFlatList
+        {loading ? (
+          <SkeletonList count={5} />
+        ) : (
+          <VerticalFlatList
           style={styles.content}
           showsVerticalScrollIndicator={false}
           decelerationRate="normal"
@@ -403,7 +410,6 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
                   </ThemedText>
                 </View>
               </View>
-              <RefreshBlurOverlay cardBg={theme.cardBackground} />
             </TouchableOpacity>
           )}
           ListEmptyComponent={
@@ -413,6 +419,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
             </View>
           }
         />
+        )}
       </ScreenContentContainer>
       </TopRefreshControl>
 

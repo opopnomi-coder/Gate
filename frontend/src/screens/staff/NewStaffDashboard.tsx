@@ -17,7 +17,8 @@ import { apiService } from '../../services/api';
 import { useNotifications } from '../../context/NotificationContext';
 import { useProfile } from '../../context/ProfileContext';
 import { useTheme } from '../../context/ThemeContext';
-import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
+import TopRefreshControl from '../../components/TopRefreshControl';
+import SkeletonList from '../../components/SkeletonList';
 import { useActionLock } from '../../context/ActionLockContext';
 import { getRelativeTime, formatDateShort } from '../../utils/dateUtils';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
@@ -71,6 +72,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
     approved: 0,
     rejected: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadRequests();
@@ -79,6 +81,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
 
   const loadRequests = async () => {
     try {
+      setLoading(true);
       const [ownRequestsResponse, assignedRequestsResponse, visitorRequestsResponse] = await Promise.all([
         apiService.getStaffOwnGatePassRequests(staff.staffCode),
         apiService.getAllStaffRequests(staff.staffCode),
@@ -164,6 +167,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       console.error('Error loading requests:', error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
@@ -376,7 +380,10 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       </View>
 
       <ScreenContentContainer style={{ flex: 1 }}>
-        <VerticalFlatList
+        {loading ? (
+          <SkeletonList count={5} />
+        ) : (
+          <VerticalFlatList
           style={styles.content}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -475,7 +482,6 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
                   </ThemedText>
                 </View>
               </View>
-              <RefreshBlurOverlay cardBg={theme.cardBackground} />
             </TouchableOpacity>
           )}
           ListEmptyComponent={
@@ -485,6 +491,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             </View>
           }
         />
+        )}
       </ScreenContentContainer>
       </TopRefreshControl>
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
