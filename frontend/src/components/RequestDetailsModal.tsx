@@ -66,8 +66,8 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.modalHeader}>
             <ThemedText style={styles.modalTitle}>Request Details</ThemedText>
@@ -222,7 +222,7 @@ const RequestDetailsModal: React.FC<RequestDetailsModalProps> = ({
             <View style={{ height: 40 }} />
           </ScrollView>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Full Screen Image Modal */}
       <Modal

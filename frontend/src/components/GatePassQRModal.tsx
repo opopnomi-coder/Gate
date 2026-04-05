@@ -118,8 +118,8 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.card, { backgroundColor: theme.surface }]}>
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: theme.border }]}>
             <ThemedText style={[styles.title, { color: theme.text }]}>Gate Pass QR Code</ThemedText>
@@ -201,8 +201,8 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
               </View>
             )}
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };

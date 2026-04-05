@@ -722,8 +722,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
       {/* Rejection Reason Modal */}
       <Modal visible={showRejectModal} transparent animationType="fade" onRequestClose={() => setShowRejectModal(false)}>
-        <View style={styles.rejectModalOverlay}>
-          <View style={[styles.rejectModalContent, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity style={styles.rejectModalOverlay} activeOpacity={1} onPress={() => setShowRejectModal(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.rejectModalContent, { backgroundColor: theme.surface }]}>
             <View style={[styles.rejectModalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.rejectModalTitle, { color: theme.text }]}>Reject Visitor</ThemedText>
               <TouchableOpacity onPress={() => setShowRejectModal(false)}>
@@ -750,8 +750,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                 <ThemedText style={[styles.rejectModalConfirmText, { color: '#FFF' }]}>Reject</ThemedText>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       {/* Notification Dropdown */}

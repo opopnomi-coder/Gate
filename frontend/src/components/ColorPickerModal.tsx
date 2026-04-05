@@ -66,8 +66,8 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
+        <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={styles.container}>
           <View style={styles.header}>
             <ThemedText style={styles.title}>{title}</ThemedText>
             <TouchableOpacity onPress={onClose}>
@@ -114,8 +114,8 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };

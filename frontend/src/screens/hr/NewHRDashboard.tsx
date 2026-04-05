@@ -621,8 +621,8 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
       )}
 
       <Modal visible={rangeModalVisible} transparent animationType="slide" onRequestClose={() => setRangeModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.rangeModalCard, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRangeModalVisible(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.rangeModalCard, { backgroundColor: theme.surface }]}>
             {/* Header */}
             <View style={[styles.rangeModalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Select Date Range</ThemedText>
@@ -727,8 +727,8 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 <ThemedText style={styles.approveButtonText}>Apply Filter</ThemedText>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

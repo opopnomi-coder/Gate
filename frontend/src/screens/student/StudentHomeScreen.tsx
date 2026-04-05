@@ -318,8 +318,8 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       <NotificationDropdown visible={showNotificationDropdown} onClose={() => setShowNotificationDropdown(false)} userId={student.regNo} userType="student" />
 
       <Modal visible={showDetailModal} animationType="slide" transparent={true} onRequestClose={() => setShowDetailModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.detailModalContainer, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDetailModal(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.detailModalContainer, { backgroundColor: theme.surface }]}>
             <View style={[styles.modalHandle, { backgroundColor: theme.border }]} />
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Request Status</ThemedText>
@@ -350,8 +350,8 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                 )}
               />
             )}
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <GatePassQRModal visible={showQRModal} onClose={() => setShowQRModal(false)} personName={`${student.firstName} ${student.lastName || ''}`} personId={student.regNo} qrCodeData={qrCodeData} manualCode={manualEntryCode} reason={selectedRequest?.reason || selectedRequest?.purpose}/>

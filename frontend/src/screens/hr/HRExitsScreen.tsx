@@ -206,8 +206,8 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
 
       {/* Date Range Modal */}
       <Modal visible={rangeModalVisible} transparent animationType="slide" onRequestClose={() => setRangeModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRangeModalVisible(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.modalCard, { backgroundColor: theme.surface }]}>
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Select Date Range</ThemedText>
               <TouchableOpacity onPress={() => setRangeModalVisible(false)} style={[styles.closeBtn, { backgroundColor: theme.inputBackground }]}>
@@ -267,8 +267,8 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
                 <ThemedText style={[styles.applyBtnText, { color: '#FFF' }]}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <SuccessModal visible={showSuccess} title="Done" message={modalMsg} onClose={() => setShowSuccess(false)} autoClose autoCloseDelay={2500} />
