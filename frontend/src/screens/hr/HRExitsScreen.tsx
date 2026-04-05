@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, StyleSheet, TouchableOpacity, RefreshControl, Modal,
-  ActivityIndicator, StatusBar, BackHandler,
+  ActivityIndicator, StatusBar, BackHandler, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
@@ -16,6 +16,7 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
+import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 
 interface HRExitsScreenProps {
   hr: HR;
@@ -31,6 +32,8 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rangeModalVisible, setRangeModalVisible] = useState(false);
+
+  const { translateY: rangeSheetY, panHandlers: rangePanHandlers } = useBottomSheetSwipe(() => setRangeModalVisible(false));
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [selectingDateType, setSelectingDateType] = useState<'FROM' | 'TO'>('FROM');
@@ -207,7 +210,12 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
       {/* Date Range Modal */}
       <Modal visible={rangeModalVisible} transparent animationType="slide" onRequestClose={() => setRangeModalVisible(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRangeModalVisible(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.modalCard, { backgroundColor: theme.surface }]}>
+          <Animated.View
+            style={[styles.modalCard, { backgroundColor: theme.surface, transform: [{ translateY: rangeSheetY }] }]}
+            {...rangePanHandlers}
+          >
+            <View style={styles.dragHandle}><View style={[styles.dragHandleBar, { backgroundColor: theme.textTertiary + '60' }]} /></View>
+            <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Select Date Range</ThemedText>
               <TouchableOpacity onPress={() => setRangeModalVisible(false)} style={[styles.closeBtn, { backgroundColor: theme.inputBackground }]}>
@@ -268,6 +276,7 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
+          </Animated.View>
         </TouchableOpacity>
       </Modal>
 
@@ -309,6 +318,8 @@ const styles = StyleSheet.create({
   detailText: { fontSize: 13, flex: 1 },
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  dragHandle: { alignItems: 'center', paddingTop: 10, paddingBottom: 4 },
+  dragHandleBar: { width: 40, height: 4, borderRadius: 2 },
   modalCard: { borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 24 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1 },
   modalTitle: { fontSize: 17, fontWeight: '700' },

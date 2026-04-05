@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   Image,
   Modal,
-  FlatList
+  FlatList,
+  Animated,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,6 +35,7 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 // HRExitsScreen is navigated to via onNavigate('HR_EXITS') — rendered by HRDashboardContainer
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 
 
 interface NewHRDashboardProps {
@@ -74,6 +76,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
   const { profileImage } = useProfile();
   const { lock, unlock } = useActionLock();
   const [isDownloading, setIsDownloading] = useState(false);
+  const { translateY: rangeSheetY, panHandlers: rangePanHandlers } = useBottomSheetSwipe(() => setRangeModalVisible(false));
 
   const [stats, setStats] = useState({
     pending: 0,
@@ -622,7 +625,12 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
 
       <Modal visible={rangeModalVisible} transparent animationType="slide" onRequestClose={() => setRangeModalVisible(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRangeModalVisible(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.rangeModalCard, { backgroundColor: theme.surface }]}>
+          <Animated.View
+            style={[styles.rangeModalCard, { backgroundColor: theme.surface, transform: [{ translateY: rangeSheetY }] }]}
+            {...rangePanHandlers}
+          >
+            <View style={styles.dragHandle}><View style={[styles.dragHandleBar, { backgroundColor: theme.textTertiary + '60' }]} /></View>
+            <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
             {/* Header */}
             <View style={[styles.rangeModalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Select Date Range</ThemedText>
@@ -728,6 +736,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
+          </Animated.View>
         </TouchableOpacity>
       </Modal>
     </SafeAreaView>
@@ -781,6 +790,8 @@ const styles = StyleSheet.create({
   navLabel: { fontSize: 11, fontWeight: '600', marginTop: 4 },
   activeIndicator: { position: 'absolute', bottom: 0, width: 32, height: 3, borderRadius: 2 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+  dragHandle: { alignItems: 'center', paddingTop: 10, paddingBottom: 4 },
+  dragHandleBar: { width: 40, height: 4, borderRadius: 2 },
   modalContainer: { flex: 1, marginTop: 60, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 20, borderBottomWidth: 1 },
   modalTitle: { fontSize: 20, fontWeight: '700' },

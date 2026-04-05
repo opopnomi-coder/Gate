@@ -9,7 +9,8 @@ import {
   Image,
   Modal,
   TextInput,
-  FlatList
+  FlatList,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,6 +24,7 @@ import RequestTimeline from '../../components/RequestTimeline';
 import GatePassQRModal from '../../components/GatePassQRModal';
 import { useErrorModal } from '../../hooks/useErrorModal';
 import { useSuccessModal } from '../../hooks/useSuccessModal';
+import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 import { AppError } from '../../utils/errorHandler';
 import ErrorModal from '../../components/ErrorModal';
 import SuccessModal from '../../components/SuccessModal';
@@ -50,6 +52,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const { translateY: detailSheetY, panHandlers: detailPanHandlers } = useBottomSheetSwipe(() => setShowDetailModal(false));
   const { unreadCount } = useNotifications();
   const { profileImage } = useProfile();
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
@@ -319,7 +322,12 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
 
       <Modal visible={showDetailModal} animationType="slide" transparent={true} onRequestClose={() => setShowDetailModal(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDetailModal(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={[styles.detailModalContainer, { backgroundColor: theme.surface }]}>
+          <Animated.View
+            style={[styles.detailModalContainer, { backgroundColor: theme.surface, transform: [{ translateY: detailSheetY }] }]}
+            {...detailPanHandlers}
+          >
+            <View style={[styles.modalHandle, { backgroundColor: theme.border }]} />
+            <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
             <View style={[styles.modalHandle, { backgroundColor: theme.border }]} />
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Request Status</ThemedText>
@@ -351,6 +359,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               />
             )}
           </TouchableOpacity>
+          </Animated.View>
         </TouchableOpacity>
       </Modal>
 

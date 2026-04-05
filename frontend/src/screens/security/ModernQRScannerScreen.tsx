@@ -10,6 +10,7 @@ import {
   Modal,
   Platform,
   BackHandler,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, CameraView } from '../../shims/expoCamera';
@@ -22,6 +23,7 @@ import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useTheme } from '../../context/ThemeContext';
+import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 
 
 interface ModernQRScannerScreenProps {
@@ -39,6 +41,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
   const [scannerType, setScannerType] = useState<'ENTRY' | 'EXIT' | null>(null);
   const [manualCode, setManualCode] = useState('');
   const [showManualModal, setShowManualModal] = useState(false);
+
+  const { translateY: sheetTranslateY, panHandlers: sheetPanHandlers } = useBottomSheetSwipe(() => setShowManualModal(false));
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
@@ -386,8 +390,14 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         transparent={true}
         onRequestClose={() => setShowManualModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowManualModal(false)}>
+          <Animated.View
+            style={[styles.modalContainer, { backgroundColor: theme.surface, transform: [{ translateY: sheetTranslateY }] }]}
+            {...sheetPanHandlers}
+          >
+            {/* Drag handle */}
+            <View style={styles.dragHandle}><View style={[styles.dragHandleBar, { backgroundColor: theme.textTertiary + '60' }]} /></View>
+            <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
             <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
               <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Manual Entry</ThemedText>
               <TouchableOpacity
@@ -460,8 +470,9 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Bottom Navigation */}
@@ -746,6 +757,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  dragHandle: { alignItems: 'center', paddingTop: 10, paddingBottom: 4 },
+  dragHandleBar: { width: 40, height: 4, borderRadius: 2 },
   modalContainer: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,

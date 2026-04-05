@@ -9,7 +9,8 @@ import {
   Modal,
   Image,
   TextInput,
-  Platform
+  Platform,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -28,6 +29,7 @@ import ErrorModal from '../../components/ErrorModal';
 import { formatTime as fmtTime, getRelativeTimeShort } from '../../utils/dateUtils';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 
 
 interface NewSecurityDashboardProps {
@@ -76,6 +78,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const { lock, unlock } = useActionLock();
+  const { translateY: rejectSheetY, panHandlers: rejectPanHandlers } = useBottomSheetSwipe(() => setShowRejectModal(false));
 
   const [stats, setStats] = useState({
     active: 0,
