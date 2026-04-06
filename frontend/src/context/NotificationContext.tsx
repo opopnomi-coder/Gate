@@ -116,17 +116,20 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
       const data = await response.json();
       if (data.success && Array.isArray(data.notifications)) {
         const latest = data.notifications as Notification[];
-        // Use last-24-hours window instead of strict "today" to avoid midnight edge cases
         const recent = latest.filter((n) => isRecent(n.timestamp || n.createdAt));
 
         if (options.scheduleBanners) {
-          // Only show banners for notifications we haven't shown before
+          // Always re-sync from AsyncStorage before checking — the FCM background handler
+          // writes IDs there in a separate context, so the in-memory ref may be stale.
+          const persistedIds = await loadShownIds();
+          // Merge persisted into in-memory so we never lose either set
+          persistedIds.forEach(id => shownNotificationIdsRef.current.add(id));
+
           const unreadNew = recent.filter(
             (n) => !n.isRead && !shownNotificationIdsRef.current.has(n.id)
           );
           for (const n of unreadNew) {
             shownNotificationIdsRef.current.add(n.id);
-            // Fire real OS notification
             showLocalNotification(
               String(n.id),
               n.title || 'RIT Gate',
@@ -134,7 +137,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
               { actionRoute: n.actionRoute || '', notificationId: String(n.id) }
             );
           }
-          // Persist so restarts don't re-show the same notifications
           if (unreadNew.length > 0) {
             saveShownIds(shownNotificationIdsRef.current);
           }
