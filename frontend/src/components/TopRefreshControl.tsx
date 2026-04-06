@@ -130,6 +130,7 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
       <RefreshContext.Provider value={new Animated.Value(0)}>
         <View style={styles.container}>
           <Animated.View
+            pointerEvents="none"
             style={[styles.progressBar, { width: progressWidth, backgroundColor: color, opacity: refreshing ? 1 : 0 }]}
           />
           {children}
@@ -142,12 +143,13 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
     <RefreshContext.Provider value={new Animated.Value(0)}>
       <View style={styles.container}>
         {/* Spinner at top */}
-        <Animated.View style={[styles.indicator, { opacity: refreshing ? 1 : indicatorOpacity }]}>
+        <Animated.View pointerEvents="none" style={[styles.indicator, { opacity: refreshing ? 1 : indicatorOpacity }]}>
           <ActivityIndicator size="small" color={color} />
         </Animated.View>
 
         {/* Progress bar */}
         <Animated.View
+          pointerEvents="none"
           style={[styles.progressBar, { width: progressWidth, backgroundColor: color, opacity: refreshing ? 1 : 0 }]}
         />
 
