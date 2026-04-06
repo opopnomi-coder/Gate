@@ -111,10 +111,12 @@ public class PushNotificationService {
             String json = String.format(
                 "{\"message\":{" +
                 "\"token\":\"%s\"," +
-                "\"android\":{\"priority\":\"high\"}" +
+                "\"notification\":{\"title\":\"%s\",\"body\":\"%s\"}," +
+                "\"android\":{\"priority\":\"high\",\"notification\":{\"channel_id\":\"ritgate_main\",\"sound\":\"default\"}}" +
                 "%s" +
                 "}}",
                 fcmToken,
+                escapeJson(title), escapeJson(body),
                 dataJson
             );
 
