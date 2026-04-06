@@ -22,6 +22,7 @@ import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useTheme } from '../../context/ThemeContext';
 import TopRefreshControl from '../../components/TopRefreshControl';
+import SearchableDropdown, { DropdownItem } from '../../components/SearchableDropdown';
 
 interface HODContactsScreenProps {
   security: SecurityPersonnel;
@@ -179,36 +180,18 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
           )}
         </View>
 
-        {/* Department Filter */}
-        <View style={[styles.filterContainer, { backgroundColor: theme.background }]}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterContent}
-          >
-            {departments.map(dept => (
-              <TouchableOpacity
-                key={dept}
-                style={[
-                  styles.filterChip,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
-                  selectedDepartment === dept && { backgroundColor: theme.primary, borderColor: theme.primary },
-                ]}
-                onPress={() => setSelectedDepartment(dept)}
-                activeOpacity={0.7}
-              >
-                <ThemedText
-                  style={[
-                    styles.filterChipText,
-                    { color: theme.textSecondary },
-                    selectedDepartment === dept && { color: '#FFFFFF' },
-                  ]}
-                >
-                  {dept}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+        {/* Department Filter as Dropdown */}
+        <View style={styles.dropdownFilterWrapper}>
+          <ThemedText style={[styles.filterLabel, { color: theme.textSecondary }]}>Filter by Department</ThemedText>
+          <SearchableDropdown
+            items={departments.map(dept => ({
+              label: dept === 'ALL' ? 'All Departments' : dept,
+              value: dept
+            }))}
+            selectedValue={selectedDepartment}
+            onSelect={(val) => setSelectedDepartment(val)}
+            placeholder="Select Department"
+          />
         </View>
       </View>
 
@@ -376,14 +359,16 @@ const styles = StyleSheet.create({
     padding: 0,
   },
 
-  // Department Filter
-  filterContainer: {
-    marginBottom: 0,
+  // Department Dropdown
+  dropdownFilterWrapper: {
+    marginBottom: 16,
+    paddingHorizontal: 0,
   },
-  filterContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 10,
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginLeft: 4,
   },
   filterChip: {
     paddingHorizontal: 20,
