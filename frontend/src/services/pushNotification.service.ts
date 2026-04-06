@@ -15,6 +15,25 @@ import { API_CONFIG } from '../config/api.config';
 import { showLocalNotification } from './localNotification.service';
 
 const PUSH_TOKEN_KEY = '@mygate_push_token';
+const SHOWN_IDS_KEY = '@ritgate_shown_notif_ids';
+
+// ── Shared deduplication helpers ──────────────────────────────────────────────
+// These mirror the same AsyncStorage key used by NotificationContext so that
+// FCM-delivered notifications are tracked in the same set, preventing the
+// polling path from re-showing them as banners.
+
+async function addToShownIds(id: number): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem(SHOWN_IDS_KEY);
+    const arr: number[] = raw ? JSON.parse(raw) : [];
+    if (!arr.includes(id)) {
+      arr.push(id);
+      // Keep only the last 300 to avoid unbounded growth
+      const trimmed = arr.slice(-300);
+      await AsyncStorage.setItem(SHOWN_IDS_KEY, JSON.stringify(trimmed));
+    }
+  } catch {}
+}
 
 /** Request FCM permission (iOS requires explicit prompt; Android 13+ also needs it). */
 export async function requestFCMPermission(): Promise<boolean> {
@@ -102,20 +121,33 @@ export async function unregisterPushToken(): Promise<void> {
  * Set up foreground FCM message handler.
  * When the app is open, FCM doesn't show a notification automatically —
  * we display it via notifee (same as the polling path).
- * The user tapping the notifee banner is handled by onNotificationTap in localNotification.service.
- * Returns an unsubscribe function.
+ *
+ * Critically: we use the backend DB notification ID (passed in data.notificationId)
+ * as the notifee notification tag AND persist it to the shared shown-ids set.
+ * This prevents the polling path from re-showing the same notification.
  */
 export function setupFCMForegroundHandler(): () => void {
   const unsub = messaging().onMessage(async (remoteMessage) => {
     const title = remoteMessage.notification?.title || remoteMessage.data?.title as string || 'RIT Gate';
     const body  = remoteMessage.notification?.body  || remoteMessage.data?.body  as string || '';
     const actionRoute = remoteMessage.data?.actionRoute as string | undefined;
-    const id = remoteMessage.messageId || String(Date.now());
+    const dbNotifId = remoteMessage.data?.notificationId as string | undefined;
+
+    // Use the DB notification ID if available; fall back to FCM messageId
+    const displayId = dbNotifId || remoteMessage.messageId || String(Date.now());
+
+    // Track this notification in the shared shown set so polling won't re-show it
+    if (dbNotifId) {
+      const numericId = parseInt(dbNotifId, 10);
+      if (!isNaN(numericId)) {
+        await addToShownIds(numericId);
+      }
+    }
 
     // Show via notifee so it appears in the notification shade even in foreground
-    await showLocalNotification(id, title, body, {
+    await showLocalNotification(displayId, title, body, {
       actionRoute: actionRoute || '',
-      notificationId: id,
+      notificationId: displayId,
     });
   });
   return unsub;
@@ -158,15 +190,24 @@ export async function handleInitialNotification(
  */
 export function registerBackgroundHandler(): void {
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    // Data-only messages in background: show via notifee
     const title = remoteMessage.data?.title as string || 'RIT Gate';
     const body  = remoteMessage.data?.body  as string || '';
     const actionRoute = remoteMessage.data?.actionRoute as string | undefined;
-    const id = remoteMessage.messageId || String(Date.now());
+    const dbNotifId = remoteMessage.data?.notificationId as string | undefined;
 
-    await showLocalNotification(id, title, body, {
+    const displayId = dbNotifId || remoteMessage.messageId || String(Date.now());
+
+    // Track in shared shown set so polling won't re-show
+    if (dbNotifId) {
+      const numericId = parseInt(dbNotifId, 10);
+      if (!isNaN(numericId)) {
+        await addToShownIds(numericId);
+      }
+    }
+
+    await showLocalNotification(displayId, title, body, {
       actionRoute: actionRoute || '',
-      notificationId: id,
+      notificationId: displayId,
     });
   });
 }

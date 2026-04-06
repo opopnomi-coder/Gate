@@ -61,6 +61,11 @@ public class PushNotificationService {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendToUser(String userId, String title, String body, String actionRoute) {
+        sendToUser(userId, title, body, actionRoute, null);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void sendToUser(String userId, String title, String body, String actionRoute, Long notificationId) {
         if (serviceAccountJson == null || serviceAccountJson.isBlank() ||
             projectId == null || projectId.isBlank()) {
             log.debug("Firebase not configured — skipping push for user {}", userId);
@@ -76,7 +81,7 @@ public class PushNotificationService {
             for (var tokenEntity : tokens) {
                 String fcmToken = tokenEntity.getPushToken();
                 if (fcmToken == null || fcmToken.isBlank()) continue;
-                sendV1Push(fcmToken, title, body, actionRoute, accessToken);
+                sendV1Push(fcmToken, title, body, actionRoute, accessToken, notificationId);
             }
         } catch (Exception e) {
             log.warn("⚠️ Push notification failed for user {}: {}", userId, e.getMessage());
@@ -85,19 +90,23 @@ public class PushNotificationService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendToUser(String userId, String title, String body) {
-        sendToUser(userId, title, body, null);
+        sendToUser(userId, title, body, null, null);
     }
 
     // ── FCM HTTP v1 send ──────────────────────────────────────────────────────
 
     private void sendV1Push(String fcmToken, String title, String body,
-                            String actionRoute, String accessToken) {
+                            String actionRoute, String accessToken, Long notificationId) {
         try {
+            // Build data payload — include notificationId so the client can deduplicate
+            String nidField = notificationId != null
+                ? String.format(",\"notificationId\":\"%d\"", notificationId)
+                : "";
             String dataJson = actionRoute != null && !actionRoute.isEmpty()
-                ? String.format(",\"data\":{\"actionRoute\":\"%s\",\"title\":\"%s\",\"body\":\"%s\"}",
-                    escapeJson(actionRoute), escapeJson(title), escapeJson(body))
-                : String.format(",\"data\":{\"title\":\"%s\",\"body\":\"%s\"}",
-                    escapeJson(title), escapeJson(body));
+                ? String.format(",\"data\":{\"actionRoute\":\"%s\",\"title\":\"%s\",\"body\":\"%s\"%s}",
+                    escapeJson(actionRoute), escapeJson(title), escapeJson(body), nidField)
+                : String.format(",\"data\":{\"title\":\"%s\",\"body\":\"%s\"%s}",
+                    escapeJson(title), escapeJson(body), nidField);
 
             String json = String.format(
                 "{\"message\":{" +

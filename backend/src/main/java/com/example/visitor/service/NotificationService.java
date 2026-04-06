@@ -406,7 +406,7 @@ public class NotificationService {
         Notification n = new Notification(userId, title, message, type, priority, actionUrl);
         notificationRepository.save(n);
         log.info("📧 Notification saved for {} — {}", userId, title);
-        // Fire push notification (non-fatal) — includes actionRoute so tapping opens the right screen
-        pushNotificationService.sendToUser(userId, title, message, actionUrl);
+        // Fire push notification — pass DB id so the client can deduplicate against polling
+        pushNotificationService.sendToUser(userId, title, message, actionUrl, n.getId());
     }
 }

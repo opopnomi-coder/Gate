@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { API_CONFIG } from '../config/api.config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -48,12 +49,23 @@ async function loadShownIds(): Promise<Set<number>> {
   }
 }
 
-/** Persist shown IDs — keep only last 200 to avoid unbounded growth */
+/** Persist shown IDs — keep only last 300 to avoid unbounded growth */
 async function saveShownIds(ids: Set<number>): Promise<void> {
   try {
-    const arr = Array.from(ids).slice(-200);
+    const arr = Array.from(ids).slice(-300);
     await AsyncStorage.setItem(SHOWN_IDS_KEY, JSON.stringify(arr));
   } catch {}
+}
+
+/** Check if a timestamp is within the last 24 hours */
+function isRecent(value?: string): boolean {
+  if (!value) return false;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = Date.now();
+  const diff = now - d.getTime();
+  // 24 hours in milliseconds
+  return diff >= 0 && diff < 24 * 60 * 60 * 1000;
 }
 
 export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: (route: string) => void }> = ({ children, onNavigate }) => {
@@ -62,6 +74,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
   const shownNotificationIdsRef = useRef<Set<number>>(new Set());
   const onNavigateRef = useRef(onNavigate);
   onNavigateRef.current = onNavigate;
+  const initialLoadDoneRef = useRef(false);
 
   // Request permission + set up tap handler on mount
   useEffect(() => {
@@ -79,16 +92,18 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
     return () => { unsub(); };
   }, []);
 
-  const isToday = (value?: string) => {
-    if (!value) return false;
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return false;
-    const now = new Date();
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-  };
-
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  /**
+   * Fetch notifications from backend and optionally show OS banners for new ones.
+   * 
+   * DEDUPLICATION RULES:
+   * 1. Every notification shown as a banner (via polling or FCM) gets its DB id
+   *    added to the persisted shown-ids set.
+   * 2. On initial load (login / app open), we mark ALL existing notifications as
+   *    "shown" without firing banners — so stale alerts don't pop up.
+   * 3. Only truly NEW notifications (not in the shown set) trigger OS banners.
+   */
   const fetchFromBackend = async (
     userId: string,
     userType: UserType,
@@ -100,9 +115,12 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
       const data = await response.json();
       if (data.success && Array.isArray(data.notifications)) {
         const latest = data.notifications as Notification[];
-        const todaysOnly = latest.filter((n) => isToday(n.timestamp || n.createdAt));
+        // Use last-24-hours window instead of strict "today" to avoid midnight edge cases
+        const recent = latest.filter((n) => isRecent(n.timestamp || n.createdAt));
+
         if (options.scheduleBanners) {
-          const unreadNew = todaysOnly.filter(
+          // Only show banners for notifications we haven't shown before
+          const unreadNew = recent.filter(
             (n) => !n.isRead && !shownNotificationIdsRef.current.has(n.id)
           );
           for (const n of unreadNew) {
@@ -120,33 +138,39 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
             saveShownIds(shownNotificationIdsRef.current);
           }
         }
-        setNotifications(todaysOnly);
+        setNotifications(recent);
       }
     } catch (error) {
       // silent — polling will retry
     }
   };
 
+  /**
+   * Called on login / initial app load.
+   * Marks ALL existing notifications as "shown" so they don't fire as banners.
+   * Only notifications that arrive AFTER this point will trigger OS alerts.
+   */
   const loadNotifications = async (userId: string, userType: UserType) => {
     currentUserRef.current = { userId, userType };
+    initialLoadDoneRef.current = false;
     try {
       const url = `${API_CONFIG.BASE_URL}/notifications/${userType}/${userId}`;
       const response = await fetch(url);
       const data = await response.json();
       if (data.success && Array.isArray(data.notifications)) {
         const latest = data.notifications as Notification[];
-        const todaysOnly = latest.filter((n) => isToday(n.timestamp || n.createdAt));
-        // Merge today's IDs into the persisted set so we don't re-banner them
-        // (but don't wipe the set — that would cause re-shows on next login)
-        for (const n of todaysOnly) {
+        const recent = latest.filter((n) => isRecent(n.timestamp || n.createdAt));
+        // Mark ALL existing notifications as shown — prevents re-banners on app open
+        for (const n of recent) {
           shownNotificationIdsRef.current.add(n.id);
         }
         await saveShownIds(shownNotificationIdsRef.current);
-        setNotifications(todaysOnly);
+        setNotifications(recent);
       }
     } catch (error) {
       // silent — polling will retry
     }
+    initialLoadDoneRef.current = true;
   };
 
   const markAsRead = async (notificationId: number) => {
@@ -184,13 +208,30 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
   // Poll every 15 seconds for near-real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      if (currentUserRef.current) {
+      if (currentUserRef.current && initialLoadDoneRef.current) {
         fetchFromBackend(currentUserRef.current.userId, currentUserRef.current.userType, {
           scheduleBanners: true,
         });
       }
     }, 15000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Re-sync shown IDs when app comes back to foreground (in case background handler added IDs)
+  useEffect(() => {
+    const handleAppState = (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        loadShownIds().then(ids => { shownNotificationIdsRef.current = ids; });
+        // Also refresh notifications immediately
+        if (currentUserRef.current && initialLoadDoneRef.current) {
+          fetchFromBackend(currentUserRef.current.userId, currentUserRef.current.userType, {
+            scheduleBanners: true,
+          });
+        }
+      }
+    };
+    const sub = AppState.addEventListener('change', handleAppState);
+    return () => sub.remove();
   }, []);
 
   return (

@@ -42,12 +42,12 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const isToday = (value?: string) => {
+  const isRecent = (value?: string) => {
     if (!value) return false;
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return false;
-    const now = new Date();
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    const diff = Date.now() - d.getTime();
+    return diff >= 0 && diff < 24 * 60 * 60 * 1000;
   };
 
   const fetchNotifications = async () => {
@@ -58,7 +58,7 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
       if (data.success && data.notifications) {
         // Get latest 5 notifications
         const latest = data.notifications as Notification[];
-        const todaysOnly = latest.filter((n) => isToday(n.timestamp || n.createdAt));
+        const todaysOnly = latest.filter((n) => isRecent(n.timestamp || n.createdAt));
         setNotifications(todaysOnly.slice(0, 5));
       }
     } catch (error) {
