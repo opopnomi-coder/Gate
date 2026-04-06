@@ -4,6 +4,7 @@ import com.example.visitor.entity.Notification;
 import com.example.visitor.entity.UserPushToken;
 import com.example.visitor.repository.NotificationRepository;
 import com.example.visitor.repository.UserPushTokenRepository;
+import com.example.visitor.repository.GatePassRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,9 @@ public class NotificationController {
 
     @Autowired
     private UserPushTokenRepository pushTokenRepository;
+
+    @Autowired
+    private GatePassRequestRepository gatePassRequestRepository;
     
     // Get notifications for student
     @GetMapping("/student/{regNo}")
@@ -260,31 +264,24 @@ public class NotificationController {
     public ResponseEntity<?> debugRouting(@PathVariable String regNo) {
         try {
             java.util.Map<String, Object> debugInfo = new java.util.HashMap<>();
-            
-            // 1. Get the very last gate pass submitted by this student
-            java.util.Optional<com.example.visitor.entity.GatePassRequest> lastReqOpt = 
-                com.example.visitor.repository.GatePassRequestRepository.class.cast(
-                    org.springframework.web.context.support.WebApplicationContextUtils.
-                    getWebApplicationContext(org.springframework.web.context.request.RequestContextHolder.
-                    currentRequestAttributes().getAttribute("org.springframework.web.servlet.DispatcherServlet.CONTEXT", 0))
-                    .getBean(com.example.visitor.repository.GatePassRequestRepository.class)
-                ).findByRegNoOrderByCreatedAtDesc(regNo).stream()
-                 .max(java.util.Comparator.comparing(com.example.visitor.entity.GatePassRequest::getCreatedAt));
+
+            java.util.Optional<com.example.visitor.entity.GatePassRequest> lastReqOpt =
+                gatePassRequestRepository.findByRegNoOrderByCreatedAtDesc(regNo).stream()
+                    .max(java.util.Comparator.comparing(com.example.visitor.entity.GatePassRequest::getCreatedAt));
 
             if (lastReqOpt.isPresent()) {
                 com.example.visitor.entity.GatePassRequest req = lastReqOpt.get();
                 String assignedStaff = req.getAssignedStaffCode();
                 debugInfo.put("latest_request_id", req.getId());
                 debugInfo.put("assigned_staff_code", assignedStaff);
-                
-                // 2. Check if this staff code has an active FCM token registered
+
                 java.util.List<UserPushToken> tokens = pushTokenRepository.findByUserId(assignedStaff);
                 debugInfo.put("is_staff_token_registered", !tokens.isEmpty());
                 debugInfo.put("staff_registered_devices", tokens.size());
             } else {
                 debugInfo.put("error", "No requests found for student: " + regNo);
             }
-            
+
             return ResponseEntity.ok(debugInfo);
         } catch(Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
