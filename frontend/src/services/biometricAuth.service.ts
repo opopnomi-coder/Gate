@@ -2,57 +2,29 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import * as Keychain from 'react-native-keychain';
 
-const SESSION_KEY = 'mygate_biometric_session';
+const SESSION_KEY = '@mygate_biometric_session';
 const PIN_AUTH_SERVICE = 'mygate_pin_auth';
 
-async function setSecureValue(key: string, value: string): Promise<void> {
-  try {
-    await Keychain.setGenericPassword(key, value, { service: key });
-  } catch {
-    await AsyncStorage.setItem(key, value);
-  }
-}
-
-async function getSecureValue(key: string): Promise<string | null> {
-  try {
-    const secure = await Keychain.getGenericPassword({ service: key });
-    if (secure && typeof secure.password === 'string') return secure.password;
-  } catch {
-  }
-  return AsyncStorage.getItem(key);
-}
-
-async function removeSecureValue(key: string): Promise<void> {
-  try {
-    await Keychain.resetGenericPassword({ service: key });
-  } catch {
-  }
-  await AsyncStorage.removeItem(key);
-}
-
 export const biometricAuthService = {
+  /** Arm the session flag — stored in AsyncStorage so it survives process kill */
   async markSessionActive(): Promise<void> {
-    await setSecureValue(SESSION_KEY, '1');
-    // Pre-store a PIN-protected value so the PIN prompt can retrieve it later
-    try {
-      await Keychain.setGenericPassword('pin_auth', 'verified', {
-        service: PIN_AUTH_SERVICE,
-        accessControl: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-        accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-      });
-    } catch {
-      // Ignore — device may not support it
-    }
+    await AsyncStorage.setItem(SESSION_KEY, '1');
   },
 
+  /** Clear the session flag */
   async clearSession(): Promise<void> {
-    await removeSecureValue(SESSION_KEY);
+    await AsyncStorage.removeItem(SESSION_KEY);
     try { await Keychain.resetGenericPassword({ service: PIN_AUTH_SERVICE }); } catch {}
   },
 
+  /** Returns true if the app was killed while a user was logged in */
   async hasSessionFlag(): Promise<boolean> {
-    const value = await getSecureValue(SESSION_KEY);
-    return value === '1';
+    try {
+      const value = await AsyncStorage.getItem(SESSION_KEY);
+      return value === '1';
+    } catch {
+      return false;
+    }
   },
 
   /** Biometric only (fingerprint/face) */
@@ -72,21 +44,17 @@ export const biometricAuthService = {
   },
 
   /**
-   * Device credential only (PIN / pattern / password) — no biometric.
-   * Uses Keychain with ACCESS_CONTROL.DEVICE_PASSCODE which forces the
-   * system PIN/pattern/password dialog, bypassing fingerprint entirely.
+   * Device credential only (PIN / pattern / password).
+   * Only called when user explicitly taps the PIN button on BiometricGateScreen.
    */
   async authenticateDeviceCredential(): Promise<{ success: boolean; error?: string }> {
     try {
-      // Ensure the PIN-protected entry exists — write it if missing
-      const existing = await Keychain.getGenericPassword({ service: PIN_AUTH_SERVICE }).catch(() => null);
-      if (!existing) {
-        await Keychain.setGenericPassword('pin_auth', 'verified', {
-          service: PIN_AUTH_SERVICE,
-          accessControl: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
-          accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-        });
-      }
+      // Write the protected entry fresh each time so it's always present
+      await Keychain.setGenericPassword('pin_auth', 'verified', {
+        service: PIN_AUTH_SERVICE,
+        accessControl: Keychain.ACCESS_CONTROL.DEVICE_PASSCODE,
+        accessible: Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+      });
 
       const result = await Keychain.getGenericPassword({
         service: PIN_AUTH_SERVICE,
