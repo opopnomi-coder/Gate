@@ -218,12 +218,16 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
   const handleManualExit = async (person: ActivePerson) => {
     try {
+      lock('Marking exit for ' + person.name + '...');
       const response = await apiService.manualExit(person.name, user.securityId);
       if (response.success) {
+        // Optimistically remove from list immediately
+        setActivePersons(prev => prev.filter(p => p.id !== person.id));
+        
         setSuccessMessage(`${person.name} has been marked as exited`);
         setShowSuccessModal(true);
         setShowDetailModal(false);
-        loadDashboardData();
+        await loadDashboardData();
       } else {
         setErrorMessage(response.message || 'Failed to mark exit');
         setShowErrorModal(true);
@@ -232,6 +236,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       console.error('Manual exit error:', error);
       setErrorMessage('Failed to process manual exit');
       setShowErrorModal(true);
+    } finally {
+      unlock();
     }
   };
 
@@ -241,10 +247,13 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       const securityId = user.securityId || user.id?.toString() || 'SEC001';
       const response = await apiService.approveEscalatedVisitor(visitor.id, securityId);
       if (response.success) {
+        // Optimistically remove from list immediately
+        setEscalatedVisitors(prev => prev.filter(v => v.id !== visitor.id));
+        
         setSuccessMessage('Visitor approved successfully');
         setShowSuccessModal(true);
         setShowVisitorModal(false);
-        loadEscalatedVisitors();
+        await loadEscalatedVisitors();
       } else {
         setErrorMessage(response.message || 'Failed to approve visitor');
         setShowErrorModal(true);
@@ -275,12 +284,15 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
         rejectionReason || 'Rejected by security'
       );
       if (response.success) {
+        // Optimistically remove from list immediately
+        setEscalatedVisitors(prev => prev.filter(v => v.id !== selectedVisitor.id));
+        
         setSuccessMessage('Visitor rejected');
         setShowSuccessModal(true);
         setShowRejectModal(false);
         setShowVisitorModal(false);
         setRejectionReason('');
-        loadEscalatedVisitors();
+        await loadEscalatedVisitors();
       } else {
         setErrorMessage(response.message || 'Failed to reject visitor');
         setShowErrorModal(true);
