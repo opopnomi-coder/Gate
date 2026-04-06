@@ -6,6 +6,7 @@ import StudentRequestsScreen from './StudentRequestsScreen';
 import StudentHistoryScreen from './StudentHistoryScreen';
 import ProfileScreen from '../shared/ProfileScreen';
 import GatePassRequestScreen from './GatePassRequestScreen';
+import { useNotifications } from '../../context/NotificationContext';
 
 interface StudentDashboardContainerProps {
   student: Student;
@@ -21,6 +22,11 @@ const StudentDashboardContainer: React.FC<StudentDashboardContainerProps> = ({
   onNavigate,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('HOME');
+  const { loadNotifications } = useNotifications();
+
+  useEffect(() => {
+    loadNotifications(student.regNo, 'student');
+  }, []);
 
   // Sub-tabs go back to HOME; HOME lets App.tsx handle (exit modal)
   useEffect(() => {

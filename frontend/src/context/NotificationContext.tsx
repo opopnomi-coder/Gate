@@ -4,6 +4,7 @@ import { API_CONFIG } from '../config/api.config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   showLocalNotification,
+  cancelAllNotifications,
   requestNotificationPermission,
   onNotificationTap,
 } from '../services/localNotification.service';
@@ -149,10 +150,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
    * Called on login / initial app load.
    * Marks ALL existing notifications as "shown" so they don't fire as banners.
    * Only notifications that arrive AFTER this point will trigger OS alerts.
+   * Also clears the OS notification tray so stale banners are removed.
    */
   const loadNotifications = async (userId: string, userType: UserType) => {
     currentUserRef.current = { userId, userType };
     initialLoadDoneRef.current = false;
+    // Clear the notification tray when the user opens/logs into the app
+    cancelAllNotifications();
     try {
       const url = `${API_CONFIG.BASE_URL}/notifications/${userType}/${userId}`;
       const response = await fetch(url);
@@ -218,14 +222,17 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
   }, []);
 
   // Re-sync shown IDs when app comes back to foreground (in case background handler added IDs)
+  // Also clear the notification tray so stale banners are dismissed when user opens the app.
   useEffect(() => {
     const handleAppState = (nextState: AppStateStatus) => {
       if (nextState === 'active') {
+        // Clear OS notification tray — user has opened the app, stale banners should go away
+        cancelAllNotifications();
         loadShownIds().then(ids => { shownNotificationIdsRef.current = ids; });
         // Also refresh notifications immediately
         if (currentUserRef.current && initialLoadDoneRef.current) {
           fetchFromBackend(currentUserRef.current.userId, currentUserRef.current.userType, {
-            scheduleBanners: true,
+            scheduleBanners: false, // don't re-banner on foreground resume; only new polls should banner
           });
         }
       }
