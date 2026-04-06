@@ -36,6 +36,7 @@ import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 import TopRefreshControl from '../../components/TopRefreshControl';
+import { SkeletonList } from '../../components/SkeletonCard';
 
 
 interface NewHRDashboardProps {
@@ -385,6 +386,9 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
           </View>
 
           <ScreenContentContainer style={{ flex: 1 }}>
+            {refreshing ? (
+              <SkeletonList count={5} />
+            ) : (
             <VerticalFlatList
               style={styles.content}
               data={filteredRequests}
@@ -508,6 +512,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 </View>
               }
             />
+            )}
           </ScreenContentContainer>
         </>
       )}

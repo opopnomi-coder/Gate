@@ -18,8 +18,8 @@ import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
-import TopRefreshControl from '../../components/TopRefreshControl';
-import SkeletonList from '../../components/SkeletonList';
+import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
+import { SkeletonList } from '../../components/SkeletonCard';
 
 
 interface HODMyRequestsScreenProps {
@@ -264,6 +264,9 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
       {/* Header */}
       <TopRefreshControl refreshing={refreshing} onRefresh={onRefresh} color={theme.primary} pullEnabled={false}>
       <ScreenContentContainer>
+        {refreshing ? (
+          <SkeletonList count={5} />
+        ) : (
         <VerticalFlatList
           style={[styles.content, { backgroundColor: theme.background }]}
           data={allRequests}
@@ -287,6 +290,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
             </View>
           }
         />
+        )}
       </ScreenContentContainer>
       </TopRefreshControl>
 

@@ -38,7 +38,6 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [scannerType, setScannerType] = useState<'ENTRY' | 'EXIT' | null>(null);
   const [manualCode, setManualCode] = useState('');
   const [showManualModal, setShowManualModal] = useState(false);
 
@@ -77,12 +76,11 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
     console.log('========================================');
     console.log('🔍 [MODERN] QR CODE DETECTED BY CAMERA!');
     console.log('📦 [MODERN] Raw Data:', data);
-    console.log('📍 [MODERN] Scanner Type:', scannerType);
     console.log('🔒 [MODERN] Scanned state:', scanned);
     console.log('========================================');
     
-    if (scanned || !scannerType) {
-      console.log('⚠️ [MODERN] Ignoring scan - scanned:', scanned, 'scannerType:', scannerType);
+    if (scanned) {
+      console.log('⚠️ [MODERN] Ignoring scan - already scanned');
       return;
     }
     
@@ -91,38 +89,21 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
     setIsLoading(true);
 
     try {
-      // Detect if this is a plain ID code (for late entry) or QR code format
-      // QR codes use '/' (ST/userid/random) or '|' (GP|incharge|students|staff|subtype:token for bulk passes)
-      const isQRCodeFormat = data.includes('/') || data.includes('|');
-      const isEntryScanner = scannerType === 'ENTRY';
-      
-      console.log('🔍 [MODERN] Code format detection:');
-      console.log('  - Is QR format (contains /):', isQRCodeFormat);
-      console.log('  - Is Entry scanner:', isEntryScanner);
-      console.log('  - Will use late entry:', !isQRCodeFormat && isEntryScanner);
-      
       let response;
+      // Use unified scan endpoint (scanQREntry/scanQRExit are the same)
+      console.log('🚀 [MODERN] Calling apiService.scanQREntry (unified handler)');
+      console.log('👤 [MODERN] Security ID:', security.securityId);
       
-      // If ENTRY scanner and plain ID code (no /), use late entry endpoint
-      if (isEntryScanner && !isQRCodeFormat) {
-        console.log('🚀 [MODERN] Calling apiService.scanLateEntry (plain ID code)');
-        console.log('👤 [MODERN] Security ID:', security.securityId);
-        response = await apiService.scanLateEntry(data, security.securityId);
-      } else {
-        // Otherwise use regular QR scan endpoints
-        console.log('🚀 [MODERN] Calling apiService.scanQR' + (scannerType === 'ENTRY' ? 'Entry' : 'Exit') + ' (QR code format)');
-        console.log('👤 [MODERN] Security ID:', security.securityId);
-        
-        response = scannerType === 'ENTRY'
-          ? await apiService.scanQREntry(data, security.securityId)
-          : await apiService.scanQRExit(data, security.securityId);
-      }
+      response = await apiService.scanQREntry(data, security.securityId);
 
       console.log('📥 [MODERN] API Response:', JSON.stringify(response));
 
       if (response.success) {
-        const scanLabel = scannerType === 'ENTRY' ? 'Entry' : 'Exit';
-        setModalTitle(`${scanLabel} Recorded`);
+        // Backend tells us if it was entry or exit via scanLocation or type
+        const data_resp = response.data || response;
+        const isExit = (data_resp?.scanLocation || '').toLowerCase().includes('exit');
+        const scanLabel = isExit ? 'Exit' : 'Entry';
+        setModalTitle(`✅ ${scanLabel} Recorded`);
         setModalMessage(response.message || `${scanLabel} recorded successfully`);
         setShowSuccessModal(true);
       } else {
@@ -131,11 +112,10 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         setShowErrorModal(true);
         resetScanner();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [MODERN] Error scanning QR code:', error);
-      console.error('❌ [MODERN] Error details:', JSON.stringify(error));
       setModalTitle('Scan Error');
-      setModalMessage('Failed to process scan. Please check your connection and try again.');
+      setModalMessage(error.message || 'Failed to process scan. Please check your connection and try again.');
       setShowErrorModal(true);
       resetScanner();
     } finally {
@@ -144,49 +124,53 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
   };
 
   const handleManualEntry = async () => {
-    if (!manualCode.trim() || !scannerType) return;
+    if (!manualCode.trim()) return;
 
     setIsLoading(true);
     try {
-      // Detect if this is a plain ID code (for late entry) or QR code format
+      // 1. Detect code format
+      // QR codes: ST/userid/random or GP|incharge|students...
+      // Manual/QR strings: 6 digits
       const isQRCodeFormat = manualCode.includes('/') || manualCode.includes('|');
-      const isEntryScanner = scannerType === 'ENTRY';
+      const is6DigitCode = /^\d{6}$/.test(manualCode.trim());
       
       console.log('🔍 [MODERN] Manual entry code format detection:');
       console.log('  - Code:', manualCode);
-      console.log('  - Is QR format (contains /):', isQRCodeFormat);
-      console.log('  - Is Entry scanner:', isEntryScanner);
-      console.log('  - Will use late entry:', !isQRCodeFormat && isEntryScanner);
-      
+      console.log('  - Is QR Format:', isQRCodeFormat);
+      console.log('  - Is 6-Digit Code:', is6DigitCode);
+
       let response;
-      
-      // If ENTRY scanner and plain ID code (no /), use late entry endpoint
-      if (isEntryScanner && !isQRCodeFormat) {
-        console.log('🚀 [MODERN] Manual entry calling scanLateEntry');
-        response = await apiService.scanLateEntry(manualCode, security.securityId);
+      if (isQRCodeFormat || is6DigitCode) {
+        // Unified scan endpoint
+        console.log('🚀 Calling apiService.scanQREntry (unified handler)');
+        response = await apiService.scanQREntry(manualCode.trim(), security.securityId);
       } else {
-        // Otherwise use regular QR scan endpoints
-        console.log('🚀 [MODERN] Manual entry calling scanQR' + (scannerType === 'ENTRY' ? 'Entry' : 'Exit'));
-        response = scannerType === 'ENTRY'
-          ? await apiService.scanQREntry(manualCode, security.securityId)
-          : await apiService.scanQRExit(manualCode, security.securityId);
+        // Assume student reg no or staff id
+        console.log('🚀 Calling apiService.scanLateEntry (ID code handler)');
+        response = await apiService.scanLateEntry(manualCode.trim(), security.securityId);
       }
 
-      if (response.success) {
-        const scanLabel = scannerType === 'ENTRY' ? 'Entry' : 'Exit';
-        setModalTitle(`${scanLabel} Recorded`);
+      console.log('📥 [MODERN] Manual Entry API Response:', JSON.stringify(response));
+
+      if (response.success || (response as any).status === 'SUCCESS' || (response as any).status === 'APPROVED') {
+        const data_resp = response.data || response;
+        const isExit = (data_resp?.scanLocation || '').toLowerCase().includes('exit');
+        const scanLabel = isExit ? 'Exit' : 'Entry';
+        setModalTitle(`✅ ${scanLabel} Recorded`);
         setModalMessage(response.message || `${scanLabel} recorded successfully`);
         setManualCode('');
         setShowManualModal(false);
         setShowSuccessModal(true);
       } else {
+        // Map backend errors if needed, but we already improved them on the backend
         setModalTitle('Entry Failed');
-        setModalMessage(response.message || 'Could not process the code. Please verify and try again.');
+        setModalMessage(response.message || 'This code is invalid or already used. Please verify and try again.');
         setShowErrorModal(true);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ [MODERN] Manual entry error:', error);
       setModalTitle('Entry Error');
-      setModalMessage('Failed to process manual entry. Please check your connection.');
+      setModalMessage('Could not process the code. Please check your connection and try again.');
       setShowErrorModal(true);
     } finally {
       setIsLoading(false);
@@ -196,12 +180,10 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
   const resetScanner = () => {
     setScanned(false);
     setShowCamera(false);
-    setScannerType(null);
   };
 
-  const startScanning = (type: 'ENTRY' | 'EXIT') => {
-    console.log('📱 [MODERN] Scanner type selected:', type);
-    setScannerType(type);
+  const startScanning = () => {
+    console.log('📱 [MODERN] Scanner started');
     setShowCamera(true);
     setScanned(false);
     console.log('📷 [MODERN] Camera should now be visible');
@@ -247,10 +229,8 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
           <View style={styles.cameraOverlay}>
             {/* Scan Type Badge */}
             <View style={[styles.scanTypeBadge, { marginTop: Platform.OS === 'android' ? 48 : 60, backgroundColor: theme.primary + 'E6' }]}>
-              <Ionicons name={scannerType === 'ENTRY' ? 'log-in' : 'log-out'} size={20} color="#FFF" />
-              <ThemedText style={styles.scanTypeBadgeText}>
-                {scannerType === 'ENTRY' ? 'ENTRY SCAN' : 'EXIT SCAN'}
-              </ThemedText>
+              <Ionicons name="qr-code" size={20} color="#FFF" />
+              <ThemedText style={styles.scanTypeBadgeText}>AUTO SCAN</ThemedText>
             </View>
 
             {/* Scan Frame */}
@@ -320,32 +300,20 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         <VerticalScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
           {/* Scanner Type Selection */}
           <View style={styles.section}>
-            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Select Scan Type</ThemedText>
-            
-            <TouchableOpacity
-              style={[styles.scanTypeCard, { backgroundColor: theme.surface }]}
-              onPress={() => startScanning('ENTRY')}
-            >
-              <View style={[styles.scanTypeIcon, { backgroundColor: theme.success }]}>
-                <Ionicons name="log-in" size={32} color="#FFFFFF" />
-              </View>
-              <View style={styles.scanTypeInfo}>
-                <ThemedText style={[styles.scanTypeTitle, { color: theme.text }]}>Entry Scan</ThemedText>
-                <ThemedText style={[styles.scanTypeDesc, { color: theme.textSecondary }]}>Scan QR code or barcode for campus entry</ThemedText>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color={theme.textTertiary} />
-            </TouchableOpacity>
+            <ThemedText style={[styles.sectionTitle, { color: theme.text }]}>Scan QR Code</ThemedText>
 
             <TouchableOpacity
               style={[styles.scanTypeCard, { backgroundColor: theme.surface }]}
-              onPress={() => startScanning('EXIT')}
+              onPress={() => startScanning()}
             >
-              <View style={[styles.scanTypeIcon, { backgroundColor: theme.error }]}>
-                <Ionicons name="log-out" size={32} color="#FFFFFF" />
+              <View style={[styles.scanTypeIcon, { backgroundColor: theme.primary }]}>
+                <Ionicons name="qr-code" size={32} color="#FFFFFF" />
               </View>
               <View style={styles.scanTypeInfo}>
-                <ThemedText style={[styles.scanTypeTitle, { color: theme.text }]}>Exit Scan</ThemedText>
-                <ThemedText style={[styles.scanTypeDesc, { color: theme.textSecondary }]}>Scan QR code or barcode for campus exit</ThemedText>
+                <ThemedText style={[styles.scanTypeTitle, { color: theme.text }]}>Scan QR / Barcode</ThemedText>
+                <ThemedText style={[styles.scanTypeDesc, { color: theme.textSecondary }]}>
+                  Entry or exit is detected automatically
+                </ThemedText>
               </View>
               <Ionicons name="chevron-forward" size={24} color={theme.textTertiary} />
             </TouchableOpacity>
@@ -369,14 +337,13 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
             <View style={styles.instructionsContent}>
               <ThemedText style={[styles.instructionsTitle, { color: theme.info }]}>How to Scan</ThemedText>
               <ThemedText style={[styles.instructionsText, { color: theme.textSecondary }]}>
-                Entry Scanner:{'\n'}
-                • QR codes & Barcodes → Regular entry/exit{'\n'}
-                • Plain ID codes → Late entry{'\n'}
+                The system automatically detects entry or exit:{'\n'}
+                • Visitor first scan → Entry recorded{'\n'}
+                • Visitor second scan → Exit recorded{'\n'}
+                • Student/Staff QR → Exit recorded{'\n'}
+                • Plain ID code → Late entry{'\n'}
                 {'\n'}
-                Exit Scanner:{'\n'}
-                • QR codes & Barcodes → Exit records{'\n'}
-                {'\n'}
-                The system auto-detects the format!
+                No need to select entry or exit manually!
               </ThemedText>
             </View>
           </View>
@@ -410,37 +377,6 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
             </View>
 
             <View style={styles.modalContent}>
-              <ThemedText style={[styles.modalLabel, { color: theme.textSecondary }]}>Select Type</ThemedText>
-              <View style={styles.typeButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton, { backgroundColor: theme.surfaceHighlight },
-                    scannerType === 'ENTRY' && { backgroundColor: theme.primary }
-                  ]}
-                  onPress={() => setScannerType('ENTRY')}
-                >
-                  <ThemedText style={[
-                    styles.typeButtonText, { color: theme.textSecondary },
-                    scannerType === 'ENTRY' && { color: '#FFF' }
-                  ]}>
-                    Entry
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton, { backgroundColor: theme.surfaceHighlight },
-                    scannerType === 'EXIT' && { backgroundColor: theme.primary }
-                  ]}
-                  onPress={() => setScannerType('EXIT')}
-                >
-                  <ThemedText style={[
-                    styles.typeButtonText, { color: theme.textSecondary },
-                    scannerType === 'EXIT' && { color: '#FFF' }
-                  ]}>
-                    Exit
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
 
               <ThemedText style={[styles.modalLabel, { color: theme.textSecondary }]}>Enter Code</ThemedText>
               <TextInput
@@ -456,10 +392,10 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
               <TouchableOpacity
                 style={[
                   styles.submitButton, { backgroundColor: theme.primary },
-                  (!manualCode.trim() || !scannerType) && { backgroundColor: theme.border }
+                  (!manualCode.trim()) && { backgroundColor: theme.border }
                 ]}
                 onPress={handleManualEntry}
-                disabled={!manualCode.trim() || !scannerType || isLoading}
+                disabled={!manualCode.trim() || isLoading}
               >
                 {isLoading ? (
                   <ActivityIndicator color="#FFF" />

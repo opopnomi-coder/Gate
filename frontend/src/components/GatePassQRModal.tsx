@@ -55,8 +55,8 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
   const exportQrPng = async (): Promise<string | null> => {
     if (!qrRef.current?.toDataURL) return null;
     const base64 = await new Promise<string | null>((resolve) => {
-      // Export at 800px with quiet zone padding built in
-      qrRef.current.toDataURL((data: string) => resolve(data || null), { width: 800, height: 800 });
+      // Export at 1000px — quietZone is included in the SVG so shared image has proper white border
+      qrRef.current.toDataURL((data: string) => resolve(data || null), { width: 1000, height: 1000 });
     });
     if (!base64) return null;
     const path = `${RNFS.CachesDirectoryPath}/guest-qr-${Date.now()}.png`;
@@ -143,7 +143,7 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
                     color="#000000"
                     backgroundColor="#FFFFFF"
                     getRef={(c: any) => { qrRef.current = c; }}
-                    quietZone={10}
+                    quietZone={40}
                   />
                 ) : (
                   <Image

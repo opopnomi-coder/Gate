@@ -2,25 +2,24 @@
  * TopRefreshControl
  *
  * Two modes:
- * 1. Default (dashboards): Custom pull-from-anywhere gesture with blur animation.
+ * 1. Default (dashboards): Custom pull-from-anywhere gesture.
  *    The FlatList inside should NOT have a RefreshControl.
  *
- * 2. Blur-only (other screens): Just wraps children and provides blur context.
+ * 2. Blur-only (other screens): Just wraps children.
  *    The FlatList inside uses native RefreshControl.
  *    Pass pullEnabled={false} to use this mode.
  *
- * RefreshBlurOverlay: place inside each card to get the per-card blur effect.
+ * RefreshBlurOverlay is kept as a no-op for backward compat.
+ * Use <SkeletonList /> from SkeletonCard.tsx for loading states instead.
  */
-import React, { useRef, useEffect, createContext, useContext } from 'react';
+import React, { useRef, useEffect, createContext } from 'react';
 import {
   View,
   Animated,
   PanResponder,
   ActivityIndicator,
   StyleSheet,
-  Platform,
 } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
 
 const PULL_THRESHOLD = 70;
 const INDICATOR_HEIGHT = 52;
@@ -43,7 +42,6 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
   pullEnabled = true,
 }) => {
   const translateY   = useRef(new Animated.Value(0)).current;
-  const blurProgress = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulling      = useRef(false);
   const triggered    = useRef(false);
@@ -51,7 +49,6 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
 
   useEffect(() => {
     if (refreshing) {
-      Animated.timing(blurProgress, { toValue: 1, duration: 280, useNativeDriver: true }).start();
       progressAnim.setValue(0);
       progressLoop.current = Animated.loop(
         Animated.sequence([
@@ -65,7 +62,6 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
       Animated.timing(progressAnim, { toValue: 1, duration: 200, useNativeDriver: false }).start(() => {
         Animated.timing(progressAnim, { toValue: 0, duration: 300, useNativeDriver: false }).start();
       });
-      Animated.timing(blurProgress, { toValue: 0, duration: 350, useNativeDriver: true }).start();
       if (triggered.current) {
         triggered.current = false;
         Animated.spring(translateY, { toValue: 0, useNativeDriver: true, tension: 80, friction: 10 }).start();
@@ -131,7 +127,7 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
   if (!pullEnabled) {
     // Blur-only mode: no gesture, no spinner, just context + progress bar
     return (
-      <RefreshContext.Provider value={blurProgress}>
+      <RefreshContext.Provider value={new Animated.Value(0)}>
         <View style={styles.container}>
           <Animated.View
             style={[styles.progressBar, { width: progressWidth, backgroundColor: color, opacity: refreshing ? 1 : 0 }]}
@@ -143,7 +139,7 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
   }
 
   return (
-    <RefreshContext.Provider value={blurProgress}>
+    <RefreshContext.Provider value={new Animated.Value(0)}>
       <View style={styles.container}>
         {/* Spinner at top */}
         <Animated.View style={[styles.indicator, { opacity: refreshing ? 1 : indicatorOpacity }]}>
@@ -168,46 +164,13 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
 };
 
 /**
- * RefreshBlurOverlay — place as the LAST child inside each card.
- * Uses real BlurView for a frosted-glass effect while refreshing.
- * Falls back to a light opacity overlay if BlurView is unavailable.
+ * RefreshBlurOverlay — kept as no-op for backward compatibility.
+ * Use <SkeletonList /> from SkeletonCard.tsx for loading states instead.
  */
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
-
 export const RefreshBlurOverlay: React.FC<{
   cardBg: string;
   refreshing?: boolean;
-}> = ({ cardBg, refreshing }) => {
-  const contextAnim = useContext(RefreshContext);
-  const localAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (refreshing !== undefined) {
-      Animated.timing(localAnim, {
-        toValue: refreshing ? 1 : 0,
-        duration: refreshing ? 280 : 350,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [refreshing]);
-
-  const anim = refreshing !== undefined ? localAnim : contextAnim;
-
-  const blurAmount = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 25],
-  });
-
-  return (
-    <AnimatedBlurView
-      style={[StyleSheet.absoluteFillObject, { borderRadius: 16, zIndex: 10 }]}
-      blurType="light"
-      blurAmount={blurAmount}
-      reducedTransparencyFallbackColor={cardBg}
-      pointerEvents="none"
-    />
-  );
-};
+}> = () => null;
 
 const styles = StyleSheet.create({
   container: { flex: 1, overflow: 'hidden' },

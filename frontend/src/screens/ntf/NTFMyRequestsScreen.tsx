@@ -12,7 +12,7 @@ import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 import { getRelativeTime, formatDateShort } from '../../utils/dateUtils';
 import TopRefreshControl from '../../components/TopRefreshControl';
-import SkeletonList from '../../components/SkeletonList';
+import { SkeletonList } from '../../components/SkeletonCard';
 
 interface NTFMyRequestsScreenProps {
   user: NonTeachingFaculty;
@@ -91,7 +91,7 @@ const NTFMyRequestsScreen: React.FC<NTFMyRequestsScreenProps> = ({ user, onBack 
 
       <TopRefreshControl refreshing={refreshing} onRefresh={onRefresh} color={theme.primary} pullEnabled={false}>
       <ScreenContentContainer>
-        {loading ? (
+        {(loading || refreshing) ? (
           <SkeletonList count={5} />
         ) : (
           <VerticalFlatList

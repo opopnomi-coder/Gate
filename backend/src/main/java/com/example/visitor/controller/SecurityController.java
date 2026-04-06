@@ -346,9 +346,10 @@ public class SecurityController {
                 return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                     put("qrCode", qrCode);
                     put("status", "DENIED");
-                    put("message", "QR code not found in system");
+                    put("message", "QR not found (Invalid or expired)");
+                    put("success", false);
                     put("accessGranted", false);
-                    put("name", "QR Not Found");
+                    put("name", "Search Failed");
                     put("type", personType.toString());
                 }});
             }
@@ -375,9 +376,10 @@ public class SecurityController {
                 return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                     put("qrCode", qrCode);
                     put("status", "DENIED");
-                    put("message", "QR code is invalid (already used)");
+                    put("message", "QR already used or invalid");
+                    put("success", false);
                     put("accessGranted", false);
-                    put("name", "Invalid QR");
+                    put("name", "Already Used");
                     put("type", personType.toString());
                 }});
             }
@@ -400,7 +402,8 @@ public class SecurityController {
                     return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                         put("qrCode", qrCode);
                         put("status", "DENIED");
-                        put("message", "Daily Limit Reached: Gate Pass Already Scanned Today");
+                        put("message", "Pass already scanned for today");
+                        put("success", false);
                         put("accessGranted", false);
                         put("name", "Daily Limit Reached");
                         put("type", personType.toString());
@@ -419,7 +422,8 @@ public class SecurityController {
                     return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                         put("qrCode", qrCode);
                         put("status", "DENIED");
-                        put("message", "Invalid QR configuration for ST/SF/HD");
+                        put("message", "QR configuration error");
+                        put("success", false);
                         put("accessGranted", false);
                         put("name", "Invalid Entry");
                         put("type", personType.toString());
@@ -476,7 +480,8 @@ public class SecurityController {
                     return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                         put("qrCode", qrCode);
                         put("status", "DENIED");
-                        put("message", "QR code does not match exit record");
+                        put("message", "Record mismatch (Invalid QR data)");
+                        put("success", false);
                         put("accessGranted", false);
                         put("name", "Exit Mismatch");
                         put("type", personType.toString());
@@ -589,7 +594,8 @@ public class SecurityController {
                         return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                             put("qrCode", qrCode);
                             put("status", "DENIED");
-                            put("message", "QR code does not match exit record");
+                            put("message", "Record mismatch (Invalid QR data)");
+                        put("success", false);
                             put("accessGranted", false);
                             put("name", "Exit Mismatch");
                             put("type", "VISITOR");
@@ -1040,7 +1046,8 @@ public class SecurityController {
                 return ResponseEntity.status(403).body(new java.util.HashMap<String, Object>() {{
                     put("qrCode", manualCode);
                     put("status", "DENIED");
-                    put("message", "Manual code not found or already used");
+                    put("message", "Manual code already used or not found");
+                    put("success", false);
                     put("accessGranted", false);
                     put("type", "MANUAL_ENTRY");
                 }});
@@ -1066,6 +1073,7 @@ public class SecurityController {
                 put("qrCode", manualCode);
                 put("status", "ERROR");
                 put("message", "Error processing manual code: " + e.getMessage());
+                put("success", false);
                 put("accessGranted", false);
                 put("type", "MANUAL_ENTRY");
             }});

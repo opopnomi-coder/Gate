@@ -17,8 +17,8 @@ import { apiService } from '../../services/api';
 import { useNotifications } from '../../context/NotificationContext';
 import { useProfile } from '../../context/ProfileContext';
 import { useTheme } from '../../context/ThemeContext';
-import TopRefreshControl from '../../components/TopRefreshControl';
-import SkeletonList from '../../components/SkeletonList';
+import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
+import { SkeletonList } from '../../components/SkeletonCard';
 import { useActionLock } from '../../context/ActionLockContext';
 import { getRelativeTime, formatDateShort } from '../../utils/dateUtils';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
@@ -380,7 +380,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
       </View>
 
       <ScreenContentContainer style={{ flex: 1 }}>
-        {loading ? (
+        {(loading || refreshing) ? (
           <SkeletonList count={5} />
         ) : (
           <VerticalFlatList

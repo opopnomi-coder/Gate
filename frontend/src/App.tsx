@@ -112,12 +112,13 @@ const App: React.FC = () => {
 
   // Double-back-to-exit tracking
   const lastBackPress = useRef<number>(0);
+  const [showExitToast, setShowExitToast] = React.useState(false);
+  const exitToastTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Exit animation (Home swipe-back)
   const [exitAnimating, setExitAnimating] = React.useState(false);
   const exitOpacity = useRef(new Animated.Value(0)).current;
   const exitTranslateY = useRef(new Animated.Value(12)).current;
-  const [showExitModal, setShowExitModal] = React.useState(false);
 
   // ── Notification tap → screen navigation ────────────────────────────────
   // Use a ref so handlers always read the latest userType without re-registering
@@ -594,7 +595,15 @@ const App: React.FC = () => {
     if ((global as any).__actionLocked) return;
 
     if (EXIT_SCREENS.includes(currentScreen)) {
-      setShowExitModal(true);
+      const now = Date.now();
+      if (now - lastBackPress.current < 2000) {
+        BackHandler.exitApp();
+      } else {
+        lastBackPress.current = now;
+        setShowExitToast(true);
+        if (exitToastTimer.current) clearTimeout(exitToastTimer.current);
+        exitToastTimer.current = setTimeout(() => setShowExitToast(false), 2000);
+      }
       return;
     }
     if (userType) navigateBack();
@@ -607,7 +616,15 @@ const App: React.FC = () => {
       if ((global as any).__actionLocked) return true;
 
       if (EXIT_SCREENS.includes(currentScreen)) {
-        setShowExitModal(true);
+        const now = Date.now();
+        if (now - lastBackPress.current < 2000) {
+          BackHandler.exitApp();
+        } else {
+          lastBackPress.current = now;
+          setShowExitToast(true);
+          if (exitToastTimer.current) clearTimeout(exitToastTimer.current);
+          exitToastTimer.current = setTimeout(() => setShowExitToast(false), 2000);
+        }
         return true;
       }
       if (userType) navigateBack();
@@ -1167,12 +1184,16 @@ const App: React.FC = () => {
                         </Animated.View>
                       </Animated.View>
                     )}
- 
-                    <ExitConfirmModal
-                      visible={showExitModal}
-                      onCancel={() => setShowExitModal(false)}
-                      onConfirm={runExitAnimationAndClose}
-                    />
+
+                    {/* Double-back-to-exit toast */}
+                    {showExitToast && (
+                      <Animated.View
+                        pointerEvents="none"
+                        style={styles.exitToastContainer}
+                      >
+                        <ThemedText style={styles.exitToastText}>Press back again to exit</ThemedText>
+                      </Animated.View>
+                    )}
                   </View>
                 </ThemedApp>
               </ProfileProvider>
@@ -1216,6 +1237,23 @@ const styles = StyleSheet.create({
   },
   exitToastTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', marginBottom: 2, letterSpacing: 0.2 },
   exitToastSub: { color: 'rgba(255,255,255,0.78)', fontSize: 12, fontWeight: '600' },
+  exitToastContainer: {
+    position: 'absolute',
+    bottom: 48,
+    left: 24,
+    right: 24,
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  exitToastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
 });
 
 export default App;
