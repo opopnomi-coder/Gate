@@ -190,28 +190,25 @@ export async function handleInitialNotification(
 
 /**
  * Register background message handler (must be called outside React tree, in index.js).
- * FCM delivers data-only messages in background/killed state via this handler.
+ * FCM delivers messages in background/killed state via this handler.
+ * 
+ * NOTE: We do NOT call showLocalNotification here because the FCM payload includes
+ * a "notification" field which Android displays natively in background/killed state.
+ * Calling showLocalNotification here would cause a duplicate.
+ * The only job of this handler is to track the notification ID in shown-ids so the
+ * polling path doesn't re-show it when the app resumes.
  */
 export function registerBackgroundHandler(): void {
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    const title = remoteMessage.data?.title as string || 'RIT Gate';
-    const body  = remoteMessage.data?.body  as string || '';
-    const actionRoute = remoteMessage.data?.actionRoute as string | undefined;
     const dbNotifId = remoteMessage.data?.notificationId as string | undefined;
 
-    const displayId = dbNotifId || remoteMessage.messageId || String(Date.now());
-
-    // Track in shared shown set so polling won't re-show
+    // Track in shared shown set so polling won't re-show as a banner
     if (dbNotifId) {
       const numericId = parseInt(dbNotifId, 10);
       if (!isNaN(numericId)) {
         await addToShownIds(numericId);
       }
     }
-
-    await showLocalNotification(displayId, title, body, {
-      actionRoute: actionRoute || '',
-      notificationId: displayId,
-    });
+    // FCM notification field handles the OS banner natively — no notifee call needed
   });
 }

@@ -108,17 +108,18 @@ public class PushNotificationService {
                 : String.format(",\"data\":{\"title\":\"%s\",\"body\":\"%s\"%s}",
                     escapeJson(title), escapeJson(body), nidField);
 
-            // No "notification" field — we use data-only messages so the client
-            // (notifee background handler) shows exactly one notification.
-            // Including "notification" causes Android to show a second system notification
-            // in addition to the one notifee displays, resulting in duplicates.
+            // Include "notification" field so FCM shows it natively in killed/background state.
+            // In foreground, FCM suppresses the notification and our foreground handler shows it via notifee.
+            // The background handler must NOT call showLocalNotification to avoid duplicates.
             String json = String.format(
                 "{\"message\":{" +
                 "\"token\":\"%s\"," +
-                "\"android\":{\"priority\":\"high\"}" +
+                "\"notification\":{\"title\":\"%s\",\"body\":\"%s\"}," +
+                "\"android\":{\"priority\":\"high\",\"notification\":{\"channel_id\":\"ritgate_main\",\"sound\":\"default\"}}" +
                 "%s" +
                 "}}",
                 fcmToken,
+                escapeJson(title), escapeJson(body),
                 dataJson
             );
 
