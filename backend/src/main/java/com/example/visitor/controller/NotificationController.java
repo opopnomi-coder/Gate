@@ -302,4 +302,16 @@ public class NotificationController {
         }
     }
 
+    // Firebase config status check
+    @GetMapping("/firebase-status")
+    public ResponseEntity<?> firebaseStatus() {
+        String projectId = System.getenv("FIREBASE_PROJECT_ID");
+        String serviceJson = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+        return ResponseEntity.ok(Map.of(
+            "projectId", projectId != null ? projectId : "NOT SET",
+            "serviceAccountJson", serviceJson != null ? "SET (length=" + serviceJson.length() + ")" : "NOT SET",
+            "configured", projectId != null && !projectId.isBlank() && serviceJson != null && !serviceJson.isBlank()
+        ));
+    }
+
 }
