@@ -135,7 +135,7 @@ const PassTypeBottomSheet: React.FC<PassTypeBottomSheetProps> = ({
               <View style={styles.cardContent}>
                 <ThemedText style={[styles.cardTitle, { color: theme.text }]}>Pre-register guest</ThemedText>
                 <ThemedText style={[styles.cardDescription, { color: theme.textSecondary }]}>
-                  Instant visitor pass — QR &amp; manual code (share via WhatsApp)
+                  Instant visitor pass — QR &amp; manual code
                 </ThemedText>
               </View>
               <View style={styles.arrowContainer}>

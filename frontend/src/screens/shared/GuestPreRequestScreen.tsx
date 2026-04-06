@@ -125,19 +125,6 @@ const GuestPreRequestScreen: React.FC<GuestPreRequestScreenProps> = ({
     return `file://${path}`;
   };
 
-  const shareWhatsApp = async () => {
-    try {
-      const url = await writeTempQrPng();
-      await Share.shareSingle({
-        title: 'Guest gate pass',
-        message: `RIT Gate — Guest pass\nName: ${visitorName}\nManual code: ${manualCode}\nShow this QR at security.`,
-        url: url || undefined,
-        social: Share.Social.WHATSAPP as any,
-      });
-    } catch {
-      await shareGeneric();
-    }
-  };
 
   const shareGeneric = async () => {
     try {

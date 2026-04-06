@@ -80,32 +80,6 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
     }
   };
 
-  const handleWhatsApp = async () => {
-    try {
-      const url = await exportQrPng();
-      if (url) {
-        // Share image + message via WhatsApp
-        await Share.shareSingle({
-          title: 'Guest Gate Pass',
-          message: shareMessage,
-          url,
-          type: 'image/png',
-          social: Share.Social.WHATSAPP as any,
-          filename: 'guest-pass-qr.png',
-        });
-      } else {
-        // No image — share text only
-        await Share.shareSingle({
-          title: 'Guest Gate Pass',
-          message: shareMessage,
-          social: Share.Social.WHATSAPP as any,
-        });
-      }
-    } catch {
-      // Fallback to generic share
-      await handleShare();
-    }
-  };
 
   const handleCopy = () => {
     if (manualCode) Clipboard.setString(manualCode);
@@ -186,10 +160,6 @@ const GatePassQRModal: React.FC<GatePassQRModalProps> = ({
             {/* Share buttons — only shown for guest pre-register */}
             {showShare && (
               <View style={styles.shareSection}>
-                <TouchableOpacity style={[styles.shareBtn, { backgroundColor: '#25D366' }]} onPress={handleWhatsApp}>
-                  <Ionicons name="logo-whatsapp" size={18} color="#fff" />
-                  <ThemedText style={styles.shareBtnText}>WhatsApp</ThemedText>
-                </TouchableOpacity>
                 <TouchableOpacity style={[styles.shareBtn, { backgroundColor: theme.primary }]} onPress={handleShare}>
                   <Ionicons name="share-outline" size={18} color="#fff" />
                   <ThemedText style={styles.shareBtnText}>Share</ThemedText>
