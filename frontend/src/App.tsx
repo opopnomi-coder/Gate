@@ -180,15 +180,20 @@ const App: React.FC = () => {
     return cleanup;
   }, []);
 
-  // Arm biometric gate when app goes to background (so next open requires auth).
-  // We do NOT arm it on login — only after the user has left the app at least once.
+  // Biometric gate logic:
+  // - App killed while logged in → reopen → ask for auth (flag persists in storage)
+  // - App backgrounded → resumed → NO auth (flag is cleared on 'active')
+  // - First login → NO auth (flag never set during login)
   React.useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'background' || nextState === 'inactive') {
-        // Only arm if a user is actually logged in
+        // Arm the flag when leaving — if app is killed, this persists
         if (userTypeRef.current) {
           biometricAuthService.markSessionActive();
         }
+      } else if (nextState === 'active') {
+        // App came back to foreground (not killed) — clear the flag so no auth prompt
+        biometricAuthService.clearSession();
       }
     });
     return () => sub.remove();
@@ -262,6 +267,7 @@ const App: React.FC = () => {
     try {
       const result = await biometricAuthService.authenticateBiometric();
       if (result.success) {
+        await biometricAuthService.clearSession(); // clear flag — re-armed on next background
         setBiometricVerified(true);
       } else {
         setBiometricMessage(result.error || 'Authentication failed');
@@ -279,6 +285,7 @@ const App: React.FC = () => {
     try {
       const result = await biometricAuthService.authenticateDeviceCredential();
       if (result.success) {
+        await biometricAuthService.clearSession(); // clear flag — re-armed on next background
         setBiometricVerified(true);
       } else {
         setBiometricMessage(result.error || 'Authentication failed');
