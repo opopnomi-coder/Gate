@@ -450,7 +450,7 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
       </Modal>
 
       {/* Bottom Navigation */}
-      <SecurityBottomNav activeTab="scanner" onNavigate={onNavigate} />
+      {!showManualModal && <SecurityBottomNav activeTab="scanner" onNavigate={onNavigate} />}
 
       {/* Success Modal */}
       <SuccessModal
