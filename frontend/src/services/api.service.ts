@@ -84,6 +84,10 @@ class ApiService {
       if (!res.ok) {
         // If backend returned a structured error, surface it
         if (data && typeof data === 'object' && 'success' in data) return data;
+        // Scan endpoint returns accessGranted:false on 403 — convert to standard shape
+        if (data && typeof data === 'object' && 'accessGranted' in data) {
+          return { success: false, message: data.message || 'Access denied', ...data };
+        }
         throw new Error(`HTTP ${res.status}: ${JSON.stringify(data)}`);
       }
       return data;

@@ -1541,14 +1541,28 @@ public class SecurityController {
         try {
             List<ScanLog> allScans = scanLogRepository.findAll();
 
-            // Only consider VISITOR entries — students/staff manage their own entry/exit via QR
-            // Group by person name
+            // Build set of visitor userIds that have exited (from Exit_logs table)
+            java.util.Set<String> exitedUserIds = new java.util.HashSet<>();
+            java.util.Set<String> exitedNames   = new java.util.HashSet<>();
+            for (com.example.visitor.entity.RailwayExitLog exitLog : railwayExitLogRepository.findAll()) {
+                String ut = exitLog.getUserType() != null ? exitLog.getUserType().toUpperCase() : "";
+                if ("VISITOR".equals(ut) || "VG".equals(ut)) {
+                    if (exitLog.getUserId() != null) exitedUserIds.add(exitLog.getUserId());
+                    if (exitLog.getPersonName() != null) exitedNames.add(exitLog.getPersonName().toLowerCase().trim());
+                }
+            }
+            // Also check Visitor entity status
+            java.util.Set<String> exitedVisitorEntityIds = new java.util.HashSet<>();
+            visitorRepository.findAll().stream()
+                .filter(v -> "EXITED".equals(v.getStatus()))
+                .forEach(v -> exitedVisitorEntityIds.add(v.getId().toString()));
+
+            // Group ScanLog entries by person name (visitors only)
             java.util.Map<String, java.util.List<ScanLog>> scansByPerson = new java.util.HashMap<>();
             for (ScanLog scan : allScans) {
                 String key = scan.getPersonName();
                 if (key == null || key.isBlank()) continue;
                 String utype = scan.getUserType() != null ? scan.getUserType().toUpperCase() : "";
-                // Only track visitors
                 if (!"VISITOR".equals(utype) && !"VG".equals(utype)) continue;
                 scansByPerson.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(scan);
             }
@@ -1559,7 +1573,6 @@ public class SecurityController {
             for (java.util.List<ScanLog> personScans : scansByPerson.values()) {
                 if (personScans.isEmpty()) continue;
 
-                // Use timestamp (DB column) for sorting — scanTime is @Transient
                 personScans.removeIf(scan -> scan.getTimestamp() == null);
                 if (personScans.isEmpty()) continue;
 
@@ -1568,22 +1581,32 @@ public class SecurityController {
                 ScanLog firstScan = personScans.get(0);
                 ScanLog lastScan  = personScans.get(personScans.size() - 1);
 
-                // Only include if the last scan is NOT an exit scan
+                // Skip if last ScanLog is an exit scan
                 if (lastScan.getScanLocation() != null &&
                     lastScan.getScanLocation().toLowerCase().contains("exit")) {
                     continue;
                 }
 
+                // Skip if visitor has an exit record in Exit_logs table
+                String userId = firstScan.getUserId();
+                String name   = firstScan.getPersonName();
+                if (userId != null && (exitedUserIds.contains(userId) || exitedVisitorEntityIds.contains(userId))) {
+                    continue;
+                }
+                if (name != null && exitedNames.contains(name.toLowerCase().trim())) {
+                    continue;
+                }
+
                 java.util.Map<String, Object> person = new java.util.HashMap<>();
                 person.put("id", id++);
-                person.put("name", firstScan.getPersonName());
+                person.put("name", name);
                 person.put("type", "VISITOR");
                 person.put("purpose", firstScan.getPurpose() != null ? firstScan.getPurpose() : "General");
                 person.put("status", "PENDING");
                 person.put("inTime", firstScan.getTimestamp().toString());
                 person.put("outTime", null);
                 if (firstScan.getDepartment() != null) person.put("department", firstScan.getDepartment());
-                if (firstScan.getUserId() != null) person.put("userId", firstScan.getUserId());
+                if (userId != null) person.put("userId", userId);
 
                 activePersons.add(person);
             }

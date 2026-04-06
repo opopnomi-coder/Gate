@@ -108,7 +108,25 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         setShowSuccessModal(true);
       } else {
         setModalTitle('Scan Failed');
-        setModalMessage(response.message || 'Could not process the QR code. Please try again.');
+        // Map technical messages to user-friendly ones
+        const rawMsg = response.message || '';
+        let friendlyMsg = rawMsg;
+        if (rawMsg.toLowerCase().includes('not found in system') || rawMsg.toLowerCase().includes('qr not found')) {
+          friendlyMsg = 'QR code not found. It may have already been used or is invalid.';
+        } else if (rawMsg.toLowerCase().includes('already scanned') || rawMsg.toLowerCase().includes('daily limit')) {
+          friendlyMsg = 'This QR code has already been used today.';
+        } else if (rawMsg.toLowerCase().includes('entry mismatch') || rawMsg.toLowerCase().includes('does not match entry')) {
+          friendlyMsg = 'Invalid QR code for entry. Please scan the correct code.';
+        } else if (rawMsg.toLowerCase().includes('exit mismatch') || rawMsg.toLowerCase().includes('does not match exit')) {
+          friendlyMsg = 'Entry not recorded yet. Please scan for entry first.';
+        } else if (rawMsg.toLowerCase().includes('invalid qr') || rawMsg.toLowerCase().includes('invalid format')) {
+          friendlyMsg = 'Invalid QR code format. Please try again.';
+        } else if (rawMsg.toLowerCase().includes('already used') || rawMsg.toLowerCase().includes('qr is invalid')) {
+          friendlyMsg = 'This QR code has already been used.';
+        } else if (!rawMsg) {
+          friendlyMsg = 'Could not process the QR code. Please try again.';
+        }
+        setModalMessage(friendlyMsg);
         setShowErrorModal(true);
         resetScanner();
       }
@@ -162,9 +180,21 @@ const ModernQRScannerScreen: React.FC<ModernQRScannerScreenProps> = ({ security,
         setShowManualModal(false);
         setShowSuccessModal(true);
       } else {
-        // Map backend errors if needed, but we already improved them on the backend
-        setModalTitle('Entry Failed');
-        setModalMessage(response.message || 'This code is invalid or already used. Please verify and try again.');
+        setModalTitle('Scan Failed');
+        const rawMsg = response.message || '';
+        let friendlyMsg = rawMsg;
+        if (rawMsg.toLowerCase().includes('not found in system') || rawMsg.toLowerCase().includes('qr not found')) {
+          friendlyMsg = 'QR code not found. It may have already been used or is invalid.';
+        } else if (rawMsg.toLowerCase().includes('already scanned') || rawMsg.toLowerCase().includes('daily limit')) {
+          friendlyMsg = 'This code has already been used today.';
+        } else if (rawMsg.toLowerCase().includes('exit mismatch') || rawMsg.toLowerCase().includes('does not match exit')) {
+          friendlyMsg = 'Entry not recorded yet. Please scan for entry first.';
+        } else if (rawMsg.toLowerCase().includes('already used') || rawMsg.toLowerCase().includes('qr is invalid')) {
+          friendlyMsg = 'This code has already been used.';
+        } else if (!rawMsg) {
+          friendlyMsg = 'This code is invalid or already used. Please verify and try again.';
+        }
+        setModalMessage(friendlyMsg);
         setShowErrorModal(true);
       }
     } catch (error: any) {

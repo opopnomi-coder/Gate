@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, TouchableOpacity, FlatList, StyleSheet, Modal,
 } from 'react-native';
@@ -28,12 +28,17 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 }) => {
   const { theme } = useTheme();
   const [open, setOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<View>(null);
 
   const selectedLabel = items.find(i => i.value === selectedValue)?.label || '';
 
   const handleOpen = () => {
     if (disabled) return;
-    setOpen(true);
+    triggerRef.current?.measureInWindow((x, y, width, height) => {
+      setDropdownPos({ top: y + height + 4, left: x, width });
+      setOpen(true);
+    });
   };
 
   const handleSelect = (item: DropdownItem) => {
@@ -43,28 +48,29 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 
   return (
     <>
-      {/* Trigger — tappable field */}
-      <TouchableOpacity
-        style={[
-          styles.trigger,
-          { backgroundColor: theme.surface, borderColor: disabled ? theme.border : theme.primary },
-          disabled && { opacity: 0.5 },
-        ]}
-        onPress={handleOpen}
-        activeOpacity={0.8}
-        disabled={disabled}
-      >
-        <ThemedText
-         
-          style={[styles.triggerText, { color: selectedValue ? theme.text : theme.textTertiary }]}
-          numberOfLines={1}
+      {/* Trigger */}
+      <View ref={triggerRef} collapsable={false}>
+        <TouchableOpacity
+          style={[
+            styles.trigger,
+            { backgroundColor: theme.surface, borderColor: disabled ? theme.border : theme.primary },
+            disabled && { opacity: 0.5 },
+          ]}
+          onPress={handleOpen}
+          activeOpacity={0.8}
+          disabled={disabled}
         >
-          {selectedLabel || placeholder}
-        </ThemedText>
-        <Ionicons name="chevron-down" size={18} color={theme.primary} />
-      </TouchableOpacity>
+          <ThemedText
+            style={[styles.triggerText, { color: selectedValue ? theme.text : theme.textTertiary }]}
+            numberOfLines={1}
+          >
+            {selectedLabel || placeholder}
+          </ThemedText>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={theme.primary} />
+        </TouchableOpacity>
+      </View>
 
-      {/* Dropdown Modal */}
+      {/* Dropdown — anchored to trigger */}
       <Modal
         visible={open}
         transparent
@@ -72,7 +78,18 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
         onRequestClose={() => setOpen(false)}
       >
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)} />
-        <View style={[styles.dropdownCard, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
+        <View
+          style={[
+            styles.dropdownCard,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.primary,
+              top: dropdownPos.top,
+              left: dropdownPos.left,
+              width: dropdownPos.width,
+            },
+          ]}
+        >
           <FlatList
             data={items}
             keyExtractor={item => item.value}
@@ -89,7 +106,6 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
                 activeOpacity={0.7}
               >
                 <ThemedText
-                 
                   style={[
                     styles.listItemText,
                     { color: theme.text },
@@ -130,20 +146,17 @@ const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)' },
   dropdownCard: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    top: '25%',
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1.5,
-    maxHeight: 360,
+    maxHeight: 300,
     overflow: 'hidden',
     elevation: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 16,
+    shadowRadius: 8,
   },
-  list: { maxHeight: 360 },
+  list: { maxHeight: 300 },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
