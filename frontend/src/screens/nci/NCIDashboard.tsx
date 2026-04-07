@@ -66,8 +66,12 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
     try {
       const res = await apiService.getVisitorRequestsForStaff(nci.staffCode);
       const all: any[] = res.requests || [];
-      // Show pending first, then others
-      const sorted = all.sort((a, b) => {
+      // Only show visitors from the website (registered_by starts with 'WEB-' or equals 'WEBSITE')
+      const websiteOnly = all.filter((r: any) => {
+        const rb = (r.registeredBy || r.registered_by || '').toString();
+        return rb === 'WEBSITE' || rb.toUpperCase().startsWith('WEB-');
+      });
+      const sorted = websiteOnly.sort((a, b) => {
         if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
         if (b.status === 'PENDING' && a.status !== 'PENDING') return 1;
         return new Date(b.createdAt || b.requestDate || 0).getTime() - new Date(a.createdAt || a.requestDate || 0).getTime();

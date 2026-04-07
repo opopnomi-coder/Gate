@@ -61,14 +61,17 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
     try {
       const res = await apiService.getVisitorRequestsForStaff(ntf.staffCode);
       const all: any[] = res.requests || [];
-      const sorted = all.sort((a, b) => {
+      // Only show visitors from the website (registered_by starts with 'WEB-' or equals 'WEBSITE')
+      const websiteOnly = all.filter((r: any) => {
+        const rb = (r.registeredBy || r.registered_by || '').toString();
+        return rb === 'WEBSITE' || rb.toUpperCase().startsWith('WEB-');
+      });
+      const sorted = websiteOnly.sort((a, b) => {
         if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
         if (b.status === 'PENDING' && a.status !== 'PENDING') return 1;
         return new Date(b.createdAt || b.requestDate || 0).getTime() - new Date(a.createdAt || a.requestDate || 0).getTime();
       });
       setVisitorRequests(sorted);
-    } catch (e) {
-      console.error('NTF visitor load error:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);

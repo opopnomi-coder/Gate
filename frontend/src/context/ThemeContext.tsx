@@ -315,7 +315,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode; userId?: string }> =
   userId,
 }) => {
   const [isDark, setIsDark] = useState(false);
-  const [activePreset, setActivePreset] = useState<ThemePresetId>('ocean');
+  const [activePreset, setActivePreset] = useState<ThemePresetId>('minimal');
   const [transitioning, setTransitioning] = useState(false);
   const transitionOpacity = useRef(new Animated.Value(1)).current;
 
@@ -368,10 +368,10 @@ export const ThemeProvider: React.FC<{ children: ReactNode; userId?: string }> =
   // ── Reset ─────────────────────────────────────────────────────────────────
   const resetTheme = useCallback(() => {
     runTransition(() => {
-      setActivePreset('ocean');
+      setActivePreset('minimal');
       setIsDark(false);
       Promise.all([
-        AsyncStorage.setItem(storageKey('preset', userId), 'ocean'),
+        AsyncStorage.setItem(storageKey('preset', userId), 'minimal'),
         AsyncStorage.setItem(storageKey('mode', userId), 'light'),
       ]).catch(() => {});
     });
