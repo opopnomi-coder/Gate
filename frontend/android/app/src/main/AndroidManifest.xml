@@ -105,6 +105,16 @@
       </intent-filter>
 
     </activity>
+
+    <!-- Wake screen when FCM notification arrives on aggressive OEM devices -->
+    <receiver
+        android:name=".NotificationWakeReceiver"
+        android:exported="false"
+        android:permission="com.google.android.c2dm.permission.SEND">
+      <intent-filter android:priority="999">
+        <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+      </intent-filter>
+    </receiver>
   </application>
 
 </manifest>
