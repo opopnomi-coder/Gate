@@ -1832,7 +1832,14 @@ public class SecurityController {
                 rec.put("exitTime",    null);
                 rec.put("status",      "ENTERED");
                 rec.put("isBulkPass",  false);
-                rec.put("purpose",     "Gate Pass Entry");
+                // Purpose: Late Entry for staff/students, Gate Pass Entry for visitors
+                String entryPurpose = "Gate Pass Entry";
+                if ("ST".equals(utype) || "SF".equals(utype) || "HD".equals(utype) || "STAFF".equals(utype) || "STUDENT".equals(utype)) {
+                    entryPurpose = "Late Entry";
+                } else if (entry.getScanLocation() != null && entry.getScanLocation().toLowerCase().contains("late")) {
+                    entryPurpose = "Late Entry";
+                }
+                rec.put("purpose",     entryPurpose);
                 rec.put("reason",      "");
                 if (entry.getDepartment() != null) rec.put("department", entry.getDepartment());
                 scanHistory.add(rec);
