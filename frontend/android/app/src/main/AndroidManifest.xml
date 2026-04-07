@@ -52,6 +52,17 @@
     <intent>
       <action android:name="android.media.action.IMAGE_CAPTURE"/>
     </intent>
+    <!-- OEM battery/autostart settings — Xiaomi MIUI -->
+    <package android:name="com.miui.securitycenter"/>
+    <!-- OEM battery/autostart settings — Vivo -->
+    <package android:name="com.vivo.permissionmanager"/>
+    <!-- OEM battery/autostart settings — OPPO/OnePlus/Realme -->
+    <package android:name="com.coloros.safecenter"/>
+    <package android:name="com.oplus.safecenter"/>
+    <!-- OEM battery/autostart settings — Huawei/Honor -->
+    <package android:name="com.huawei.systemmanager"/>
+    <!-- OEM battery/autostart settings — Samsung -->
+    <package android:name="com.samsung.android.lool"/>
   </queries>
 
   <application
