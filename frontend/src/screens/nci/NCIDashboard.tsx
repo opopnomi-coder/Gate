@@ -31,7 +31,7 @@ interface NCIDashboardProps {
 
 type TabType = 'PENDING' | 'APPROVED' | 'REJECTED';
 
-const NCIDashboard: React.FC<NCIDashboardProps> = ({ ntf, onLogout, onNavigate }) => {
+const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }) => {
   const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [allRequests, setAllRequests] = useState<any[]>([]);
