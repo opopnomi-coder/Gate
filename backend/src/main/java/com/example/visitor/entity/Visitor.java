@@ -43,7 +43,7 @@ public class Visitor {
     @Column(nullable = true, name = "vehicle_number")
     private String vehicleNumber;
 
-    @Column(nullable = true, name = "vehicle_type")
+    @Column(nullable = true, name = "vehicle_type", length = 100)
     private String vehicleType;
     
     @Column(nullable = true, name = "staff_code")
