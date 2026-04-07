@@ -289,7 +289,12 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
       });
 
       if (!response.ok) {
-        throw new Error('Failed to register visitor');
+        let errMsg = 'Failed to register visitor';
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errMsg;
+        } catch {}
+        throw new Error(errMsg);
       }
 
       const visitor = await response.json();
@@ -317,8 +322,8 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
       setVehicleType('');
       setStaffMembers([]);
       setSelectedStaff('');
-    } catch (err) {
-      setError('Failed to register. Please try again or contact security.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to register. Please try again or contact security.');
       console.error('Registration error:', err);
     } finally {
       setIsSubmitting(false);
