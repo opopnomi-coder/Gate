@@ -527,7 +527,8 @@ public class SecurityController {
                                         vr.setOwnerPhone(visitor.getPhone());
                                         vr.setOwnerType(PersonType.VISITOR);
                                         vr.setVehicleType(visitor.getVehicleType() != null ? visitor.getVehicleType() : "Unknown");
-                                        vr.setRegisteredBy("ENTRY_SCAN");
+                                        // Store visitor ID so we can find this exact row on exit
+                                        vr.setRegisteredBy("VISITOR_" + visitor.getId());
                                         vehicleRegistrationRepository.save(vr);
                                         System.out.println("✅ Vehicle entry registered: " + visitor.getVehicleNumber());
                                     } catch (Exception ve) {
@@ -577,14 +578,14 @@ public class SecurityController {
                                 // Update vehicle exit time if vehicle was registered on entry
                                 if (visitor.getVehicleNumber() != null && !visitor.getVehicleNumber().isBlank()) {
                                     try {
-                                        String plate = visitor.getVehicleNumber().toUpperCase().trim();
-                                        Optional<VehicleRegistration> vrOpt = vehicleRegistrationRepository.findByLicensePlate(plate);
-                                        if (vrOpt.isPresent()) {
-                                            VehicleRegistration vr = vrOpt.get();
-                                            vr.setUpdatedAt(java.time.LocalDateTime.now());
-                                            vehicleRegistrationRepository.save(vr);
-                                            System.out.println("✅ Vehicle exit recorded: " + plate);
-                                        }
+                                        // Find the exact entry row for this visitor using the stored visitor ID
+                                        String entryTag = "VISITOR_" + visitor.getId();
+                                        vehicleRegistrationRepository.findFirstByRegisteredBy(entryTag)
+                                            .ifPresent(vr -> {
+                                                vr.setUpdatedAt(java.time.LocalDateTime.now());
+                                                vehicleRegistrationRepository.save(vr);
+                                                System.out.println("✅ Vehicle exit recorded for: " + vr.getLicensePlate());
+                                            });
                                     } catch (Exception ve) {
                                         System.err.println("⚠️ Could not update vehicle exit: " + ve.getMessage());
                                     }
