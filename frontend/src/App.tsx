@@ -59,6 +59,8 @@ import { initPushNotifications, unregisterPushToken, setupNotificationTapHandler
 import { getInitialNotificationData } from './services/localNotification.service';
 import { biometricAuthService } from './services/biometricAuth.service';
 import { runNotificationOnboarding, logDeviceNotificationInfo } from './utils/notificationOnboarding';
+import BatteryOptimizationGateScreen from './screens/auth/BatteryOptimizationGateScreen';
+import { getAllNotificationSettings } from './services/batteryOptimization.service';
 
 // Inner component that can access ThemeContext for transition animation
 const ThemedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -112,6 +114,10 @@ const App: React.FC = () => {
   const [biometricLoading, setBiometricLoading] = React.useState(false);
   const [biometricMessage, setBiometricMessage] = React.useState('');
   const [biometricPrompted, setBiometricPrompted] = React.useState(false);
+
+  // Battery optimization gate
+  const [batteryGateChecked, setBatteryGateChecked] = React.useState(false);
+  const [batteryOptimizationOK, setBatteryOptimizationOK] = React.useState(false);
 
   // Double-back-to-exit tracking
   const lastBackPress = useRef<number>(0);
@@ -272,6 +278,16 @@ const App: React.FC = () => {
       clearTimeout(minLoadingTime);
       clearTimeout(maxTimeout);
     };
+  }, []);
+
+  // Battery optimization gate — runs once on mount
+  React.useEffect(() => {
+    (async () => {
+      const s = await getAllNotificationSettings();
+      const allOk = s.batteryOptimizationDisabled && s.notificationsEnabled && s.channelsEnabled;
+      setBatteryOptimizationOK(allOk);
+      setBatteryGateChecked(true);
+    })();
   }, []);
 
   const runBiometricAuth = React.useCallback(async () => {
@@ -675,6 +691,15 @@ const App: React.FC = () => {
       // Show loading screen
       if (isLoading) {
         return <LoadingScreen />;
+      }
+
+      // Battery optimization gate — must be configured before login is allowed
+      if (batteryGateChecked && !batteryOptimizationOK) {
+        return (
+          <BatteryOptimizationGateScreen
+            onAllDone={() => setBatteryOptimizationOK(true)}
+          />
+        );
       }
 
       if (requiresBiometricGate && !biometricVerified) {
