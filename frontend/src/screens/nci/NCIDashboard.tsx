@@ -28,7 +28,7 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
   const [refreshing, setRefreshing] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bottomTab, setBottomTab] = useState<'HOME' | 'REQUESTS' | 'EXITS' | 'PROFILE'>('HOME');
+  const [bottomTab, setBottomTab] = useState<'HOME' | 'REQUESTS' | 'EXITS' | 'GUEST' | 'PROFILE'>('HOME');
 
   // Principal/Director get the Exits tab; regular non-class-incharges don't
   const isPrincipalOrDirector = (() => {
@@ -223,6 +223,7 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         {(isPrincipalOrDirector ? [
           { key: 'HOME',     icon: 'home',           label: 'Home',     screen: undefined },
+          { key: 'GUEST',    icon: 'person-add',      label: 'Guest',    screen: 'GUEST_PRE_REQUEST' as ScreenName },
           { key: 'EXITS',    icon: 'log-out',         label: 'Exits',    screen: 'NCI_EXITS' as ScreenName },
           { key: 'REQUESTS', icon: 'document-text',   label: 'Requests', screen: 'NCI_MY_REQUESTS' as ScreenName },
           { key: 'PROFILE',  icon: 'person',          label: 'Profile',  screen: 'PROFILE' as ScreenName },
