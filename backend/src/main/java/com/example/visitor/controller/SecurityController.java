@@ -3221,6 +3221,7 @@ public class SecurityController {
             String staffCode = (String) request.get("staffCode");
             String purpose = (String) request.get("purpose");
             String vehicleNumber = (String) request.get("vehicleNumber");
+            String vehicleType = (String) request.get("vehicleType");
             Integer numberOfPeople = request.get("numberOfPeople") != null ? 
                 Integer.parseInt(request.get("numberOfPeople").toString()) : 1;
             
@@ -3267,6 +3268,7 @@ public class SecurityController {
             visitor.setPurpose(purpose);
             visitor.setNumberOfPeople(numberOfPeople);
             visitor.setVehicleNumber(vehicleNumber);
+            visitor.setVehicleType(vehicleType);
             visitor.setRegisteredBy(securityId);
             visitor.setStatus("PENDING");
 

@@ -724,7 +724,7 @@ class ApiService {
     name: string; phone: string; email: string; numberOfPeople: number;
     role?: 'VISITOR' | 'VENDOR';
     departmentId: string; staffCode: string; purpose: string;
-    vehicleNumber?: string; securityId: string;
+    vehicleNumber?: string; vehicleType?: string; securityId: string;
   }): Promise<ApiResponse> {
     try { return await this.makeRequest(`${this.baseURL}/security/register-visitor`, { method: 'POST', body: JSON.stringify(d) }); }
     catch (e: any) { return { success: false, message: e.message || 'Failed to register visitor' }; }

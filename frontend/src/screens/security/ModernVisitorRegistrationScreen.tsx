@@ -41,6 +41,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
   const [visitorPhone, setVisitorPhone] = useState('');
   const [visitorEmail, setVisitorEmail] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
+  const [vehicleType, setVehicleType] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedStaff, setSelectedStaff] = useState('');
   const [purpose, setPurpose] = useState('');
@@ -127,6 +128,11 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
       setShowErrorModal(true);
       return;
     }
+    if (vehicleNumber.trim() && !vehicleType) {
+      setErrorMessage('Please select a vehicle type for the vehicle');
+      setShowErrorModal(true);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -141,6 +147,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
         staffCode: selectedStaff,
         purpose,
         vehicleNumber: vehicleNumber || undefined,
+        vehicleType: vehicleNumber ? vehicleType : undefined,
         securityId: resolvedSecurityId,
       });
 
@@ -166,6 +173,7 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
     setVisitorPhone('');
     setVisitorEmail('');
     setVehicleNumber('');
+    setVehicleType('');
     setSelectedDepartment('');
     setSelectedStaff('');
     setPurpose('');
@@ -275,11 +283,41 @@ const ModernVisitorRegistrationScreen: React.FC<ModernVisitorRegistrationScreenP
                 placeholder="Enter vehicle number"
                 placeholderTextColor={theme.textTertiary}
                 value={vehicleNumber}
-                onChangeText={setVehicleNumber}
+                onChangeText={(v) => { setVehicleNumber(v.toUpperCase()); if (!v.trim()) setVehicleType(''); }}
                 autoCapitalize="characters"
               />
             </View>
           </View>
+
+          {/* Vehicle Type — shown and mandatory when vehicle number is entered */}
+          {vehicleNumber.trim().length > 0 && (
+            <View style={styles.inputGroup}>
+              <ThemedText style={[styles.inputLabel, { color: theme.error || '#EF4444' }]}>
+                Vehicle Type *
+              </ThemedText>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {['Two Wheeler', 'Four Wheeler', 'Auto', 'Bus', 'Truck', 'Other'].map((vt) => (
+                  <TouchableOpacity
+                    key={vt}
+                    onPress={() => setVehicleType(vt)}
+                    style={[
+                      styles.vehicleTypePill,
+                      vehicleType === vt
+                        ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                        : { backgroundColor: theme.surface, borderColor: theme.border },
+                    ]}
+                  >
+                    <ThemedText style={[
+                      styles.vehicleTypePillText,
+                      { color: vehicleType === vt ? '#FFFFFF' : theme.textSecondary },
+                    ]}>
+                      {vt}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Visit Details */}
@@ -502,6 +540,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFF',
+  },
+  vehicleTypePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  vehicleTypePillText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
