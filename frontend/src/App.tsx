@@ -64,6 +64,7 @@ import { biometricAuthService } from './services/biometricAuth.service';
 import { runNotificationOnboarding, logDeviceNotificationInfo } from './utils/notificationOnboarding';
 import BatteryOptimizationGateScreen from './screens/auth/BatteryOptimizationGateScreen';
 import { getAllNotificationSettings } from './services/batteryOptimization.service';
+import { apiService } from './services/api.service';
 
 // Inner component that can access ThemeContext for transition animation
 const ThemedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -356,19 +357,48 @@ const App: React.FC = () => {
         return;
       }
 
-      // Check for saved staff session
+      // Check for saved staff session — but verify role hasn't changed (e.g. staff promoted to HOD)
       const savedStaff = await offlineStorage.getCurrentStaff();
       if (savedStaff) {
         console.log('✅ Found saved staff session:', savedStaff.staffCode);
-        setStaff(savedStaff);
-        setUserType('STAFF');
-        setCurrentScreen('STAFF_DASHBOARD');
-        const hasFlag = await biometricAuthService.hasSessionFlag();
-        setRequiresBiometricGate(hasFlag);
-        setBiometricVerified(!hasFlag);
-        setIsLoading(false);
-        initPushNotifications(savedStaff.staffCode, 'staff');
-        return;
+        // Quick backend role check to catch stale sessions (e.g. HOD stored as STAFF)
+        try {
+          const actualRole = await apiService.detectRole(savedStaff.staffCode);
+          if (actualRole === 'HOD') {
+            console.log('⚠️ Staff session is actually HOD — clearing stale session');
+            await offlineStorage.clearCurrentStaff();
+            // Fall through to HOD check below
+          } else if (actualRole === 'NON_TEACHING') {
+            console.log('⚠️ Staff session is actually NTF — clearing stale session');
+            await offlineStorage.clearCurrentStaff();
+            // Fall through
+          } else if (actualRole === 'NON_CLASS_INCHARGE') {
+            console.log('⚠️ Staff session is actually NCI — clearing stale session');
+            await offlineStorage.clearCurrentStaff();
+            // Fall through
+          } else {
+            setStaff(savedStaff);
+            setUserType('STAFF');
+            setCurrentScreen('STAFF_DASHBOARD');
+            const hasFlag = await biometricAuthService.hasSessionFlag();
+            setRequiresBiometricGate(hasFlag);
+            setBiometricVerified(!hasFlag);
+            setIsLoading(false);
+            initPushNotifications(savedStaff.staffCode, 'staff');
+            return;
+          }
+        } catch {
+          // Network error — trust cached session
+          setStaff(savedStaff);
+          setUserType('STAFF');
+          setCurrentScreen('STAFF_DASHBOARD');
+          const hasFlag = await biometricAuthService.hasSessionFlag();
+          setRequiresBiometricGate(hasFlag);
+          setBiometricVerified(!hasFlag);
+          setIsLoading(false);
+          initPushNotifications(savedStaff.staffCode, 'staff');
+          return;
+        }
       }
 
       // Check for saved HOD session

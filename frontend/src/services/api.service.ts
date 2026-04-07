@@ -305,11 +305,11 @@ class ApiService {
     } catch (e: any) { return { success: false, message: e.message || 'Failed', data: [], requests: [] } as any; }
   }
 
-  async submitNonClassInchargeRequest(staffCode: string, purpose: string, reason: string, requestDate: string, attachmentUri?: string): Promise<ApiResponse> {
+  async submitNonClassInchargeRequest(staffCode: string, purpose: string, reason: string, requestDate: string, attachmentUri?: string, designation?: string): Promise<ApiResponse> {
     try {
       return await this.makeRequest(`${this.baseURL}/gate-pass/non-class-incharge/submit`, {
         method: 'POST',
-        body: JSON.stringify({ staffCode, purpose, reason, requestDate, attachmentUri }),
+        body: JSON.stringify({ staffCode, purpose, reason, requestDate, attachmentUri, designation: designation || '' }),
       });
     } catch (e: any) { return { success: false, message: e.message || 'Failed' }; }
   }

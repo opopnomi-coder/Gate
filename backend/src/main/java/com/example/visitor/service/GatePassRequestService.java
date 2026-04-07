@@ -202,6 +202,90 @@ public class GatePassRequestService {
         return saved;
     }
 
+    /**
+     * Submit NCI (Non-Class-Incharge) gate pass request.
+     * - Principal / Director → skip HOD, go directly to HR (same as NTF)
+     * - All others           → HOD → HR (same chain as regular staff)
+     */
+    @Transactional
+    public GatePassRequest submitNCIRequest(String staffCode, String purpose, String reason,
+                                            LocalDateTime requestDate, String attachmentUri,
+                                            String designation) {
+        log.info("Submitting NCI gate pass request for: {} (designation: {})", staffCode, designation);
+
+        Optional<Staff> staffOpt = staffRepository.findByStaffCode(staffCode);
+        if (staffOpt.isEmpty()) {
+            throw new RuntimeException("Staff not found with code: " + staffCode);
+        }
+        Staff staff = staffOpt.get();
+        String department = staff.getDepartment();
+        String assignedHrCode = departmentLookupService.findActiveHR();
+
+        // Determine if this person is Principal / Director
+        String desig = (designation != null ? designation : (staff.getRole() != null ? staff.getRole() : "")).toUpperCase();
+        boolean isPrincipalOrDirector = desig.contains("PRINCIPAL") || desig.contains("DIRECTOR");
+
+        GatePassRequest request = new GatePassRequest();
+        request.setRegNo(staffCode);
+        request.setStudentName(staff.getStaffName());
+        request.setDepartment(department);
+        request.setPurpose(purpose);
+        request.setReason(reason);
+        request.setRequestDate(requestDate != null ? requestDate : LocalDateTime.now());
+        request.setStaffApproval(GatePassRequest.ApprovalStatus.APPROVED);
+        request.setStaffApprovedBy(staffCode);
+        request.setStaffApprovalDate(LocalDateTime.now());
+        request.setAssignedStaffCode(staffCode);
+        request.setAssignedHrCode(assignedHrCode);
+        request.setAttachmentUri(attachmentUri);
+        request.setUserType("STAFF");
+        request.setPassType("SINGLE");
+
+        if (isPrincipalOrDirector) {
+            // Direct to HR — bypass HOD
+            request.setStatus(GatePassRequest.RequestStatus.PENDING_HR);
+            request.setHodApproval(GatePassRequest.ApprovalStatus.APPROVED);
+            request.setHodApprovedBy("AUTO");
+            request.setHodApprovalDate(LocalDateTime.now());
+            request.setHrApproval(GatePassRequest.ApprovalStatus.PENDING);
+            request.setAssignedHodCode(null);
+            log.info("NCI Principal/Director {} → direct to HR", staffCode);
+            GatePassRequest saved = gatePassRequestRepository.save(request);
+            try { notificationService.notifyHROfNewHODRequest(saved); } catch (Exception e) {
+                log.error("Failed to notify HR of NCI request {}", saved.getId(), e);
+            }
+            return saved;
+        } else {
+            // Regular NCI → HOD first, then HR
+            String assignedHodCode = departmentLookupService.findHODForDepartment(department);
+            if (assignedHodCode == null) {
+                log.warn("No HOD found for NCI department: {}. Falling back to direct HR.", department);
+                // Fallback: direct to HR if no HOD found
+                request.setStatus(GatePassRequest.RequestStatus.PENDING_HR);
+                request.setHodApproval(GatePassRequest.ApprovalStatus.APPROVED);
+                request.setHodApprovedBy("AUTO");
+                request.setHodApprovalDate(LocalDateTime.now());
+                request.setHrApproval(GatePassRequest.ApprovalStatus.PENDING);
+                request.setAssignedHodCode(null);
+                GatePassRequest saved = gatePassRequestRepository.save(request);
+                try { notificationService.notifyHROfNewHODRequest(saved); } catch (Exception e) {
+                    log.error("Failed to notify HR of NCI request {}", saved.getId(), e);
+                }
+                return saved;
+            }
+            request.setStatus(GatePassRequest.RequestStatus.PENDING_HOD);
+            request.setHodApproval(GatePassRequest.ApprovalStatus.PENDING);
+            request.setHrApproval(GatePassRequest.ApprovalStatus.PENDING);
+            request.setAssignedHodCode(assignedHodCode);
+            log.info("NCI {} → HOD {} → HR", staffCode, assignedHodCode);
+            GatePassRequest saved = gatePassRequestRepository.save(request);
+            try { notificationService.notifyHODOfNewStaffRequest(saved); } catch (Exception e) {
+                log.error("Failed to notify HOD of NCI request {}", saved.getId(), e);
+            }
+            return saved;
+        }
+    }
+
     // Approve by staff
     @Transactional
     public GatePassRequest approveByStaff(Long requestId, String staffCode, String staffRemark) {

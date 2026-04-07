@@ -257,7 +257,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
             {profileImage ? (
               <Image source={{ uri: profileImage }} style={styles.avatarImage} />
             ) : (
-              <View style={[styles.avatar, { backgroundColor: theme.warning }]}>
+              <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
                 <ThemedText style={styles.avatarText}>{getInitials(hod.hodName || 'HOD')}</ThemedText>
               </View>
             )}
@@ -270,7 +270,7 @@ const NewHODDashboard: React.FC<NewHODDashboardProps> = ({
         <View style={styles.headerRight}>
           <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]} onPress={() => onNavigate('NOTIFICATIONS')}>
             <Ionicons name="notifications-outline" size={24} color={theme.text} />
-            {unreadCount > 0 && <View style={[styles.notificationIndicator, { backgroundColor: theme.success, borderColor: theme.surface }]} />}
+            {unreadCount > 0 && <View style={[styles.notificationIndicator, { backgroundColor: theme.error, borderColor: theme.surface }]} />}
           </TouchableOpacity>
         </View>
       </View>

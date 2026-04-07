@@ -144,6 +144,7 @@ public class GatePassRequestController {
             String reason = (String) requestData.get("reason");
             String requestDateStr = (String) requestData.get("requestDate");
             String attachmentUri = (String) requestData.get("attachmentUri");
+            String designation = (String) requestData.getOrDefault("designation", "");
 
             if (staffCode == null || staffCode.trim().isEmpty()) {
                 response.put("success", false); response.put("message", "Staff code is required");
@@ -162,9 +163,8 @@ public class GatePassRequestController {
             try { requestDate = LocalDateTime.parse(requestDateStr, DateTimeFormatter.ISO_DATE_TIME); }
             catch (Exception e) { requestDate = LocalDateTime.now(); }
 
-            // Reuse NTF flow — skips HOD, goes directly to HR
-            GatePassRequest gatePassRequest = gatePassRequestService.submitNTFRequest(
-                staffCode, purpose, reason, requestDate, attachmentUri);
+            GatePassRequest gatePassRequest = gatePassRequestService.submitNCIRequest(
+                staffCode, purpose, reason, requestDate, attachmentUri, designation);
 
             response.put("success", true);
             response.put("message", "Gate pass request submitted successfully");

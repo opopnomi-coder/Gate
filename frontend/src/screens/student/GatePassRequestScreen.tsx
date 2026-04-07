@@ -168,10 +168,11 @@ const GatePassRequestScreen: React.FC<GatePassRequestScreenProps> = ({ user, nav
           // NTF: submit directly to HR (skip HOD)
           response = await apiService.submitNTFGatePassRequest(payload as any);
         } else if (isNCI) {
-          // NCI: submit directly to HR (skip HOD)
+          // NCI: route based on designation — Principal/Director → HR directly, others → HOD → HR
+          const designation = (user as any).designation || (user as any).role || '';
           response = await apiService.submitNonClassInchargeRequest(
             (payload as any).staffCode, purpose.trim(), reason.trim(),
-            requestDate.toISOString(), attachment?.base64Uri
+            requestDate.toISOString(), attachment?.base64Uri, designation
           );
         } else {
           response = (isStaff || isHOD) ? await apiService.submitStaffGatePassRequest(payload as any) : await apiService.submitGatePassRequest(payload as any);
