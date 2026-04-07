@@ -18,6 +18,9 @@ let channelCreated = false;
 /** Create the notification channel once (Android 8+). */
 export async function ensureChannel() {
   if (channelCreated) return;
+  // Delete existing channel first so lights/settings update takes effect
+  // (Android channels are immutable after creation)
+  try { await notifee.deleteChannel(CHANNEL_ID); } catch {}
   await notifee.createChannel({
     id: CHANNEL_ID,
     name: CHANNEL_NAME,
@@ -25,6 +28,8 @@ export async function ensureChannel() {
     visibility: AndroidVisibility.PUBLIC,
     vibration: true,
     sound: 'default',
+    // Lights help wake the screen on devices that support it
+    lights: true,
   });
   channelCreated = true;
 }
@@ -39,7 +44,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 }
 
-/** Display a single OS notification. */
+/** Display a single OS notification. Wakes the screen via fullScreenAction. */
 export async function showLocalNotification(
   id: string,
   title: string,
@@ -56,9 +61,17 @@ export async function showLocalNotification(
       android: {
         channelId: CHANNEL_ID,
         importance: AndroidImportance.HIGH,
-        smallIcon: 'notification_icon', // exists in drawable-* folders
+        smallIcon: 'notification_icon',
         pressAction: { id: 'default' },
         showTimestamp: true,
+        // Wake the screen when notification arrives
+        // fullScreenAction launches MainActivity which turns on the screen
+        fullScreenAction: {
+          id: 'default',
+          launchActivity: 'default',
+        },
+        // PUBLIC visibility so notification content shows on lock screen
+        visibility: AndroidVisibility.PUBLIC,
       },
     });
   } catch (e) {
