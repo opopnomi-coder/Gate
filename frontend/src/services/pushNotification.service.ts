@@ -60,25 +60,31 @@ export async function getFCMToken(): Promise<string | null> {
 }
 
 /**
- * Called on login — requests permission, gets FCM token, registers with backend.
- * Skips if the same user+token combo is already stored.
+ * Called on login / app restore — requests permission, gets FCM token, registers with backend.
+ * - First login or new token: registers and stores userId:token
+ * - Same session (token unchanged, already registered this session): skips
+ * - Logout: token is removed via unregisterPushToken()
+ *
+ * Uses a session-level in-memory flag to avoid re-registering on every poll/render,
+ * but always re-registers on fresh app launch (process restart clears the flag).
  */
+const _registeredThisSession = new Set<string>();
+
 export async function initPushNotifications(userId: string, userType: string): Promise<void> {
   try {
-    // Eagerly create the native Android Notification Channel 
-    // This is required so Play Services can display killed-state FCM messages.
     await ensureChannel();
-    
     await requestFCMPermission();
     const token = await getFCMToken();
     if (!token) return;
 
-    // Skip if already registered for this user+token
-    const stored = await AsyncStorage.getItem(PUSH_TOKEN_KEY);
-    if (stored === `${userId}:${token}`) return;
+    const sessionKey = `${userId}:${token}`;
+
+    // Skip if already registered in this process lifetime
+    if (_registeredThisSession.has(sessionKey)) return;
 
     await savePushTokenToBackend(userId, token);
-    await AsyncStorage.setItem(PUSH_TOKEN_KEY, `${userId}:${token}`);
+    await AsyncStorage.setItem(PUSH_TOKEN_KEY, sessionKey);
+    _registeredThisSession.add(sessionKey);
     console.log('✅ FCM token registered for', userId);
   } catch (error) {
     console.warn('⚠️ Push init failed:', error);
@@ -115,6 +121,8 @@ export async function unregisterPushToken(): Promise<void> {
       body: JSON.stringify({ pushToken }),
     });
     await AsyncStorage.removeItem(PUSH_TOKEN_KEY);
+    // Clear session cache so next login re-registers
+    _registeredThisSession.clear();
     console.log('✅ FCM token unregistered');
   } catch (error) {
     console.warn('⚠️ Failed to unregister FCM token:', error);
