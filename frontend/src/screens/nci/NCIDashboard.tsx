@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, StatusBar, Image, ActivityIndicator } from 'react-native';
+import {
+  View, StyleSheet, TouchableOpacity, StatusBar,
+  Image, ActivityIndicator, ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import LinearGradient from 'react-native-linear-gradient';
 import { NonTeachingFaculty, ScreenName } from '../../types';
 import { apiService } from '../../services/api.service';
 import { useNotifications } from '../../context/NotificationContext';
@@ -29,12 +31,6 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [bottomTab, setBottomTab] = useState<'HOME' | 'REQUESTS' | 'EXITS' | 'GUEST' | 'PROFILE'>('HOME');
-
-  // Principal/Director get the Exits tab; regular non-class-incharges don't
-  const isPrincipalOrDirector = (() => {
-    const r = ((nci as any).role || nci.designation || '').toUpperCase();
-    return r.includes('PRINCIPAL') || r.includes('DIRECTOR');
-  })();
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState<string | null>(null);
@@ -45,6 +41,12 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
   const { unreadCount, loadNotifications } = useNotifications();
   const { refreshCount } = useRefresh();
   const { profileImage } = useProfile();
+
+  // Principal/Director get the Exits tab; regular non-class-incharges don't
+  const isPrincipalOrDirector = (() => {
+    const r = ((nci as any).role || nci.designation || '').toUpperCase();
+    return r.includes('PRINCIPAL') || r.includes('DIRECTOR');
+  })();
 
   const getGreeting = () => {
     const h = new Date().getHours();
@@ -123,116 +125,132 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
     return status;
   };
 
+  const navItems = isPrincipalOrDirector ? [
+    { key: 'HOME',     icon: 'home',           label: 'Home',     screen: undefined },
+    { key: 'GUEST',    icon: 'person-add',      label: 'Guest',    screen: 'GUEST_PRE_REQUEST' as ScreenName },
+    { key: 'EXITS',    icon: 'log-out',         label: 'Exits',    screen: 'NCI_EXITS' as ScreenName },
+    { key: 'REQUESTS', icon: 'document-text',   label: 'Requests', screen: 'NCI_MY_REQUESTS' as ScreenName },
+    { key: 'PROFILE',  icon: 'person',          label: 'Profile',  screen: 'PROFILE' as ScreenName },
+  ] : [
+    { key: 'HOME',     icon: 'home',           label: 'Home',     screen: undefined },
+    { key: 'GUEST',    icon: 'person-add',      label: 'Guest',    screen: 'GUEST_PRE_REQUEST' as ScreenName },
+    { key: 'REQUESTS', icon: 'document-text',   label: 'Requests', screen: 'NCI_MY_REQUESTS' as ScreenName },
+    { key: 'PROFILE',  icon: 'person',          label: 'Profile',  screen: 'PROFILE' as ScreenName },
+  ];
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.surface} />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.surface }]}>
-        <TouchableOpacity onPress={() => { setBottomTab('PROFILE'); onNavigate('PROFILE'); }}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-          ) : (
-            <View style={[styles.avatar, { backgroundColor: '#1E293B' }]}>
-              <ThemedText style={styles.avatarText}>{getInitials(nci.staffName || 'ST')}</ThemedText>
-            </View>
-          )}
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>{getGreeting()}</ThemedText>
-          <ThemedText style={[styles.userName, { color: theme.text }]} numberOfLines={1}>
-            {(nci.staffName || '').toUpperCase()}
-          </ThemedText>
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => { setBottomTab('PROFILE'); onNavigate('PROFILE'); }}>
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+                <ThemedText style={[styles.avatarText, { color: '#FFFFFF' }]}>{getInitials(nci.staffName || 'ST')}</ThemedText>
+              </View>
+            )}
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <ThemedText style={[styles.greeting, { color: theme.textSecondary }]}>{getGreeting()}</ThemedText>
+            <ThemedText style={[styles.userName, { color: theme.text }]} numberOfLines={1}>
+              {(nci.staffName || '').toUpperCase()}
+            </ThemedText>
+          </View>
         </View>
         <TouchableOpacity
-          style={[styles.notifBtn, { backgroundColor: theme.surfaceHighlight }]}
+          style={[styles.iconButton, { backgroundColor: theme.surfaceHighlight }]}
           onPress={() => onNavigate('NOTIFICATIONS')}
         >
-          <Ionicons name="notifications-outline" size={22} color={theme.text} />
-          {unreadCount > 0 && <View style={[styles.notifDot, { backgroundColor: '#EF4444', borderColor: theme.surface }]} />}
+          <Ionicons name="notifications-outline" size={24} color={theme.text} />
+          {unreadCount > 0 && (
+            <View style={[styles.notifBadge, { backgroundColor: theme.error }]}>
+              <ThemedText style={styles.notifBadgeText}>{unreadCount}</ThemedText>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
       <TopRefreshControl refreshing={refreshing} onRefresh={onRefresh} color={theme.primary}>
         <ScreenContentContainer>
           {/* Request Gate Pass Card */}
-          <TouchableOpacity
-            style={[styles.gatePassCard, { backgroundColor: theme.surface }]}
-            onPress={() => onNavigate('NEW_PASS_REQUEST')}
-            activeOpacity={0.9}
-          >
-            <LinearGradient
-              colors={['#0F172A', '#1E293B']}
-              style={styles.gatePassBanner}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          <View style={styles.staticHeader}>
+            <TouchableOpacity
+              style={[styles.requestCard, { backgroundColor: theme.cardBackground || theme.surface }]}
+              onPress={() => onNavigate('NEW_PASS_REQUEST')}
+              activeOpacity={0.9}
             >
-              <Ionicons name="shield-checkmark" size={56} color="rgba(255,255,255,0.3)" />
-            </LinearGradient>
-            <View style={styles.gatePassBottom}>
-              <View style={styles.gatePassTextWrap}>
-                <ThemedText style={[styles.gatePassTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
+              <View style={[styles.requestCardTop, { backgroundColor: theme.primary }]}>
+                <Ionicons name="shield-checkmark" size={40} color="rgba(255,255,255,0.7)" />
               </View>
-              <TouchableOpacity style={styles.applyBtn} onPress={() => onNavigate('NEW_PASS_REQUEST')}>
-                <ThemedText style={styles.applyBtnText}>Apply Now</ThemedText>
-              </TouchableOpacity>
+              <View style={[styles.requestCardBottom, { backgroundColor: theme.cardBackground || theme.surface }]}>
+                <ThemedText style={[styles.requestCardTitle, { color: theme.text }]}>Request Gate Pass</ThemedText>
+                <TouchableOpacity
+                  style={[styles.applyBtn, { backgroundColor: theme.primary }]}
+                  onPress={() => onNavigate('NEW_PASS_REQUEST')}
+                >
+                  <ThemedText style={styles.applyBtnText}>Apply Now</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.sectionHeader}>
+              <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
             </View>
-          </TouchableOpacity>
+          </View>
 
           {/* Recent Requests */}
-          <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>RECENT REQUESTS</ThemedText>
-
-          {loading ? (
-            <ActivityIndicator size="small" color={theme.primary} style={{ marginTop: 20 }} />
-          ) : requests.length === 0 ? (
-            <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
-              <Ionicons name="document-outline" size={40} color={theme.border} />
-              <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No requests yet</ThemedText>
-            </View>
-          ) : (
-            requests.slice(0, 5).map((req) => (
-              <View key={req.id} style={[styles.requestCard, { backgroundColor: theme.surface }]}>
-                <View style={styles.requestTop}>
-                  <View style={styles.requestInfo}>
-                    <ThemedText style={[styles.requestPurpose, { color: theme.text }]} numberOfLines={1}>
-                      {req.purpose || 'Gate Pass'}
-                    </ThemedText>
-                    <ThemedText style={[styles.requestDate, { color: theme.textSecondary }]}>
-                      {formatDateShort(req.requestDate || req.createdAt)}
-                    </ThemedText>
-                  </View>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(req.status) }]}>
-                    <ThemedText style={styles.statusText}>{getStatusLabel(req.status)}</ThemedText>
-                  </View>
-                </View>
-                {req.status === 'APPROVED' && (
-                  <TouchableOpacity
-                    style={[styles.viewQRBtn, { backgroundColor: '#0F172A' }]}
-                    onPress={() => handleViewQR(req)}
-                  >
-                    <Ionicons name="qr-code-outline" size={16} color="#FFF" />
-                    <ThemedText style={styles.viewQRText}>View QR</ThemedText>
-                  </TouchableOpacity>
-                )}
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            {loading ? (
+              <ActivityIndicator size="small" color={theme.primary} style={{ marginTop: 20 }} />
+            ) : requests.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="document-text-outline" size={48} color={theme.border} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No recent requests</ThemedText>
               </View>
-            ))
-          )}
+            ) : (
+              requests.slice(0, 10).map((req) => (
+                <TouchableOpacity
+                  key={req.id}
+                  style={[styles.requestItem, { backgroundColor: theme.cardBackground || theme.surface }]}
+                  onPress={() => req.status === 'APPROVED' && handleViewQR(req)}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.requestItemTop}>
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={[styles.requestPurpose, { color: theme.text }]} numberOfLines={1}>
+                        {req.purpose || 'Gate Pass Request'}
+                      </ThemedText>
+                      <ThemedText style={[styles.requestDate, { color: theme.textSecondary }]}>
+                        {formatDateShort(req.requestDate || req.createdAt)}
+                      </ThemedText>
+                    </View>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(req.status) }]}>
+                      <ThemedText style={styles.statusText}>{getStatusLabel(req.status)}</ThemedText>
+                    </View>
+                  </View>
+                  {req.status === 'APPROVED' && (
+                    <TouchableOpacity
+                      style={[styles.viewQRBtn, { backgroundColor: theme.primary }]}
+                      onPress={() => handleViewQR(req)}
+                    >
+                      <Ionicons name="qr-code-outline" size={16} color="#FFF" />
+                      <ThemedText style={styles.viewQRText}>View QR</ThemedText>
+                    </TouchableOpacity>
+                  )}
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
         </ScreenContentContainer>
       </TopRefreshControl>
 
       {/* Bottom Navigation */}
       <View style={[styles.bottomNav, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-        {(isPrincipalOrDirector ? [
-          { key: 'HOME',     icon: 'home',           label: 'Home',     screen: undefined },
-          { key: 'GUEST',    icon: 'person-add',      label: 'Guest',    screen: 'GUEST_PRE_REQUEST' as ScreenName },
-          { key: 'EXITS',    icon: 'log-out',         label: 'Exits',    screen: 'NCI_EXITS' as ScreenName },
-          { key: 'REQUESTS', icon: 'document-text',   label: 'Requests', screen: 'NCI_MY_REQUESTS' as ScreenName },
-          { key: 'PROFILE',  icon: 'person',          label: 'Profile',  screen: 'PROFILE' as ScreenName },
-        ] : [
-          { key: 'HOME',     icon: 'home',           label: 'Home',     screen: undefined },
-          { key: 'GUEST',    icon: 'person-add',      label: 'Guest',    screen: 'GUEST_PRE_REQUEST' as ScreenName },
-          { key: 'REQUESTS', icon: 'document-text',   label: 'Requests', screen: 'NCI_MY_REQUESTS' as ScreenName },
-          { key: 'PROFILE',  icon: 'person',          label: 'Profile',  screen: 'PROFILE' as ScreenName },
-        ]).map(({ key, icon, label, screen }) => {
+        {navItems.map(({ key, icon, label, screen }) => {
           const active = bottomTab === key;
           return (
             <TouchableOpacity
@@ -245,13 +263,13 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
             >
               <Ionicons
                 name={active ? icon : `${icon}-outline`}
-                size={22}
-                color={active ? theme.text : theme.textTertiary}
+                size={24}
+                color={active ? theme.primary : theme.textTertiary}
               />
-              <ThemedText style={[styles.navLabel, { color: active ? theme.text : theme.textTertiary }]}>
+              <ThemedText style={[styles.navLabel, { color: active ? theme.primary : theme.textTertiary, fontWeight: active ? '700' : '500' }]}>
                 {label}
               </ThemedText>
-              {active && <View style={[styles.activeBar, { backgroundColor: theme.text }]} />}
+              {active && <View style={[styles.activeBar, { backgroundColor: theme.primary }]} />}
             </TouchableOpacity>
           );
         })}
@@ -280,38 +298,58 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12, elevation: 2 },
-  avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  avatarImage: { width: 48, height: 48, borderRadius: 24 },
-  avatarText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
-  headerInfo: { flex: 1 },
-  greeting: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
-  userName: { fontSize: 16, fontWeight: '800', letterSpacing: 0.3 },
-  notifBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  notifDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, borderWidth: 1.5 },
-  gatePassCard: { borderRadius: 16, overflow: 'hidden', elevation: 2 },
-  gatePassBanner: { height: 160, alignItems: 'center', justifyContent: 'center' },
-  gatePassBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 18 },
-  gatePassTextWrap: { flex: 1, marginRight: 12 },
-  gatePassTitle: { fontSize: 20, fontWeight: '800' },
-  applyBtn: { backgroundColor: '#0F172A', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 20 },
-  applyBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginTop: 4 },
-  emptyCard: { borderRadius: 16, padding: 32, alignItems: 'center', gap: 8 },
-  emptyText: { fontSize: 14, fontWeight: '600' },
-  requestCard: { borderRadius: 16, padding: 14, elevation: 1, gap: 10 },
-  requestTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  requestInfo: { flex: 1, marginRight: 10 },
-  requestPurpose: { fontSize: 15, fontWeight: '700' },
-  requestDate: { fontSize: 12, marginTop: 2 },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1,
+  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  avatar: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
+  avatarImage: { width: 52, height: 52, borderRadius: 26 },
+  avatarText: { fontSize: 20, fontWeight: '700' },
+  headerInfo: { gap: 2, flex: 1 },
+  greeting: { fontSize: 12, fontWeight: '500', letterSpacing: 0.5 },
+  userName: { fontSize: 20, fontWeight: '700' },
+  iconButton: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  notifBadge: {
+    position: 'absolute', top: 4, right: 4, borderRadius: 10,
+    minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4,
+  },
+  notifBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  staticHeader: { paddingHorizontal: 20, paddingTop: 16 },
+  requestCard: { borderRadius: 20, overflow: 'hidden', elevation: 4 },
+  requestCardTop: { paddingVertical: 52, alignItems: 'center', justifyContent: 'center' },
+  requestCardBottom: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 18,
+  },
+  requestCardTitle: { fontSize: 18, fontWeight: '800' },
+  applyBtn: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20, marginLeft: 12 },
+  applyBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  sectionHeader: { paddingTop: 28, paddingBottom: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', letterSpacing: 0.5 },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  emptyState: { paddingVertical: 60, alignItems: 'center' },
+  emptyText: { fontSize: 16, fontWeight: '600', marginTop: 12 },
+  requestItem: { marginBottom: 12, padding: 16, borderRadius: 14, elevation: 2 },
+  requestItemTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  requestPurpose: { fontSize: 16, fontWeight: '700' },
+  requestDate: { fontSize: 13, marginTop: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  viewQRBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, alignSelf: 'flex-start' },
+  statusText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
+  viewQRBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14,
+    marginTop: 12, gap: 6, alignSelf: 'flex-start',
+  },
   viewQRText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  bottomNav: { flexDirection: 'row', borderTopWidth: 1, paddingBottom: 8, paddingTop: 6 },
-  navItem: { flex: 1, alignItems: 'center', gap: 3, position: 'relative', paddingVertical: 4 },
-  navLabel: { fontSize: 11, fontWeight: '600' },
-  activeBar: { position: 'absolute', bottom: 0, width: 20, height: 3, borderRadius: 2 },
+  bottomNav: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 8,
+    borderTopWidth: 1, elevation: 8,
+  },
+  navItem: { flex: 1, alignItems: 'center', paddingVertical: 4, position: 'relative' },
+  navLabel: { fontSize: 12, marginTop: 4 },
+  activeBar: { position: 'absolute', bottom: 0, width: 32, height: 3, borderRadius: 2 },
 });
 
 export default NCIDashboard;
