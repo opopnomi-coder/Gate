@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, StyleSheet, TouchableOpacity, StatusBar, Image,
-  ActivityIndicator, TextInput, Modal, Animated, ScrollView,
+  ActivityIndicator, TextInput, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -19,9 +19,9 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import TopRefreshControl from '../../components/TopRefreshControl';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
-import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 import { SkeletonList } from '../../components/SkeletonCard';
+import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
 
 interface NCIDashboardProps {
   nci: NonTeachingFaculty;
@@ -45,7 +45,6 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
   const [modalMsg, setModalMsg] = useState('');
   const [selectedVisitor, setSelectedVisitor] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const { translateY: detailSheetY, panHandlers: detailPanHandlers, openSheet: openDetailSheet } = useBottomSheetSwipe(() => setShowDetailModal(false));
   const { unreadCount, loadNotifications } = useNotifications();
   const { refreshCount } = useRefresh();
   const { profileImage } = useProfile();
@@ -393,64 +392,28 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
       <SuccessModal visible={showSuccess} title="Done" message={modalMsg} onClose={() => setShowSuccess(false)} autoClose autoCloseDelay={2000} />
       <ErrorModal visible={showError} type="general" title="Error" message={modalMsg} onClose={() => setShowError(false)} />
 
-      {/* Detail Full-Screen Modal */}
-      <Modal visible={showDetailModal} transparent={false} animationType="slide" onRequestClose={() => setShowDetailModal(false)}>
-        <SafeAreaView style={[{ flex: 1 }, { backgroundColor: theme.background }]}>
-          <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 }, { borderBottomColor: theme.border, backgroundColor: theme.surface }]}>
-            <TouchableOpacity onPress={() => setShowDetailModal(false)} style={[{ width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' }, { backgroundColor: theme.surfaceHighlight }]}>
-              <Ionicons name="arrow-back" size={22} color={theme.text} />
-            </TouchableOpacity>
-            <ThemedText style={[styles.detailTitle, { color: theme.text }]}>Visitor Request</ThemedText>
-            {selectedVisitor && (
-              <View style={[styles.statusPill, { backgroundColor: selectedVisitor.status === 'APPROVED' ? theme.success + '20' : selectedVisitor.status === 'REJECTED' ? theme.error + '20' : theme.warning + '20' }]}>
-                <ThemedText style={[styles.statusPillText, { color: selectedVisitor.status === 'APPROVED' ? theme.success : selectedVisitor.status === 'REJECTED' ? theme.error : theme.warning }]}>{selectedVisitor.status}</ThemedText>
-              </View>
-            )}
-          </View>
-          {selectedVisitor && (
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-              <View style={[styles.detailCard, { backgroundColor: theme.surface, marginBottom: 16 }]}>
-                <View style={[styles.detailAvatar, { backgroundColor: theme.primary }]}>
-                  <ThemedText style={styles.detailAvatarText}>{getInitials(selectedVisitor.requesterName || selectedVisitor.name || 'VR')}</ThemedText>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <ThemedText style={[styles.detailName, { color: theme.text }]}>{selectedVisitor.requesterName || selectedVisitor.name || 'Visitor'}</ThemedText>
-                  {selectedVisitor.visitorEmail && <ThemedText style={[styles.detailSub, { color: theme.textSecondary }]}>{selectedVisitor.visitorEmail}</ThemedText>}
-                  {selectedVisitor.visitorPhone && <ThemedText style={[styles.detailSub, { color: theme.textSecondary }]}>{selectedVisitor.visitorPhone}</ThemedText>}
-                </View>
-              </View>
-              {[
-                { icon: 'document-text-outline', label: 'Purpose', value: selectedVisitor.purpose },
-                { icon: 'calendar-outline', label: 'Visit Date', value: selectedVisitor.visitDate ? `${selectedVisitor.visitDate}${selectedVisitor.visitTime ? ` at ${selectedVisitor.visitTime}` : ''}` : null },
-                { icon: 'people-outline', label: 'Number of People', value: selectedVisitor.numberOfPeople ? String(selectedVisitor.numberOfPeople) : null },
-                { icon: 'person-outline', label: 'Person to Meet', value: selectedVisitor.personToMeet },
-                { icon: 'business-outline', label: 'Department', value: selectedVisitor.department },
-                { icon: 'time-outline', label: 'Requested', value: formatDateShort(selectedVisitor.createdAt) },
-              ].filter(r => r.value).map((row, i) => (
-                <View key={i} style={[styles.detailRow2, { borderBottomColor: theme.border }]}>
-                  <Ionicons name={row.icon as any} size={16} color={theme.textTertiary} />
-                  <View style={{ flex: 1 }}>
-                    <ThemedText style={[styles.detailRowLabel, { color: theme.textTertiary }]}>{row.label}</ThemedText>
-                    <ThemedText style={[styles.detailRowValue, { color: theme.text }]}>{row.value}</ThemedText>
-                  </View>
-                </View>
-              ))}
-              {selectedVisitor.status === 'PENDING' && (
-                <View style={[styles.detailActions, { marginTop: 24 }]}>
-                  <TouchableOpacity style={[styles.rejectBtn, { borderColor: theme.error, flex: 1 }]} onPress={() => { setShowDetailModal(false); handleReject(selectedVisitor); }} activeOpacity={0.8}>
-                    <Ionicons name="close-outline" size={16} color={theme.error} />
-                    <ThemedText style={[styles.rejectBtnText, { color: theme.error }]}>Reject</ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.approveBtn, { backgroundColor: theme.success, flex: 1 }]} onPress={() => { setShowDetailModal(false); handleApprove(selectedVisitor); }} activeOpacity={0.8}>
-                    <Ionicons name="checkmark-outline" size={16} color="#FFF" />
-                    <ThemedText style={styles.approveBtnText}>Approve</ThemedText>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </ScrollView>
-          )}
-        </SafeAreaView>
-      </Modal>
+      <SinglePassDetailsModal
+        visible={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        request={selectedVisitor ? {
+          id: selectedVisitor.requestId || selectedVisitor.id,
+          studentName: selectedVisitor.requesterName || selectedVisitor.name || 'Visitor',
+          regNo: selectedVisitor.visitorPhone || selectedVisitor.phone || '',
+          department: selectedVisitor.department || '',
+          purpose: selectedVisitor.purpose || '',
+          reason: selectedVisitor.purpose || '',
+          requestDate: selectedVisitor.visitDate || selectedVisitor.createdAt,
+          visitDate: selectedVisitor.visitDate,
+          status: selectedVisitor.status,
+          requestType: 'VISITOR',
+          staffApproval: selectedVisitor.status,
+        } : null}
+        showActions={selectedVisitor?.status === 'PENDING'}
+        viewerRole="staff"
+        processing={processing === (selectedVisitor?.requestId || selectedVisitor?.id)}
+        onApprove={async (_id, _remark) => { setShowDetailModal(false); await handleApprove(selectedVisitor); }}
+        onReject={async (_id, _remark) => { setShowDetailModal(false); await handleReject(selectedVisitor); }}
+      />
     </SafeAreaView>
   );
 };
