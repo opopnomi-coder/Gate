@@ -466,115 +466,126 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   }
 
   if (vehicleRangePickerPage) {
+    const buildVehicleMarks = () => {
+      const marks: Record<string, any> = {};
+      if (!vehicleFromDate) return marks;
+      const fromKey = vehicleFromDate.toISOString().slice(0, 10);
+      const toKey = vehicleToDate ? vehicleToDate.toISOString().slice(0, 10) : null;
+      if (!toKey || fromKey === toKey) {
+        marks[fromKey] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
+      } else {
+        marks[fromKey] = { startingDay: true, color: theme.primary, textColor: '#fff' };
+        marks[toKey] = { endingDay: true, color: theme.primary, textColor: '#fff' };
+        const cur = new Date(vehicleFromDate);
+        cur.setDate(cur.getDate() + 1);
+        const end = new Date(vehicleToDate!);
+        while (cur < end) {
+          marks[cur.toISOString().slice(0, 10)] = { color: '#E8F4FD', textColor: '#1a1a1a' };
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+      return marks;
+    };
+    const vFromLabel = vehicleFromDate
+      ? vehicleFromDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : null;
+    const vToLabel = vehicleToDate
+      ? vehicleToDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : null;
     return (
-      <SafeAreaView style={[styles.fsScreen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-        <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
-        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-          <TouchableOpacity style={[styles.backButton, { backgroundColor: theme.surfaceHighlight }]} onPress={() => setVehicleRangePickerPage(false)}>
-            <Ionicons name="arrow-back" size={24} color={theme.text} />
+      <SafeAreaView style={[skStyles.screen, { backgroundColor: '#ffffff' }]} edges={['top', 'bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        {/* Header */}
+        <View style={skStyles.header}>
+          <TouchableOpacity style={skStyles.backBtn} onPress={() => setVehicleRangePickerPage(false)}>
+            <Ionicons name="arrow-back" size={22} color="#1a1a1a" />
           </TouchableOpacity>
-          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Select date range</ThemedText>
-          <View style={styles.headerRight} />
+          <ThemedText style={skStyles.headerTitle}>Select dates</ThemedText>
+          <View style={{ width: 36 }} />
         </View>
+
+        {/* Selected range summary bar */}
+        <View style={skStyles.summaryBar}>
+          <TouchableOpacity
+            style={[skStyles.summaryChip, vehicleSelectingDateType === 'FROM' && skStyles.summaryChipActive]}
+            onPress={() => setVehicleSelectingDateType('FROM')}
+          >
+            <ThemedText style={skStyles.summaryLabel}>FROM</ThemedText>
+            <ThemedText style={[skStyles.summaryValue, vehicleSelectingDateType === 'FROM' && { color: theme.primary }]}>
+              {vFromLabel ?? '—'}
+            </ThemedText>
+          </TouchableOpacity>
+          <View style={skStyles.summaryDivider} />
+          <TouchableOpacity
+            style={[skStyles.summaryChip, vehicleSelectingDateType === 'TO' && skStyles.summaryChipActive]}
+            onPress={() => setVehicleSelectingDateType('TO')}
+          >
+            <ThemedText style={skStyles.summaryLabel}>TO</ThemedText>
+            <ThemedText style={[skStyles.summaryValue, vehicleSelectingDateType === 'TO' && { color: theme.primary }]}>
+              {vToLabel ?? '—'}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Instruction */}
+        <ThemedText style={skStyles.instruction}>
+          {vehicleSelectingDateType === 'FROM' ? 'Tap a start date' : 'Tap an end date'}
+        </ThemedText>
+
         <ScreenContentContainer style={{ flex: 1 }}>
-          <VerticalScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-            <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 16 }]}>Select Date Range</ThemedText>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <TouchableOpacity
-                style={[styles.dateTypeTab, vehicleSelectingDateType === 'FROM' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
-                onPress={() => setVehicleSelectingDateType('FROM')}
-              >
-                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, vehicleSelectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>FROM</ThemedText>
-                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, vehicleSelectingDateType === 'FROM' ? { color: theme.primary } : { color: theme.text }]}>
-                  {vehicleFromDate ? vehicleFromDate.toLocaleDateString() : 'Select'}
-                </ThemedText>
-              </TouchableOpacity>
-              <Ionicons name="arrow-forward" size={18} color={theme.textTertiary} />
-              <TouchableOpacity
-                style={[styles.dateTypeTab, vehicleSelectingDateType === 'TO' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
-                onPress={() => setVehicleSelectingDateType('TO')}
-              >
-                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, vehicleSelectingDateType === 'TO' && styles.dateTypeTabTextActive]}>TO</ThemedText>
-                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, vehicleSelectingDateType === 'TO' ? { color: theme.primary } : { color: theme.text }]}>
-                  {vehicleToDate ? vehicleToDate.toLocaleDateString() : 'Select'}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.calendarWrap, { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' }]}>
-              <Calendar
-                onDayPress={(day) => {
-                  const selected = new Date(`${day.dateString}T00:00:00`);
-                  if (vehicleSelectingDateType === 'FROM') {
-                    setVehicleFromDate(selected);
-                    setVehicleSelectingDateType('TO');
-                    if (vehicleToDate && vehicleToDate < selected) setVehicleToDate(null);
-                  } else {
-                    if (vehicleFromDate && selected < vehicleFromDate) return;
-                    setVehicleToDate(selected);
-                  }
-                }}
-                markedDates={(() => {
-                  const marks: Record<string, any> = {};
-                  if (!vehicleFromDate) return marks;
-                  const fromKey = vehicleFromDate.toISOString().slice(0, 10);
-                  const toKey = vehicleToDate ? vehicleToDate.toISOString().slice(0, 10) : null;
-                  if (!toKey || fromKey === toKey) {
-                    // Single day selected
-                    marks[fromKey] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
-                  } else {
-                    // Range: mark every day between from and to
-                    marks[fromKey] = { startingDay: true, color: theme.primary, textColor: '#fff' };
-                    marks[toKey] = { endingDay: true, color: theme.primary, textColor: '#fff' };
-                    const cur = new Date(vehicleFromDate);
-                    cur.setDate(cur.getDate() + 1);
-                    const end = new Date(vehicleToDate!);
-                    while (cur < end) {
-                      marks[cur.toISOString().slice(0, 10)] = { color: theme.primary + '25', textColor: theme.text };
-                      cur.setDate(cur.getDate() + 1);
-                    }
-                  }
-                  return marks;
-                })()}
-                markingType="period"
-                theme={{
-                  calendarBackground: theme.surface,
-                  textSectionTitleColor: theme.textSecondary,
-                  selectedDayBackgroundColor: theme.primary,
-                  selectedDayTextColor: '#ffffff',
-                  todayTextColor: theme.primary,
-                  dayTextColor: theme.text,
-                  textDisabledColor: theme.textTertiary,
-                  dotColor: theme.primary,
-                  selectedDotColor: '#ffffff',
-                  arrowColor: theme.primary,
-                  monthTextColor: theme.text,
-                  indicatorColor: theme.primary,
-                  textDayFontWeight: '500',
-                  textMonthFontWeight: '700',
-                  textDayHeaderFontWeight: '600',
-                }}
-              />
-            </View>
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => {
-                setVehicleFromDate(null);
-                setVehicleToDate(null);
-                setVehicleSelectingDateType('FROM');
-              }}>
-                <ThemedText style={styles.actionBtnText}>Clear</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.applyBtn, { opacity: vehicleFromDate && vehicleToDate ? 1 : 0.5 }]}
-                disabled={!vehicleFromDate || !vehicleToDate}
-                onPress={applyVehicleDateRange}
-              >
-                <ThemedText style={styles.actionBtnText}>Apply</ThemedText>
-              </TouchableOpacity>
-            </View>
+          <VerticalScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+            <Calendar
+              onDayPress={(day) => {
+                const selected = new Date(`${day.dateString}T00:00:00`);
+                if (vehicleSelectingDateType === 'FROM') {
+                  setVehicleFromDate(selected);
+                  setVehicleSelectingDateType('TO');
+                  if (vehicleToDate && vehicleToDate < selected) setVehicleToDate(null);
+                } else {
+                  if (vehicleFromDate && selected < vehicleFromDate) return;
+                  setVehicleToDate(selected);
+                }
+              }}
+              markedDates={buildVehicleMarks()}
+              markingType="period"
+              theme={{
+                calendarBackground: '#ffffff',
+                textSectionTitleColor: '#9CA3AF',
+                selectedDayBackgroundColor: theme.primary,
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: theme.primary,
+                dayTextColor: '#1a1a1a',
+                textDisabledColor: '#D1D5DB',
+                arrowColor: '#1a1a1a',
+                monthTextColor: '#1a1a1a',
+                textMonthFontSize: 18,
+                textMonthFontWeight: '800',
+                textDayFontSize: 15,
+                textDayFontWeight: '500',
+                textDayHeaderFontSize: 12,
+                textDayHeaderFontWeight: '700',
+              }}
+            />
           </VerticalScrollView>
         </ScreenContentContainer>
+
+        {/* Sticky bottom bar */}
+        <View style={skStyles.bottomBar}>
+          <TouchableOpacity style={skStyles.clearBtn} onPress={() => {
+            setVehicleFromDate(null);
+            setVehicleToDate(null);
+            setVehicleSelectingDateType('FROM');
+          }}>
+            <ThemedText style={skStyles.clearBtnText}>Clear</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[skStyles.applyBtn, { backgroundColor: vehicleFromDate && vehicleToDate ? theme.primary : '#D1D5DB' }]}
+            disabled={!vehicleFromDate || !vehicleToDate}
+            onPress={applyVehicleDateRange}
+          >
+            <ThemedText style={skStyles.applyBtnText}>Apply</ThemedText>
+          </TouchableOpacity>
+        </View>
         <SecurityBottomNav activeTab="history" onNavigate={onNavigate} />
       </SafeAreaView>
     );
@@ -651,117 +662,126 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   }
 
   if (rangePickerPage) {
+    const buildScanMarks = () => {
+      const marks: Record<string, any> = {};
+      if (!fromDate) return marks;
+      const fromKey = fromDate.toISOString().slice(0, 10);
+      const toKey = toDate ? toDate.toISOString().slice(0, 10) : null;
+      if (!toKey || fromKey === toKey) {
+        marks[fromKey] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
+      } else {
+        marks[fromKey] = { startingDay: true, color: theme.primary, textColor: '#fff' };
+        marks[toKey] = { endingDay: true, color: theme.primary, textColor: '#fff' };
+        const cur = new Date(fromDate);
+        cur.setDate(cur.getDate() + 1);
+        const end = new Date(toDate!);
+        while (cur < end) {
+          marks[cur.toISOString().slice(0, 10)] = { color: '#E8F4FD', textColor: '#1a1a1a' };
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+      return marks;
+    };
+    const fromLabel = fromDate
+      ? fromDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : null;
+    const toLabel = toDate
+      ? toDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : null;
     return (
-      <SafeAreaView style={[styles.fsScreen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-        <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
-        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-          <TouchableOpacity style={[styles.backButton, { backgroundColor: theme.surfaceHighlight }]} onPress={() => setRangePickerPage(false)}>
-            <Ionicons name="arrow-back" size={24} color={theme.text} />
+      <SafeAreaView style={[skStyles.screen, { backgroundColor: '#ffffff' }]} edges={['top', 'bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        {/* Header */}
+        <View style={skStyles.header}>
+          <TouchableOpacity style={skStyles.backBtn} onPress={() => setRangePickerPage(false)}>
+            <Ionicons name="arrow-back" size={22} color="#1a1a1a" />
           </TouchableOpacity>
-          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Select date range</ThemedText>
-          <View style={styles.headerRight} />
+          <ThemedText style={skStyles.headerTitle}>Select dates</ThemedText>
+          <View style={{ width: 36 }} />
         </View>
+
+        {/* Selected range summary bar */}
+        <View style={skStyles.summaryBar}>
+          <TouchableOpacity
+            style={[skStyles.summaryChip, selectingDateType === 'FROM' && skStyles.summaryChipActive]}
+            onPress={() => setSelectingDateType('FROM')}
+          >
+            <ThemedText style={skStyles.summaryLabel}>FROM</ThemedText>
+            <ThemedText style={[skStyles.summaryValue, selectingDateType === 'FROM' && { color: theme.primary }]}>
+              {fromLabel ?? '—'}
+            </ThemedText>
+          </TouchableOpacity>
+          <View style={skStyles.summaryDivider} />
+          <TouchableOpacity
+            style={[skStyles.summaryChip, selectingDateType === 'TO' && skStyles.summaryChipActive]}
+            onPress={() => setSelectingDateType('TO')}
+          >
+            <ThemedText style={skStyles.summaryLabel}>TO</ThemedText>
+            <ThemedText style={[skStyles.summaryValue, selectingDateType === 'TO' && { color: theme.primary }]}>
+              {toLabel ?? '—'}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Instruction */}
+        <ThemedText style={skStyles.instruction}>
+          {selectingDateType === 'FROM' ? 'Tap a start date' : 'Tap an end date'}
+        </ThemedText>
+
         <ScreenContentContainer style={{ flex: 1 }}>
-          <VerticalScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-            <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 16 }]}>Select Date Range</ThemedText>
-
-            {/* FROM / TO pill selectors */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <TouchableOpacity
-                style={[styles.dateTypeTab, selectingDateType === 'FROM' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
-                onPress={() => setSelectingDateType('FROM')}
-              >
-                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, selectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>FROM</ThemedText>
-                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, selectingDateType === 'FROM' ? { color: theme.primary } : { color: theme.text }]}>
-                  {fromDate ? fromDate.toLocaleDateString() : 'Select'}
-                </ThemedText>
-              </TouchableOpacity>
-              <Ionicons name="arrow-forward" size={18} color={theme.textTertiary} />
-              <TouchableOpacity
-                style={[styles.dateTypeTab, selectingDateType === 'TO' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
-                onPress={() => setSelectingDateType('TO')}
-              >
-                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, selectingDateType === 'TO' && styles.dateTypeTabTextActive]}>TO</ThemedText>
-                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, selectingDateType === 'TO' ? { color: theme.primary } : { color: theme.text }]}>
-                  {toDate ? toDate.toLocaleDateString() : 'Select'}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-
-            <View style={[styles.calendarWrap, { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' }]}>
-              <Calendar
-                onDayPress={(day) => {
-                  const selected = new Date(`${day.dateString}T00:00:00`);
-                  if (selectingDateType === 'FROM') {
-                    setFromDate(selected);
-                    // Auto-advance to TO
-                    setSelectingDateType('TO');
-                    // Clear toDate if it's before new fromDate
-                    if (toDate && toDate < selected) setToDate(null);
-                  } else {
-                    // Block TO before FROM
-                    if (fromDate && selected < fromDate) return;
-                    setToDate(selected);
-                  }
-                }}
-                markedDates={(() => {
-                  const marks: Record<string, any> = {};
-                  if (!fromDate) return marks;
-                  const fromKey = fromDate.toISOString().slice(0, 10);
-                  const toKey = toDate ? toDate.toISOString().slice(0, 10) : null;
-                  if (!toKey || fromKey === toKey) {
-                    marks[fromKey] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
-                  } else {
-                    marks[fromKey] = { startingDay: true, color: theme.primary, textColor: '#fff' };
-                    marks[toKey] = { endingDay: true, color: theme.primary, textColor: '#fff' };
-                    const cur = new Date(fromDate);
-                    cur.setDate(cur.getDate() + 1);
-                    const end = new Date(toDate!);
-                    while (cur < end) {
-                      marks[cur.toISOString().slice(0, 10)] = { color: theme.primary + '25', textColor: theme.text };
-                      cur.setDate(cur.getDate() + 1);
-                    }
-                  }
-                  return marks;
-                })()}
-                markingType="period"
-                theme={{
-                  calendarBackground: theme.surface,
-                  textSectionTitleColor: theme.textSecondary,
-                  selectedDayBackgroundColor: theme.primary,
-                  selectedDayTextColor: '#ffffff',
-                  todayTextColor: theme.primary,
-                  dayTextColor: theme.text,
-                  textDisabledColor: theme.textTertiary,
-                  dotColor: theme.primary,
-                  selectedDotColor: '#ffffff',
-                  arrowColor: theme.primary,
-                  monthTextColor: theme.text,
-                  indicatorColor: theme.primary,
-                  textDayFontWeight: '500',
-                  textMonthFontWeight: '700',
-                  textDayHeaderFontWeight: '600',
-                }}
-              />
-            </View>
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => {
-                setFromDate(null);
-                setToDate(null);
-                setSelectingDateType('FROM');
-              }}>
-                <ThemedText style={styles.actionBtnText}>Clear</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.applyBtn, { opacity: fromDate && toDate ? 1 : 0.5 }]}
-                disabled={!fromDate || !toDate}
-                onPress={applyDateRange}
-              >
-                <ThemedText style={styles.actionBtnText}>Apply</ThemedText>
-              </TouchableOpacity>
-            </View>
+          <VerticalScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+            <Calendar
+              onDayPress={(day) => {
+                const selected = new Date(`${day.dateString}T00:00:00`);
+                if (selectingDateType === 'FROM') {
+                  setFromDate(selected);
+                  setSelectingDateType('TO');
+                  if (toDate && toDate < selected) setToDate(null);
+                } else {
+                  if (fromDate && selected < fromDate) return;
+                  setToDate(selected);
+                }
+              }}
+              markedDates={buildScanMarks()}
+              markingType="period"
+              theme={{
+                calendarBackground: '#ffffff',
+                textSectionTitleColor: '#9CA3AF',
+                selectedDayBackgroundColor: theme.primary,
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: theme.primary,
+                dayTextColor: '#1a1a1a',
+                textDisabledColor: '#D1D5DB',
+                arrowColor: '#1a1a1a',
+                monthTextColor: '#1a1a1a',
+                textMonthFontSize: 18,
+                textMonthFontWeight: '800',
+                textDayFontSize: 15,
+                textDayFontWeight: '500',
+                textDayHeaderFontSize: 12,
+                textDayHeaderFontWeight: '700',
+              }}
+            />
           </VerticalScrollView>
         </ScreenContentContainer>
+
+        {/* Sticky bottom bar */}
+        <View style={skStyles.bottomBar}>
+          <TouchableOpacity style={skStyles.clearBtn} onPress={() => {
+            setFromDate(null);
+            setToDate(null);
+            setSelectingDateType('FROM');
+          }}>
+            <ThemedText style={skStyles.clearBtnText}>Clear</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[skStyles.applyBtn, { backgroundColor: fromDate && toDate ? theme.primary : '#D1D5DB' }]}
+            disabled={!fromDate || !toDate}
+            onPress={applyDateRange}
+          >
+            <ThemedText style={skStyles.applyBtnText}>Apply</ThemedText>
+          </TouchableOpacity>
+        </View>
         <SecurityBottomNav activeTab="history" onNavigate={onNavigate} />
         <SuccessModal visible={showDownloadSuccess} title="Download Complete" message={downloadMessage} onClose={() => setShowDownloadSuccess(false)} autoClose={true} autoCloseDelay={3000} />
         <ErrorModal visible={showDownloadError} type="general" title="Download Failed" message={downloadErrorMessage} onClose={() => setShowDownloadError(false)} />
@@ -1352,6 +1372,106 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
     </SafeAreaView>
   );
 };
+
+const skStyles = StyleSheet.create({
+  screen: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#ffffff',
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  summaryBar: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginBottom: 4,
+    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    overflow: 'hidden',
+  },
+  summaryChip: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  summaryChipActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#9CA3AF',
+    marginBottom: 2,
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 8,
+  },
+  instruction: {
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  clearBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+  },
+  clearBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
+  applyBtn: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
