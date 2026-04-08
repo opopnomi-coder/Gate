@@ -185,10 +185,10 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           && eventDate.getDate() === now.getDate();
       }
       if (!vehicleFromDate && !vehicleToDate) return true;
-      const from = vehicleFromDate ? new Date(vehicleFromDate) : new Date('1970-01-01');
-      from.setHours(0, 0, 0, 0);
-      const to = vehicleToDate ? new Date(vehicleToDate) : new Date('2999-12-31');
-      to.setHours(23, 59, 59, 999);
+      const fd = vehicleFromDate ?? new Date('1970-01-01');
+      const td = vehicleToDate ?? new Date('2999-12-31');
+      const from = new Date(fd.getFullYear(), fd.getMonth(), fd.getDate(), 0, 0, 0, 0);
+      const to   = new Date(td.getFullYear(), td.getMonth(), td.getDate(), 23, 59, 59, 999);
       return eventDate >= from && eventDate <= to;
     })();
 
@@ -210,10 +210,10 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
           && eventDate.getDate() === now.getDate();
       }
       if (!fromDate && !toDate) return true;
-      const from = fromDate ? new Date(fromDate) : new Date('1970-01-01T00:00:00');
-      from.setHours(0, 0, 0, 0);
-      const to = toDate ? new Date(toDate) : new Date('2999-12-31T23:59:59');
-      to.setHours(23, 59, 59, 999);
+      const fd = fromDate ?? new Date('1970-01-01');
+      const td = toDate ?? new Date('2999-12-31');
+      const from = new Date(fd.getFullYear(), fd.getMonth(), fd.getDate(), 0, 0, 0, 0);
+      const to   = new Date(td.getFullYear(), td.getMonth(), td.getDate(), 23, 59, 59, 999);
       return eventDate >= from && eventDate <= to;
     })();
 
@@ -287,8 +287,9 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
 
   const applyDateRange = () => {
     if (!fromDate || !toDate) return;
-    const from = new Date(fromDate);
-    const to = new Date(toDate);
+    // Compare by date only (ignore time) to allow same-day selection
+    const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    const to   = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
     if (from > to) return;
     setRangeMode(true);
     setRangePickerPage(false);
@@ -297,7 +298,9 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
 
   const applyVehicleDateRange = () => {
     if (!vehicleFromDate || !vehicleToDate) return;
-    if (new Date(vehicleFromDate) > new Date(vehicleToDate)) return;
+    const from = new Date(vehicleFromDate.getFullYear(), vehicleFromDate.getMonth(), vehicleFromDate.getDate());
+    const to   = new Date(vehicleToDate.getFullYear(), vehicleToDate.getMonth(), vehicleToDate.getDate());
+    if (from > to) return;
     setVehicleRangeMode(true);
     setVehicleRangePickerPage(false);
     setVehicleRangeResultsVisible(true);
