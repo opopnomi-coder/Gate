@@ -447,6 +447,21 @@ const App: React.FC = () => {
         return;
       }
 
+      // Check for saved Admin Officer session (BEFORE NTF — AO has non-teaching dept)
+      const savedAdmin = await offlineStorage.getCurrentAdmin();
+      if (savedAdmin) {
+        console.log('✅ Found saved Admin Officer session:', savedAdmin.staffCode);
+        setAdmin(savedAdmin);
+        setUserType('ADMIN_OFFICER');
+        setCurrentScreen('ADMIN_DASHBOARD');
+        const hasFlag = await biometricAuthService.hasSessionFlag();
+        setRequiresBiometricGate(hasFlag);
+        setBiometricVerified(!hasFlag);
+        setIsLoading(false);
+        initPushNotifications(savedAdmin.staffCode, 'staff');
+        return;
+      }
+
       // Check for saved NTF session
       const savedNTF = await offlineStorage.getCurrentNTF();
       if (savedNTF) {
@@ -474,21 +489,6 @@ const App: React.FC = () => {
         setBiometricVerified(!hasFlag);
         setIsLoading(false);
         initPushNotifications(savedNCI.staffCode, 'staff');
-        return;
-      }
-
-      // Check for saved Admin Officer session
-      const savedAdmin = await offlineStorage.getCurrentAdmin();
-      if (savedAdmin) {
-        console.log('✅ Found saved Admin Officer session:', savedAdmin.staffCode);
-        setAdmin(savedAdmin);
-        setUserType('ADMIN_OFFICER');
-        setCurrentScreen('ADMIN_DASHBOARD');
-        const hasFlag = await biometricAuthService.hasSessionFlag();
-        setRequiresBiometricGate(hasFlag);
-        setBiometricVerified(!hasFlag);
-        setIsLoading(false);
-        initPushNotifications(savedAdmin.staffCode, 'staff');
         return;
       }
 
@@ -659,7 +659,14 @@ const App: React.FC = () => {
     console.log('🏢 Admin Officer login successful:', adminData.staffCode);
     const enriched = { ...adminData, role: 'ADMIN_OFFICER' };
     try {
-      await clearAllSessionsExcept('ADMIN_OFFICER' as any);
+      // Clear ALL other sessions including NTF (AO has non-teaching dept so stale NTF session possible)
+      await offlineStorage.clearCurrentStudent();
+      await offlineStorage.clearCurrentStaff();
+      await offlineStorage.clearCurrentHOD();
+      await offlineStorage.clearCurrentHR();
+      await offlineStorage.clearCurrentSecurity();
+      await offlineStorage.clearCurrentNTF();
+      await offlineStorage.clearCurrentNCI();
       await offlineStorage.saveCurrentAdmin(enriched as any);
     } catch (error) {
       console.error('❌ Failed to save Admin data:', error);

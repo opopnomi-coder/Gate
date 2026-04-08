@@ -27,6 +27,7 @@ export function getRoleDisplayName(role: UserRole): string {
     SECURITY: 'Security Personnel',
     NON_TEACHING: 'Non-Teaching Faculty',
     NON_CLASS_INCHARGE: 'Staff',
+    ADMIN_OFFICER: 'Administrative Officer',
   };
 
   return roleNames[role];
@@ -46,6 +47,7 @@ export function getRoleIcon(role: UserRole): string {
     SECURITY: 'shield',
     NON_TEACHING: 'person-circle',
     NON_CLASS_INCHARGE: 'briefcase',
+    ADMIN_OFFICER: 'business',
   };
 
   return roleIcons[role];
@@ -65,6 +67,7 @@ export function getRoleColor(role: UserRole): string {
     SECURITY: '#EF4444',
     NON_TEACHING: '#3B82F6',
     NON_CLASS_INCHARGE: '#8B5CF6',
+    ADMIN_OFFICER: '#0EA5E9',
   };
 
   return roleColors[role];
@@ -111,6 +114,7 @@ export function getUserIdPlaceholder(userId: string): string {
     SECURITY: 'Security ID',
     NON_TEACHING: 'NTF Code (e.g. NTF001)',
     NON_CLASS_INCHARGE: 'Staff Code',
+    ADMIN_OFFICER: 'Staff Code',
   };
 
   return placeholders[role];
