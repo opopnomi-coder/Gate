@@ -192,11 +192,15 @@ public class GatePassRequestService {
         GatePassRequest saved = gatePassRequestRepository.save(request);
         log.info("NTF gate pass request created with ID: {}", saved.getId());
 
-        // Notify HR directly
-        try {
-            notificationService.notifyHROfNewHODRequest(saved);
-        } catch (Exception e) {
-            log.error("Failed to notify HR of NTF request {}", saved.getId(), e);
+        // Notify HR — but skip if the requester IS the HR (self-generated pass)
+        if (assignedHrCode != null && !staffCode.equals(assignedHrCode)) {
+            try {
+                notificationService.notifyHROfNewHODRequest(saved);
+            } catch (Exception e) {
+                log.error("Failed to notify HR of NTF request {}", saved.getId(), e);
+            }
+        } else {
+            log.info("Skipping HR notification for NTF request {} — requester is HR themselves", saved.getId());
         }
 
         return saved;
