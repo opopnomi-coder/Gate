@@ -71,6 +71,13 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'SCANS' | 'VEHICLES'>('SCANS');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'ENTRY' | 'EXIT'>('ALL');
+  const [vehicleFilter, setVehicleFilter] = useState<'ALL' | 'ENTRY' | 'EXIT'>('ALL');
+  const [vehicleRangeMode, setVehicleRangeMode] = useState(false);
+  const [vehicleFromDate, setVehicleFromDate] = useState<Date | null>(null);
+  const [vehicleToDate, setVehicleToDate] = useState<Date | null>(null);
+  const [vehicleRangePickerPage, setVehicleRangePickerPage] = useState(false);
+  const [vehicleRangeResultsVisible, setVehicleRangeResultsVisible] = useState(false);
+  const [vehicleSelectingDateType, setVehicleSelectingDateType] = useState<'FROM' | 'TO'>('FROM');
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -168,7 +175,29 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
       vehicle.ownerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vehicle.licensePlate?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vehicle.vehicleType?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+
+    const eventDate = new Date(vehicle.createdAt || '');
+    const inRange = (() => {
+      if (!vehicleRangeMode) {
+        const now = new Date();
+        return eventDate.getFullYear() === now.getFullYear()
+          && eventDate.getMonth() === now.getMonth()
+          && eventDate.getDate() === now.getDate();
+      }
+      if (!vehicleFromDate && !vehicleToDate) return true;
+      const from = vehicleFromDate ? new Date(vehicleFromDate) : new Date('1970-01-01');
+      from.setHours(0, 0, 0, 0);
+      const to = vehicleToDate ? new Date(vehicleToDate) : new Date('2999-12-31');
+      to.setHours(23, 59, 59, 999);
+      return eventDate >= from && eventDate <= to;
+    })();
+
+    const hasExited = vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt;
+    let matchesFilter = true;
+    if (vehicleFilter === 'ENTRY') matchesFilter = !hasExited;
+    else if (vehicleFilter === 'EXIT') matchesFilter = !!hasExited;
+
+    return matchesSearch && inRange && matchesFilter;
   });
 
   const filteredScans = scans.filter(scan => {
@@ -255,9 +284,66 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
     setRangeResultsVisible(true);
   };
 
+  const applyVehicleDateRange = () => {
+    if (!vehicleFromDate || !vehicleToDate) return;
+    if (new Date(vehicleFromDate) > new Date(vehicleToDate)) return;
+    setVehicleRangeMode(true);
+    setVehicleRangePickerPage(false);
+    setVehicleRangeResultsVisible(true);
+  };
+
+  const exportVehiclePdf = async () => {
+    setIsDownloading(true);
+    const filename = `Vehicle_History_${vehicleRangeMode ? 'Range' : 'Today'}_${new Date().toISOString().slice(0, 10)}`;
+    try {
+      const result = await notificationService.generatePdfReport({
+        title: 'Vehicle History Report',
+        subtitle: vehicleRangeMode
+          ? `From ${vehicleFromDate?.toLocaleDateString()} To ${vehicleToDate?.toLocaleDateString()}`
+          : 'Today',
+        sectionHeading: 'Vehicle records',
+        brandFooterLine: 'RIT Gate Management System',
+        filename,
+        columns: [
+          { key: 'plate', label: 'PLATE' },
+          { key: 'type', label: 'TYPE' },
+          { key: 'owner', label: 'OWNER' },
+          { key: 'status', label: 'STATUS' },
+          { key: 'entryTime', label: 'ENTRY' },
+          { key: 'exitTime', label: 'EXIT' },
+        ],
+        rows: filteredVehicles.map((v) => ({
+          plate: v.licensePlate || '-',
+          type: v.vehicleType || '-',
+          owner: v.ownerName || '-',
+          status: (v.updatedAt && v.updatedAt !== v.createdAt) ? 'EXITED' : 'ENTERED',
+          entryTime: formatTime(v.createdAt),
+          exitTime: (v.updatedAt && v.updatedAt !== v.createdAt) ? formatTime(v.updatedAt) : '-',
+        })),
+      });
+      if (result.success) {
+        setDownloadMessage('PDF saved to Downloads.');
+        setShowDownloadSuccess(true);
+      } else {
+        setDownloadErrorMessage(result.message || 'Failed to generate PDF.');
+        setShowDownloadError(true);
+      }
+    } catch (e: any) {
+      setDownloadErrorMessage(e?.message || 'Failed to generate PDF.');
+      setShowDownloadError(true);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const closeRangeResults = () => {
     setRangeResultsVisible(false);
     setRangeMode(false);
+  };
+
+  const closeVehicleRangeResults = () => {
+    setVehicleRangeResultsVisible(false);
+    setVehicleRangeMode(false);
   };
 
   const getInitials = (name: string) => {
@@ -278,6 +364,185 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
       return timeString;
     }
   };
+
+  if (vehicleRangeResultsVisible) {
+    return (
+      <SafeAreaView style={[styles.fsScreen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+        <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
+        <View style={[styles.fsHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+          <TouchableOpacity style={[styles.fsBackBtn, { backgroundColor: theme.surfaceHighlight }]} onPress={closeVehicleRangeResults}>
+            <Ionicons name="arrow-back" size={22} color={theme.text} />
+          </TouchableOpacity>
+          <ThemedText style={[styles.fsHeaderTitle, { color: theme.text }]}>Date range results</ThemedText>
+          <View style={[styles.fsStatusPill, { backgroundColor: theme.primary + '20' }]}>
+            <ThemedText style={[styles.fsStatusPillText, { color: theme.primary }]}>{filteredVehicles.length}</ThemedText>
+          </View>
+        </View>
+        <ScreenContentContainer style={{ flex: 1 }}>
+          <VerticalFlatList
+            style={styles.content}
+            data={filteredVehicles}
+            keyExtractor={(v, index) => `${v.id}-${index}`}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            decelerationRate="normal"
+            ListHeaderComponent={
+              <View style={styles.rangeResultsTop}>
+                <ThemedText style={[styles.rangeResultsSub, { color: theme.textSecondary }]}>
+                  {vehicleFromDate?.toLocaleDateString()} — {vehicleToDate?.toLocaleDateString()}
+                </ThemedText>
+                <TouchableOpacity style={[styles.rangeResultsDownloadBtn, { backgroundColor: theme.primary }]} onPress={exportVehiclePdf}>
+                  <Ionicons name="download-outline" size={16} color="#ffffff" />
+                  <ThemedText style={[styles.rangeResultsDownloadText, { color: '#ffffff' }]}>Download PDF</ThemedText>
+                </TouchableOpacity>
+              </View>
+            }
+            renderItem={({ item: vehicle }) => (
+              <View style={[styles.scanCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View style={[styles.scanAvatar, { backgroundColor: theme.warning }]}>
+                  <Ionicons name="car" size={24} color="#FFFFFF" />
+                </View>
+                <View style={styles.scanInfo}>
+                  <ThemedText style={[styles.scanName, { color: theme.text }]}>{vehicle.licensePlate || 'N/A'}</ThemedText>
+                  <ThemedText style={[styles.scanType, { color: theme.textSecondary }]}>{vehicle.vehicleType || 'Unknown'}</ThemedText>
+                  <ThemedText style={[styles.scanPurpose, { color: theme.textSecondary }]} numberOfLines={1}>
+                    Owner: {vehicle.ownerName || 'N/A'}
+                  </ThemedText>
+                </View>
+                <View style={styles.scanRight}>
+                  <View style={[styles.scanStatusBadge, { backgroundColor: (vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt) ? theme.error + '15' : theme.success + '15' }]}>
+                    <Ionicons name={(vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt) ? 'exit-outline' : 'enter-outline'} size={12} color={(vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt) ? theme.error : theme.success} />
+                    <ThemedText style={[styles.scanStatusText, { color: (vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt) ? theme.error : theme.success }]}>
+                      {(vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt) ? 'EXITED' : 'ENTERED'}
+                    </ThemedText>
+                  </View>
+                  <ThemedText style={[styles.scanTime, { color: theme.textTertiary }]}>
+                    {(vehicle.updatedAt && vehicle.updatedAt !== vehicle.createdAt) ? formatTime(vehicle.updatedAt) : formatTime(vehicle.createdAt)}
+                  </ThemedText>
+                </View>
+              </View>
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Ionicons name="car-outline" size={64} color={theme.border} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>No vehicle records found</ThemedText>
+              </View>
+            }
+          />
+        </ScreenContentContainer>
+        <SecurityBottomNav activeTab="history" onNavigate={onNavigate} />
+      </SafeAreaView>
+    );
+  }
+
+  if (vehicleRangePickerPage) {
+    return (
+      <SafeAreaView style={[styles.fsScreen, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+        <StatusBar barStyle={theme.type === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
+        <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+          <TouchableOpacity style={[styles.backButton, { backgroundColor: theme.surfaceHighlight }]} onPress={() => setVehicleRangePickerPage(false)}>
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <ThemedText style={[styles.headerTitle, { color: theme.text }]}>Select date range</ThemedText>
+          <View style={styles.headerRight} />
+        </View>
+        <ScreenContentContainer style={{ flex: 1 }}>
+          <VerticalScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
+            <ThemedText style={[styles.modalTitle, { textAlign: 'center', width: '100%', marginBottom: 16 }]}>Select Date Range</ThemedText>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <TouchableOpacity
+                style={[styles.dateTypeTab, vehicleSelectingDateType === 'FROM' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
+                onPress={() => setVehicleSelectingDateType('FROM')}
+              >
+                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, vehicleSelectingDateType === 'FROM' && styles.dateTypeTabTextActive]}>FROM</ThemedText>
+                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, vehicleSelectingDateType === 'FROM' ? { color: theme.primary } : { color: theme.text }]}>
+                  {vehicleFromDate ? vehicleFromDate.toLocaleDateString() : 'Select'}
+                </ThemedText>
+              </TouchableOpacity>
+              <Ionicons name="arrow-forward" size={18} color={theme.textTertiary} />
+              <TouchableOpacity
+                style={[styles.dateTypeTab, vehicleSelectingDateType === 'TO' && styles.dateTypeTabActive, { flex: 1, flexDirection: 'column', gap: 2, paddingVertical: 10 }]}
+                onPress={() => setVehicleSelectingDateType('TO')}
+              >
+                <ThemedText style={[styles.dateTypeTabText, { fontSize: 10, letterSpacing: 0.8 }, vehicleSelectingDateType === 'TO' && styles.dateTypeTabTextActive]}>TO</ThemedText>
+                <ThemedText style={[{ fontSize: 13, fontWeight: '700' }, vehicleSelectingDateType === 'TO' ? { color: theme.primary } : { color: theme.text }]}>
+                  {vehicleToDate ? vehicleToDate.toLocaleDateString() : 'Select'}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+
+            <View style={[styles.calendarWrap, { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' }]}>
+              <Calendar
+                onDayPress={(day) => {
+                  const selected = new Date(`${day.dateString}T00:00:00`);
+                  if (vehicleSelectingDateType === 'FROM') {
+                    setVehicleFromDate(selected);
+                    setVehicleSelectingDateType('TO');
+                    if (vehicleToDate && vehicleToDate < selected) setVehicleToDate(null);
+                  } else {
+                    if (vehicleFromDate && selected < vehicleFromDate) return;
+                    setVehicleToDate(selected);
+                  }
+                }}
+                minDate={vehicleSelectingDateType === 'TO' && vehicleFromDate ? vehicleFromDate.toISOString().slice(0, 10) : undefined}
+                markedDates={{
+                  ...(vehicleFromDate ? { [vehicleFromDate.toISOString().slice(0, 10)]: { selected: true, selectedColor: theme.primary, startingDay: true } } : {}),
+                  ...(vehicleToDate ? { [vehicleToDate.toISOString().slice(0, 10)]: { selected: true, selectedColor: theme.primary, endingDay: true } } : {}),
+                  ...(vehicleFromDate && vehicleToDate ? (() => {
+                    const marks: Record<string, any> = {};
+                    const cur = new Date(vehicleFromDate);
+                    cur.setDate(cur.getDate() + 1);
+                    while (cur < vehicleToDate) {
+                      marks[cur.toISOString().slice(0, 10)] = { color: theme.primary + '33', textColor: theme.text };
+                      cur.setDate(cur.getDate() + 1);
+                    }
+                    return marks;
+                  })() : {}),
+                }}
+                markingType={vehicleFromDate && vehicleToDate ? 'period' : 'custom'}
+                theme={{
+                  calendarBackground: theme.surface,
+                  textSectionTitleColor: theme.textSecondary,
+                  selectedDayBackgroundColor: theme.primary,
+                  selectedDayTextColor: '#ffffff',
+                  todayTextColor: theme.primary,
+                  todayBackgroundColor: theme.primary + '18',
+                  dayTextColor: theme.text,
+                  textDisabledColor: theme.textTertiary,
+                  dotColor: theme.primary,
+                  selectedDotColor: '#ffffff',
+                  arrowColor: theme.primary,
+                  monthTextColor: theme.text,
+                  indicatorColor: theme.primary,
+                  textDayFontWeight: '500',
+                  textMonthFontWeight: '700',
+                  textDayHeaderFontWeight: '600',
+                }}
+              />
+            </View>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={[styles.actionBtn, styles.cancelBtn]} onPress={() => {
+                setVehicleFromDate(null);
+                setVehicleToDate(null);
+                setVehicleSelectingDateType('FROM');
+              }}>
+                <ThemedText style={styles.actionBtnText}>Clear</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.applyBtn, { opacity: vehicleFromDate && vehicleToDate ? 1 : 0.5 }]}
+                disabled={!vehicleFromDate || !vehicleToDate}
+                onPress={applyVehicleDateRange}
+              >
+                <ThemedText style={styles.actionBtnText}>Apply</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </VerticalScrollView>
+        </ScreenContentContainer>
+        <SecurityBottomNav activeTab="history" onNavigate={onNavigate} />
+      </SafeAreaView>
+    );
+  }
 
   if (rangeResultsVisible) {
     return (
@@ -492,6 +757,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
               onPress={() => {
                 setActiveTab('VEHICLES');
                 setSearchQuery('');
+                setVehicleFilter('ALL');
               }}
             >
               <Ionicons 
@@ -548,6 +814,44 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                 onPress={() => setActiveFilter('EXIT')}
               >
                 <ThemedText style={[styles.filterText, activeFilter === 'EXIT' && styles.filterTextActive]}>
+                  Exit
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            </>
+          )}
+
+          {/* Filter Tabs - Vehicle History */}
+          {activeTab === 'VEHICLES' && (
+            <>
+            <View style={styles.rangeActionsRow}>
+              <TouchableOpacity style={[styles.rangeActionBtn, { backgroundColor: theme.surface, borderColor: theme.primary + '33' }]} onPress={() => setVehicleRangePickerPage(true)}>
+                <Ionicons name="calendar-outline" size={16} color={theme.primary} />
+                <ThemedText style={[styles.rangeActionText, { color: theme.primary }]}>From / To</ThemedText>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.filterContainer, { marginBottom: 16 }]}>
+              <TouchableOpacity
+                style={[styles.filterTab, vehicleFilter === 'ALL' && styles.filterTabActive]}
+                onPress={() => setVehicleFilter('ALL')}
+              >
+                <ThemedText style={[styles.filterText, vehicleFilter === 'ALL' && styles.filterTextActive]}>
+                  All
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterTab, vehicleFilter === 'ENTRY' && styles.filterTabActive]}
+                onPress={() => setVehicleFilter('ENTRY')}
+              >
+                <ThemedText style={[styles.filterText, vehicleFilter === 'ENTRY' && styles.filterTextActive]}>
+                  Entry
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.filterTab, vehicleFilter === 'EXIT' && styles.filterTabActive]}
+                onPress={() => setVehicleFilter('EXIT')}
+              >
+                <ThemedText style={[styles.filterText, vehicleFilter === 'EXIT' && styles.filterTextActive]}>
                   Exit
                 </ThemedText>
               </TouchableOpacity>
