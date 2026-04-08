@@ -632,122 +632,101 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
         </View>
       )}
 
-      <Modal visible={rangeModalVisible} transparent animationType="none" onShow={openRangeSheet} onRequestClose={() => setRangeModalVisible(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRangeModalVisible(false)}>
-          <Animated.View
-            style={[styles.rangeModalCard, { backgroundColor: theme.surface, transform: [{ translateY: rangeSheetY }] }]}
-            {...rangePanHandlers}
-          >
-            <View style={styles.dragHandle}><View style={[styles.dragHandleBar, { backgroundColor: theme.textTertiary + '60' }]} /></View>
-            <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
-            {/* Header */}
-            <View style={[styles.rangeModalHeader, { borderBottomColor: theme.border }]}>
-              <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Select Date Range</ThemedText>
-              <TouchableOpacity onPress={() => setRangeModalVisible(false)} style={[styles.rangeCloseBtn, { backgroundColor: theme.inputBackground }]}>
-                <Ionicons name="close" size={20} color={theme.textSecondary} />
+      {/* Date Range Picker — full screen Skyscanner style */}
+      {rangeModalVisible && (
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#ffffff', zIndex: 999 }]}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top', 'bottom']}>
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 }}>
+              <TouchableOpacity style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }} onPress={() => setRangeModalVisible(false)}>
+                <Ionicons name="arrow-back" size={22} color="#1a1a1a" />
+              </TouchableOpacity>
+              <ThemedText style={{ fontSize: 17, fontWeight: '700', color: '#1a1a1a' }}>Select dates</ThemedText>
+              <View style={{ width: 36 }} />
+            </View>
+            <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 4, borderRadius: 14, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' }}>
+              <TouchableOpacity style={[{ flex: 1, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center' }, selectingDateType === 'FROM' && { backgroundColor: '#EFF6FF' }]} onPress={() => setSelectingDateType('FROM')}>
+                <ThemedText style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: '#9CA3AF', marginBottom: 2 }}>FROM</ThemedText>
+                <ThemedText style={{ fontSize: 14, fontWeight: '700', color: selectingDateType === 'FROM' ? theme.primary : '#1a1a1a' }}>{fromDate || '—'}</ThemedText>
+              </TouchableOpacity>
+              <View style={{ width: 1, backgroundColor: '#E5E7EB', marginVertical: 8 }} />
+              <TouchableOpacity style={[{ flex: 1, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center' }, selectingDateType === 'TO' && { backgroundColor: '#EFF6FF' }]} onPress={() => setSelectingDateType('TO')}>
+                <ThemedText style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: '#9CA3AF', marginBottom: 2 }}>TO</ThemedText>
+                <ThemedText style={{ fontSize: 14, fontWeight: '700', color: selectingDateType === 'TO' ? theme.primary : '#1a1a1a' }}>{toDate || '—'}</ThemedText>
               </TouchableOpacity>
             </View>
-
-            {/* From / To summary pills */}
-            <View style={styles.rangePillRow}>
-              <TouchableOpacity
-                style={[styles.rangePill, { backgroundColor: selectingDateType === 'FROM' ? theme.primary : theme.inputBackground, borderColor: selectingDateType === 'FROM' ? theme.primary : theme.border }]}
-                onPress={() => setSelectingDateType('FROM')}
-              >
-                <Ionicons name="calendar-outline" size={14} color={selectingDateType === 'FROM' ? '#fff' : theme.textSecondary} />
-                <ThemedText style={[styles.rangePillLabel, { color: selectingDateType === 'FROM' ? '#fff' : theme.textSecondary }]}>FROM</ThemedText>
-                <ThemedText style={[styles.rangePillValue, { color: selectingDateType === 'FROM' ? '#fff' : theme.text }]}>{fromDate || 'Select'}</ThemedText>
-              </TouchableOpacity>
-              <Ionicons name="arrow-forward" size={18} color={theme.textTertiary} />
-              <TouchableOpacity
-                style={[styles.rangePill, { backgroundColor: selectingDateType === 'TO' ? theme.primary : theme.inputBackground, borderColor: selectingDateType === 'TO' ? theme.primary : theme.border }]}
-                onPress={() => setSelectingDateType('TO')}
-              >
-                <Ionicons name="calendar-outline" size={14} color={selectingDateType === 'TO' ? '#fff' : theme.textSecondary} />
-                <ThemedText style={[styles.rangePillLabel, { color: selectingDateType === 'TO' ? '#fff' : theme.textSecondary }]}>TO</ThemedText>
-                <ThemedText style={[styles.rangePillValue, { color: selectingDateType === 'TO' ? '#fff' : theme.text }]}>{toDate || 'Select'}</ThemedText>
-              </TouchableOpacity>
-            </View>
-
-            {/* Calendar */}
-            <View style={[styles.calendarWrap, { borderColor: theme.border }]}>
+            <ThemedText style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', marginTop: 8, marginBottom: 4 }}>
+              {selectingDateType === 'FROM' ? 'Tap a start date' : 'Tap an end date'}
+            </ThemedText>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
               <Calendar
                 onDayPress={(day) => {
                   const d = day.dateString;
                   if (selectingDateType === 'FROM') {
                     setFromDate(d);
-                    // Auto-advance to TO selection
                     setSelectingDateType('TO');
-                    // If existing toDate is before new fromDate, clear it
                     if (toDate && toDate < d) setToDate('');
                   } else {
-                    // Don't allow TO before FROM
                     if (fromDate && d < fromDate) return;
                     setToDate(d);
                   }
                 }}
-                minDate={selectingDateType === 'TO' && fromDate ? fromDate : undefined}
-                markedDates={{
-                  ...(fromDate ? { [fromDate]: { selected: true, selectedColor: theme.primary, startingDay: true } } : {}),
-                  ...(toDate ? { [toDate]: { selected: true, selectedColor: theme.primary, endingDay: true } } : {}),
-                  // Fill range between from and to
-                  ...(fromDate && toDate ? (() => {
-                    const marks: Record<string, any> = {};
-                    const start = new Date(fromDate);
-                    const end = new Date(toDate);
-                    const cur = new Date(start);
+                markedDates={(() => {
+                  const marks: Record<string, any> = {};
+                  if (!fromDate) return marks;
+                  if (!toDate || fromDate === toDate) {
+                    marks[fromDate] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
+                  } else {
+                    marks[fromDate] = { startingDay: true, color: theme.primary, textColor: '#fff' };
+                    marks[toDate] = { endingDay: true, color: theme.primary, textColor: '#fff' };
+                    const cur = new Date(fromDate + 'T00:00:00');
                     cur.setDate(cur.getDate() + 1);
+                    const end = new Date(toDate + 'T00:00:00');
                     while (cur < end) {
-                      marks[cur.toISOString().slice(0, 10)] = { color: theme.primary + '33', textColor: theme.text };
+                      const y = cur.getFullYear();
+                      const mo = String(cur.getMonth() + 1).padStart(2, '0');
+                      const d2 = String(cur.getDate()).padStart(2, '0');
+                      marks[`${y}-${mo}-${d2}`] = { color: '#E8F4FD', textColor: '#1a1a1a' };
                       cur.setDate(cur.getDate() + 1);
                     }
-                    return marks;
-                  })() : {}),
-                }}
-                markingType={fromDate && toDate ? 'period' : 'custom'}
+                  }
+                  return marks;
+                })()}
+                markingType="period"
                 theme={{
-                  backgroundColor: theme.surface,
-                  calendarBackground: theme.surface,
+                  calendarBackground: '#ffffff',
+                  textSectionTitleColor: '#9CA3AF',
                   selectedDayBackgroundColor: theme.primary,
-                  selectedDayTextColor: '#fff',
+                  selectedDayTextColor: '#ffffff',
                   todayTextColor: theme.primary,
-                  todayBackgroundColor: theme.primary + '18',
-                  arrowColor: theme.primary,
-                  dotColor: theme.primary,
+                  dayTextColor: '#1a1a1a',
+                  textDisabledColor: '#D1D5DB',
+                  arrowColor: '#1a1a1a',
+                  monthTextColor: '#1a1a1a',
+                  textMonthFontSize: 18,
+                  textMonthFontWeight: '800',
+                  textDayFontSize: 15,
                   textDayFontWeight: '500',
-                  textMonthFontWeight: '700',
-                  textDayHeaderFontWeight: '600',
-                  dayTextColor: theme.text,
-                  textDisabledColor: theme.textTertiary,
-                  monthTextColor: theme.text,
+                  textDayHeaderFontSize: 12,
+                  textDayHeaderFontWeight: '700',
                 }}
               />
-            </View>
-
-            {/* Action buttons */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={[styles.rejectButton, { borderColor: theme.border }]} onPress={() => {
-                setFromDate('');
-                setToDate('');
-                setSelectingDateType('FROM');
-              }}>
-                <ThemedText style={[styles.rejectButtonText, { color: theme.textSecondary }]}>Clear</ThemedText>
+            </ScrollView>
+            <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+              <TouchableOpacity style={{ flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: '#F3F4F6' }} onPress={() => { setFromDate(''); setToDate(''); setSelectingDateType('FROM'); }}>
+                <ThemedText style={{ fontSize: 15, fontWeight: '700', color: '#6B7280' }}>Clear</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.approveButton, { backgroundColor: fromDate && toDate ? theme.primary : theme.border }]}
+                style={{ flex: 2, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: fromDate && toDate ? theme.primary : '#D1D5DB' }}
                 disabled={!fromDate || !toDate}
-                onPress={() => {
-                  setRangeModalVisible(false);
-                  loadExitLogs(fromDate || undefined, toDate || undefined);
-                }}
+                onPress={() => { setRangeModalVisible(false); loadExitLogs(fromDate || undefined, toDate || undefined); }}
               >
-                <ThemedText style={styles.approveButtonText}>Apply Filter</ThemedText>
+                <ThemedText style={{ fontSize: 15, fontWeight: '700', color: '#ffffff' }}>Apply</ThemedText>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-          </Animated.View>
-        </TouchableOpacity>
-      </Modal>
+          </SafeAreaView>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

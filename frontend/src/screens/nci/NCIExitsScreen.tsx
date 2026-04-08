@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, StyleSheet, TouchableOpacity, Modal,
+  View, StyleSheet, TouchableOpacity, Modal, ScrollView,
   ActivityIndicator, StatusBar, BackHandler, Animated, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -203,73 +203,100 @@ const NCIExitsScreen: React.FC<NCIExitsScreenProps> = ({ nci, onBack }) => {
         </ScreenContentContainer>
       </TopRefreshControl>
 
-      {/* Date Range Modal */}
-      <Modal visible={rangeModalVisible} transparent animationType="none" onShow={openRangeSheet} onRequestClose={() => setRangeModalVisible(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setRangeModalVisible(false)}>
-          <Animated.View
-            style={[styles.modalCard, { backgroundColor: theme.surface, transform: [{ translateY: rangeSheetY }] }]}
-            {...rangePanHandlers}
-          >
-            <View style={styles.dragHandle}><View style={[styles.dragHandleBar, { backgroundColor: theme.textTertiary + '60' }]} /></View>
-            <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
-              <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                <ThemedText style={[styles.modalTitle, { color: theme.text }]}>Select Date Range</ThemedText>
-                <TouchableOpacity onPress={() => setRangeModalVisible(false)} style={[styles.closeBtn, { backgroundColor: theme.inputBackground }]}>
-                  <Ionicons name="close" size={20} color={theme.textSecondary} />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.pillRow}>
-                {(['FROM', 'TO'] as const).map(type => (
-                  <TouchableOpacity
-                    key={type}
-                    style={[styles.pill, { backgroundColor: selectingDateType === type ? theme.primary : theme.inputBackground, borderColor: selectingDateType === type ? theme.primary : theme.border }]}
-                    onPress={() => setSelectingDateType(type)}
-                  >
-                    <Ionicons name="calendar-outline" size={13} color={selectingDateType === type ? '#fff' : theme.textSecondary} />
-                    <ThemedText style={[styles.pillLabel, { color: selectingDateType === type ? '#fff' : theme.textSecondary }]}>{type}</ThemedText>
-                    <ThemedText style={[styles.pillValue, { color: selectingDateType === type ? '#fff' : theme.text }]}>
-                      {type === 'FROM' ? (fromDate || 'Select') : (toDate || 'Select')}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View style={[styles.calWrap, { borderColor: theme.border }]}>
-                <Calendar
-                  onDayPress={(day) => {
-                    const d = day.dateString;
-                    if (selectingDateType === 'FROM') {
-                      setFromDate(d); setSelectingDateType('TO');
-                      if (toDate && toDate < d) setToDate('');
-                    } else {
-                      if (fromDate && d < fromDate) return;
-                      setToDate(d);
+      {/* Date Range Picker — full screen Skyscanner style */}
+      {rangeModalVisible && (
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#ffffff', zIndex: 999 }]}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top', 'bottom']}>
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 }}>
+              <TouchableOpacity style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }} onPress={() => setRangeModalVisible(false)}>
+                <Ionicons name="arrow-back" size={22} color="#1a1a1a" />
+              </TouchableOpacity>
+              <ThemedText style={{ fontSize: 17, fontWeight: '700', color: '#1a1a1a' }}>Select dates</ThemedText>
+              <View style={{ width: 36 }} />
+            </View>
+            <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 4, borderRadius: 14, backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' }}>
+              <TouchableOpacity style={[{ flex: 1, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center' }, selectingDateType === 'FROM' && { backgroundColor: '#EFF6FF' }]} onPress={() => setSelectingDateType('FROM')}>
+                <ThemedText style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: '#9CA3AF', marginBottom: 2 }}>FROM</ThemedText>
+                <ThemedText style={{ fontSize: 14, fontWeight: '700', color: selectingDateType === 'FROM' ? theme.primary : '#1a1a1a' }}>{fromDate || '—'}</ThemedText>
+              </TouchableOpacity>
+              <View style={{ width: 1, backgroundColor: '#E5E7EB', marginVertical: 8 }} />
+              <TouchableOpacity style={[{ flex: 1, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center' }, selectingDateType === 'TO' && { backgroundColor: '#EFF6FF' }]} onPress={() => setSelectingDateType('TO')}>
+                <ThemedText style={{ fontSize: 10, fontWeight: '700', letterSpacing: 1, color: '#9CA3AF', marginBottom: 2 }}>TO</ThemedText>
+                <ThemedText style={{ fontSize: 14, fontWeight: '700', color: selectingDateType === 'TO' ? theme.primary : '#1a1a1a' }}>{toDate || '—'}</ThemedText>
+              </TouchableOpacity>
+            </View>
+            <ThemedText style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', marginTop: 8, marginBottom: 4 }}>
+              {selectingDateType === 'FROM' ? 'Tap a start date' : 'Tap an end date'}
+            </ThemedText>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+              <Calendar
+                onDayPress={(day) => {
+                  const d = day.dateString;
+                  if (selectingDateType === 'FROM') {
+                    setFromDate(d); setSelectingDateType('TO');
+                    if (toDate && toDate < d) setToDate('');
+                  } else {
+                    if (fromDate && d < fromDate) return;
+                    setToDate(d);
+                  }
+                }}
+                markedDates={(() => {
+                  const marks: Record<string, any> = {};
+                  if (!fromDate) return marks;
+                  if (!toDate || fromDate === toDate) {
+                    marks[fromDate] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
+                  } else {
+                    marks[fromDate] = { startingDay: true, color: theme.primary, textColor: '#fff' };
+                    marks[toDate] = { endingDay: true, color: theme.primary, textColor: '#fff' };
+                    const cur = new Date(fromDate + 'T00:00:00');
+                    cur.setDate(cur.getDate() + 1);
+                    const end = new Date(toDate + 'T00:00:00');
+                    while (cur < end) {
+                      const y = cur.getFullYear();
+                      const mo = String(cur.getMonth() + 1).padStart(2, '0');
+                      const d2 = String(cur.getDate()).padStart(2, '0');
+                      marks[`${y}-${mo}-${d2}`] = { color: '#E8F4FD', textColor: '#1a1a1a' };
+                      cur.setDate(cur.getDate() + 1);
                     }
-                  }}
-                  minDate={selectingDateType === 'TO' && fromDate ? fromDate : undefined}
-                  markedDates={{
-                    ...(fromDate ? { [fromDate]: { selected: true, selectedColor: theme.primary, startingDay: true } } : {}),
-                    ...(toDate ? { [toDate]: { selected: true, selectedColor: theme.primary, endingDay: true } } : {}),
-                  }}
-                  markingType={(fromDate && toDate ? 'period' : 'dot') as any}
-                  theme={{ calendarBackground: theme.surface, selectedDayBackgroundColor: theme.primary, selectedDayTextColor: '#fff', todayTextColor: theme.primary, arrowColor: theme.primary, dayTextColor: theme.text, textDisabledColor: theme.textTertiary, monthTextColor: theme.text }}
-                />
-              </View>
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={[styles.clearBtn, { borderColor: theme.border }]} onPress={() => { setFromDate(''); setToDate(''); setSelectingDateType('FROM'); setRangeLabel("Today's exits"); loadExitLogs(); setRangeModalVisible(false); }}>
-                  <ThemedText style={[styles.clearBtnText, { color: theme.textSecondary }]}>Reset</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.applyBtn, { backgroundColor: fromDate && toDate ? theme.primary : theme.border }]}
-                  disabled={!fromDate || !toDate}
-                  onPress={() => { setRangeModalVisible(false); setRangeLabel(`${fromDate} → ${toDate}`); loadExitLogs(fromDate, toDate); }}
-                >
-                  <ThemedText style={[styles.applyBtnText, { color: '#FFF' }]}>Apply</ThemedText>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-        </TouchableOpacity>
-      </Modal>
+                  }
+                  return marks;
+                })()}
+                markingType="period"
+                theme={{
+                  calendarBackground: '#ffffff',
+                  textSectionTitleColor: '#9CA3AF',
+                  selectedDayBackgroundColor: theme.primary,
+                  selectedDayTextColor: '#ffffff',
+                  todayTextColor: theme.primary,
+                  dayTextColor: '#1a1a1a',
+                  textDisabledColor: '#D1D5DB',
+                  arrowColor: '#1a1a1a',
+                  monthTextColor: '#1a1a1a',
+                  textMonthFontSize: 18,
+                  textMonthFontWeight: '800',
+                  textDayFontSize: 15,
+                  textDayFontWeight: '500',
+                  textDayHeaderFontSize: 12,
+                  textDayHeaderFontWeight: '700',
+                }}
+              />
+            </ScrollView>
+            <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#E5E7EB' }}>
+              <TouchableOpacity style={{ flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: '#F3F4F6' }} onPress={() => { setFromDate(''); setToDate(''); setSelectingDateType('FROM'); setRangeLabel("Today's exits"); loadExitLogs(); setRangeModalVisible(false); }}>
+                <ThemedText style={{ fontSize: 15, fontWeight: '700', color: '#6B7280' }}>Clear</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 2, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: fromDate && toDate ? theme.primary : '#D1D5DB' }}
+                disabled={!fromDate || !toDate}
+                onPress={() => { setRangeModalVisible(false); setRangeLabel(`${fromDate} → ${toDate}`); loadExitLogs(fromDate, toDate); }}
+              >
+                <ThemedText style={{ fontSize: 15, fontWeight: '700', color: '#ffffff' }}>Apply</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </View>
+      )}
 
       <SuccessModal visible={showSuccess} title="Done" message={modalMsg} onClose={() => setShowSuccess(false)} autoClose autoCloseDelay={2500} />
       <ErrorModal visible={showError} type="general" title="Cannot Download" message={modalMsg} onClose={() => setShowError(false)} />
