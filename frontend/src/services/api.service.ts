@@ -65,6 +65,9 @@ class ApiService {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), API_CONFIG.TIMEOUT);
 
+    // Attach time headers to every request for server-side drift validation
+    const { timeHeaders } = require('../utils/timeUtils');
+
     try {
       const res = await fetch(url, {
         ...options,
@@ -72,6 +75,7 @@ class ApiService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          ...timeHeaders(),
           ...options.headers,
         },
       });
