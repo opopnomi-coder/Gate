@@ -59,6 +59,14 @@ interface ScanRecord {
   department?: string;
 }
 
+// Returns "YYYY-MM-DD" in local (IST) time — avoids UTC offset shifting the date
+const toLocalDateKey = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   security,
   onBack,
@@ -469,8 +477,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
     const buildVehicleMarks = () => {
       const marks: Record<string, any> = {};
       if (!vehicleFromDate) return marks;
-      const fromKey = vehicleFromDate.toISOString().slice(0, 10);
-      const toKey = vehicleToDate ? vehicleToDate.toISOString().slice(0, 10) : null;
+      const fromKey = toLocalDateKey(vehicleFromDate);
+      const toKey = vehicleToDate ? toLocalDateKey(vehicleToDate) : null;
       if (!toKey || fromKey === toKey) {
         marks[fromKey] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
       } else {
@@ -480,7 +488,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         cur.setDate(cur.getDate() + 1);
         const end = new Date(vehicleToDate!);
         while (cur < end) {
-          marks[cur.toISOString().slice(0, 10)] = { color: '#E8F4FD', textColor: '#1a1a1a' };
+          marks[toLocalDateKey(cur)] = { color: '#E8F4FD', textColor: '#1a1a1a' };
           cur.setDate(cur.getDate() + 1);
         }
       }
@@ -665,8 +673,8 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
     const buildScanMarks = () => {
       const marks: Record<string, any> = {};
       if (!fromDate) return marks;
-      const fromKey = fromDate.toISOString().slice(0, 10);
-      const toKey = toDate ? toDate.toISOString().slice(0, 10) : null;
+      const fromKey = toLocalDateKey(fromDate);
+      const toKey = toDate ? toLocalDateKey(toDate) : null;
       if (!toKey || fromKey === toKey) {
         marks[fromKey] = { startingDay: true, endingDay: true, color: theme.primary, textColor: '#fff' };
       } else {
@@ -676,7 +684,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
         cur.setDate(cur.getDate() + 1);
         const end = new Date(toDate!);
         while (cur < end) {
-          marks[cur.toISOString().slice(0, 10)] = { color: '#E8F4FD', textColor: '#1a1a1a' };
+          marks[toLocalDateKey(cur)] = { color: '#E8F4FD', textColor: '#1a1a1a' };
           cur.setDate(cur.getDate() + 1);
         }
       }
