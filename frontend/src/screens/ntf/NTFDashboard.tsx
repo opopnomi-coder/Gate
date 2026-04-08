@@ -220,7 +220,9 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
                             {req.requesterName || req.name || 'Visitor'}
                           </ThemedText>
                           <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                            <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
+                            <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>
+                              {(req.role || req.type || 'Visitor').charAt(0).toUpperCase() + (req.role || req.type || 'Visitor').slice(1).toLowerCase()}
+                            </ThemedText>
                           </View>
                         </View>
                         <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
@@ -242,14 +244,14 @@ const NTFDashboard: React.FC<NTFDashboardProps> = ({ ntf, onLogout, onNavigate }
                           <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{req.purpose}</ThemedText>
                         </View>
                       )}
-                      {req.visitDate && (
-                        <View style={styles.detailItem}>
-                          <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                          <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                            {req.visitDate}{req.visitTime ? ` at ${req.visitTime}` : ''}
-                          </ThemedText>
-                        </View>
-                      )}
+                      <View style={styles.detailItem}>
+                        <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
+                        <ThemedText style={[styles.detailText, { color: theme.text }]}>
+                          {req.visitDate
+                            ? `${req.visitDate}${req.visitTime ? ` at ${req.visitTime}` : ''}`
+                            : formatDateShort(req.createdAt)}
+                        </ThemedText>
+                      </View>
                     </View>
 
                     <View style={styles.cardFooter}>

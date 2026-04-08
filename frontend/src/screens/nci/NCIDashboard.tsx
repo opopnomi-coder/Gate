@@ -229,7 +229,9 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
                             {req.requesterName || req.name || 'Visitor'}
                           </ThemedText>
                           <View style={[styles.passTypePill, { backgroundColor: theme.surfaceHighlight, borderColor: theme.border }]}>
-                            <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>Visitor</ThemedText>
+                            <ThemedText style={[styles.passTypePillText, { color: theme.text }]}>
+                              {(req.role || req.type || 'Visitor').charAt(0).toUpperCase() + (req.role || req.type || 'Visitor').slice(1).toLowerCase()}
+                            </ThemedText>
                           </View>
                         </View>
                         <ThemedText style={[styles.studentIdSub, { color: theme.textSecondary }]}>
@@ -251,38 +253,28 @@ const NCIDashboard: React.FC<NCIDashboardProps> = ({ nci, onLogout, onNavigate }
                           <ThemedText style={[styles.detailText, { color: theme.text }]} numberOfLines={1}>{req.purpose}</ThemedText>
                         </View>
                       )}
-                      {req.visitDate && (
-                        <View style={styles.detailItem}>
-                          <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                          <ThemedText style={[styles.detailText, { color: theme.text }]}>
-                            {req.visitDate}{req.visitTime ? ` at ${req.visitTime}` : ''}
-                          </ThemedText>
-                        </View>
-                      )}
+                      <View style={styles.detailItem}>
+                        <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
+                        <ThemedText style={[styles.detailText, { color: theme.text }]}>
+                          {req.visitDate
+                            ? `${req.visitDate}${req.visitTime ? ` at ${req.visitTime}` : ''}`
+                            : formatDateShort(req.createdAt)}
+                        </ThemedText>
+                      </View>
                     </View>
 
-                    {isPending ? (
-                      <View style={styles.cardFooter}>
-                        <TouchableOpacity style={[styles.rejectBtn, { borderColor: theme.error, flex: 1 }]} onPress={() => handleReject(req)} disabled={isProcessing} activeOpacity={0.8}>
-                          {isProcessing ? <ActivityIndicator size="small" color={theme.error} /> : <><Ionicons name="close-outline" size={16} color={theme.error} /><ThemedText style={[styles.rejectBtnText, { color: theme.error }]}>Reject</ThemedText></>}
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.approveBtn, { backgroundColor: theme.success, flex: 1 }]} onPress={() => handleApprove(req)} disabled={isProcessing} activeOpacity={0.8}>
-                          {isProcessing ? <ActivityIndicator size="small" color="#FFF" /> : <><Ionicons name="checkmark-outline" size={16} color="#FFF" /><ThemedText style={styles.approveBtnText}>Approve</ThemedText></>}
-                        </TouchableOpacity>
+                    <View style={styles.cardFooter}>
+                      <View style={[
+                        styles.statusBadge,
+                        req.status === 'PENDING' && { backgroundColor: theme.warning },
+                        req.status === 'APPROVED' && { backgroundColor: theme.success },
+                        req.status === 'REJECTED' && { backgroundColor: theme.error },
+                      ]}>
+                        <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>
+                          {req.status}
+                        </ThemedText>
                       </View>
-                    ) : (
-                      <View style={styles.cardFooter}>
-                        <View style={[
-                          styles.statusBadge,
-                          req.status === 'APPROVED' && { backgroundColor: theme.success },
-                          req.status === 'REJECTED' && { backgroundColor: theme.error },
-                        ]}>
-                          <ThemedText style={[styles.statusText, { color: '#FFFFFF' }]}>
-                            {req.status}
-                          </ThemedText>
-                        </View>
-                      </View>
-                    )}
+                    </View>
                   </TouchableOpacity>
                 );
               }}
