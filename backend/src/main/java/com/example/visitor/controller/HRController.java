@@ -652,7 +652,7 @@ public class HRController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", "exit-" + e.getId());
         map.put("scanType", scanType);
-        map.put("userType", normalizeUserTypeLabel(e.getUserType()));
+        map.put("userType", resolveUserTypeLabel(e.getUserType(), e.getUserId()));
         map.put("userId", e.getUserId());
         map.put("time", e.getExitTime());
 
@@ -693,7 +693,7 @@ public class HRController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", "entry-" + e.getId());
         map.put("scanType", scanType);
-        map.put("userType", normalizeUserTypeLabel(e.getUserType()));
+        map.put("userType", resolveUserTypeLabel(e.getUserType(), e.getUserId()));
         map.put("userId", e.getUserId());
         map.put("time", e.getTimestamp());
 
@@ -810,6 +810,28 @@ public class HRController {
             case "HOD":      return "HOD";
             default:         return rawType.toUpperCase();
         }
+    }
+
+    /**
+     * Resolves the display label for userType. For VG/VISITOR types,
+     * looks up the Visitor table to check if role is VENDOR or VISITOR.
+     */
+    private String resolveUserTypeLabel(String rawType, String userId) {
+        if (rawType == null) return "UNKNOWN";
+        String upper = rawType.toUpperCase();
+        if ("VG".equals(upper) || "VISITOR".equals(upper)) {
+            if (userId != null && !userId.isBlank()) {
+                try {
+                    Long visitorId = Long.parseLong(userId);
+                    String role = visitorRepository.findById(visitorId)
+                        .map(v -> v.getRole() != null ? v.getRole().toUpperCase() : "VISITOR")
+                        .orElse("VISITOR");
+                    return "VENDOR".equals(role) ? "VENDOR" : "VISITOR";
+                } catch (NumberFormatException nfe) { /* fall through */ }
+            }
+            return "VISITOR";
+        }
+        return normalizeUserTypeLabel(rawType);
     }
 
 }
