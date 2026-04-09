@@ -18,6 +18,7 @@ import SuccessModal from '../../components/SuccessModal';
 import ErrorModal from '../../components/ErrorModal';
 import ThemedText from '../../components/ThemedText';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
+import SearchableDropdown from '../../components/SearchableDropdown';
 import { useTheme } from '../../context/ThemeContext';
 
 interface ModernVehicleRegistrationScreenProps {
@@ -54,27 +55,30 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
   
   // Registration form
   const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleType, setVehicleType] = useState<'CAR' | 'BIKE' | 'TRUCK' | ''>('');
+  const [vehicleType, setVehicleType] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleColor, setVehicleColor] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
-  const [ownerType, setOwnerType] = useState<'VISITOR' | 'DELIVERY' | 'CONTRACTOR' | 'VENDOR' | 'STUDENT' | 'FACULTY' | 'STAFF'>('VISITOR');
+  const [ownerType, setOwnerType] = useState('VISITOR');
 
-  const vehicleTypes = [
-    { id: 'CAR', label: 'Car', icon: 'car' },
-    { id: 'BIKE', label: 'Bike', icon: 'bicycle' },
-    { id: 'TRUCK', label: 'Truck', icon: 'bus' },
+  const vehicleTypeOptions = [
+    { label: 'Two Wheeler', value: 'Two Wheeler' },
+    { label: 'Four Wheeler', value: 'Four Wheeler' },
+    { label: 'Auto', value: 'Auto' },
+    { label: 'Bus', value: 'Bus' },
+    { label: 'Truck', value: 'Truck' },
+    { label: 'Other', value: 'Other' },
   ];
 
-  const ownerTypes = [
-    { id: 'VISITOR', label: 'Visitor', icon: 'person' },
-    { id: 'DELIVERY', label: 'Delivery', icon: 'cube' },
-    { id: 'CONTRACTOR', label: 'Contractor', icon: 'construct' },
-    { id: 'VENDOR', label: 'Vendor', icon: 'storefront' },
-    { id: 'STUDENT', label: 'Student', icon: 'school' },
-    { id: 'FACULTY', label: 'Faculty', icon: 'briefcase' },
-    { id: 'STAFF', label: 'Staff', icon: 'people' },
+  const ownerTypeOptions = [
+    { label: 'Visitor', value: 'VISITOR' },
+    { label: 'Delivery', value: 'DELIVERY' },
+    { label: 'Contractor', value: 'CONTRACTOR' },
+    { label: 'Vendor', value: 'VENDOR' },
+    { label: 'Student', value: 'STUDENT' },
+    { label: 'Faculty', value: 'FACULTY' },
+    { label: 'Staff', value: 'STAFF' },
   ];
 
   const handleSearch = async () => {
@@ -104,7 +108,7 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
 
   const fillFormWithVehicleData = (vehicle: any) => {
     setLicensePlate(vehicle.licensePlate || '');
-    setVehicleType(vehicle.vehicleType?.toUpperCase() || '');
+    setVehicleType(vehicle.vehicleType || '');
     setVehicleModel(vehicle.vehicleModel || vehicle.model || '');
     setVehicleColor(vehicle.vehicleColor || vehicle.color || '');
     setOwnerName(vehicle.ownerName || '');
@@ -247,35 +251,12 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
           
           <View style={styles.inputGroup}>
             <ThemedText style={[styles.inputLabel, { color: theme.textSecondary }]}>Owner Type *</ThemedText>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.ownerTypeScroll}>
-              <View style={styles.ownerTypeChips}>
-                {ownerTypes.map((type) => (
-                  <TouchableOpacity
-                    key={type.id}
-                    style={[
-                      styles.ownerTypeChip,
-                      { backgroundColor: theme.surfaceHighlight, borderColor: theme.border },
-                      ownerType === type.id && { backgroundColor: theme.primary, borderColor: theme.primary }
-                    ]}
-                    onPress={() => setOwnerType(type.id as any)}
-                  >
-                    <Ionicons 
-                      name={type.icon as any} 
-                      size={18} 
-                      color={ownerType === type.id ? '#FFFFFF' : theme.textSecondary} 
-                    />
-                    <ThemedText 
-                      style={[
-                        styles.ownerTypeChipText, 
-                        { color: ownerType === type.id ? '#FFFFFF' : theme.textSecondary }
-                      ]}
-                    >
-                      {type.label}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+            <SearchableDropdown
+              items={ownerTypeOptions}
+              selectedValue={ownerType}
+              onSelect={(val) => setOwnerType(val)}
+              placeholder="Select owner type"
+            />
           </View>
 
           <View style={styles.inputGroup}>
@@ -295,33 +276,12 @@ const ModernVehicleRegistrationScreen: React.FC<ModernVehicleRegistrationScreenP
 
           <View style={styles.inputGroup}>
             <ThemedText style={[styles.inputLabel, { color: theme.textSecondary }]}>Vehicle Type *</ThemedText>
-            <View style={styles.typeChips}>
-              {vehicleTypes.map((type) => (
-                <TouchableOpacity
-                  key={type.id}
-                  style={[
-                    styles.typeChip,
-                    { backgroundColor: theme.surfaceHighlight, borderColor: theme.border },
-                    vehicleType === type.id && { backgroundColor: theme.primary, borderColor: theme.primary }
-                  ]}
-                  onPress={() => setVehicleType(type.id as any)}
-                >
-                  <Ionicons 
-                    name={type.icon as any} 
-                    size={20} 
-                    color={vehicleType === type.id ? '#FFFFFF' : theme.textSecondary} 
-                  />
-                  <ThemedText 
-                    style={[
-                      styles.typeChipText, 
-                      { color: vehicleType === type.id ? '#FFFFFF' : theme.textSecondary }
-                    ]}
-                  >
-                    {type.label}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <SearchableDropdown
+              items={vehicleTypeOptions}
+              selectedValue={vehicleType}
+              onSelect={(val) => setVehicleType(val)}
+              placeholder="Select vehicle type"
+            />
           </View>
 
           <View style={styles.inputGroup}>
