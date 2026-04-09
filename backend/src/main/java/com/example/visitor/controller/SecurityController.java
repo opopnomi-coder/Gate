@@ -1645,6 +1645,7 @@ public class SecurityController {
                 person.put("outTime", null);
                 if (firstScan.getDepartment() != null) person.put("department", firstScan.getDepartment());
                 if (userId != null) person.put("userId", userId);
+                person.put("scanId", firstScan.getId()); // ID of the entry ScanLog row
 
                 activePersons.add(person);
             }
@@ -2733,51 +2734,82 @@ public class SecurityController {
         try {
             String personName = (String) request.get("personName");
             String scannedBy  = (String) request.get("scannedBy");
+            Object userIdRaw  = request.get("userId");
+            Object scanIdRaw  = request.get("scanId");
 
-            if (personName == null || personName.trim().isEmpty()) {
+            if ((personName == null || personName.trim().isEmpty()) && userIdRaw == null && scanIdRaw == null) {
                 return ResponseEntity.badRequest().body(java.util.Map.of(
                     "status", "ERROR",
-                    "message", "Person name is required"
+                    "message", "Person name or ID is required"
                 ));
             }
 
-            System.out.println("🚪 Manual exit for visitor: " + personName);
+            System.out.println("🚪 Manual exit request - Name: " + personName + ", UserId: " + userIdRaw + ", ScanId: " + scanIdRaw);
 
-            // ── Step 1: Find the visitor's most recent ScanLog entry ──────────────────
-            List<ScanLog> personEntries = scanLogRepository.findAll().stream()
-                .filter(s -> personName.equalsIgnoreCase(s.getPersonName()))
-                .filter(s -> s.getTimestamp() != null)
-                .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
-                .collect(java.util.stream.Collectors.toList());
+            // ── Step 1: Find the specific entry record ──────────────────
+            ScanLog entryScan = null;
+            
+            // PRIORITY 1: match by scanId (primary key of ScanLog/Entry table)
+            if (scanIdRaw != null) {
+                try {
+                    Long sid = Long.parseLong(scanIdRaw.toString());
+                    entryScan = scanLogRepository.findById(sid).orElse(null);
+                } catch (Exception e) {}
+            }
+            
+            // PRIORITY 2: match by userId (Visitor ID)
+            if (entryScan == null && userIdRaw != null) {
+                String uid = userIdRaw.toString();
+                List<ScanLog> userScans = scanLogRepository.findAll().stream()
+                    .filter(s -> uid.equals(s.getUserId()))
+                    .filter(s -> s.getTimestamp() != null)
+                    .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+                    .collect(java.util.stream.Collectors.toList());
+                
+                if (!userScans.isEmpty()) {
+                    ScanLog latest = userScans.get(0);
+                    // Only pick if not already exited
+                    if (latest.getScanLocation() == null || !latest.getScanLocation().toLowerCase().contains("exit")) {
+                        entryScan = latest;
+                    }
+                }
+            }
+            
+            // PRIORITY 3: fallback to name (original logic)
+            if (entryScan == null && personName != null) {
+                List<ScanLog> nameScans = scanLogRepository.findAll().stream()
+                    .filter(s -> personName.equalsIgnoreCase(s.getPersonName()))
+                    .filter(s -> s.getTimestamp() != null)
+                    .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+                    .collect(java.util.stream.Collectors.toList());
+                
+                if (!nameScans.isEmpty()) {
+                    ScanLog latest = nameScans.get(0);
+                    if (latest.getScanLocation() == null || !latest.getScanLocation().toLowerCase().contains("exit")) {
+                        entryScan = latest;
+                    }
+                }
+            }
 
-            if (personEntries.isEmpty()) {
+            if (entryScan == null) {
                 return ResponseEntity.status(404).body(java.util.Map.of(
                     "status", "ERROR",
-                    "message", "No entry record found for: " + personName
+                    "message", "No active entry record found"
                 ));
             }
 
-            // Check if already exited
-            ScanLog lastScan = personEntries.get(0);
-            if (lastScan.getScanLocation() != null &&
-                lastScan.getScanLocation().toLowerCase().contains("exit")) {
-                return ResponseEntity.badRequest().body(java.util.Map.of(
-                    "status", "ERROR",
-                    "message", personName + " has already exited"
-                ));
-            }
-
+            // If we found an entry scan, use its confirmed name
+            String resolvedName = entryScan.getPersonName() != null ? entryScan.getPersonName() : personName;
             java.time.LocalDateTime exitTime = java.time.LocalDateTime.now();
-            ScanLog entryScan = personEntries.get(personEntries.size() - 1); // oldest = entry
 
             // ── Step 2: Write exit ScanLog row so active-persons removes this visitor ──
             ScanLog exitScan = new ScanLog();
-            exitScan.setPersonName(personName);
+            exitScan.setPersonName(resolvedName);
             exitScan.setUserType("VISITOR");
             exitScan.setScanLocation("Exit Gate (Manual)");
             exitScan.setScannedBy(scannedBy != null ? scannedBy : "Security Guard (Manual)");
             exitScan.setTimestamp(exitTime);
-            exitScan.setUserId(entryScan.getUserId() != null ? entryScan.getUserId() : personName);
+            exitScan.setUserId(entryScan.getUserId() != null ? entryScan.getUserId() : resolvedName);
             exitScan.setDepartment(entryScan.getDepartment());
             exitScan.setAccessGranted(true);
             scanLogRepository.save(exitScan);
@@ -2785,8 +2817,15 @@ public class SecurityController {
             // ── Step 3: Write RailwayExitLog so it appears in scan history ────────────
             String visitorUserId = entryScan.getUserId();
             String department    = entryScan.getDepartment();
-            String purpose       = "Manual Exit";
+            String purpose       = (String) request.get("purpose");
             String qrCodeStr     = null;
+
+            if (purpose == null || purpose.trim().isEmpty()) {
+                purpose = "Manual Exit";
+                if (entryScan.getPurpose() != null && !entryScan.getPurpose().isBlank()) {
+                    purpose = entryScan.getPurpose();
+                }
+            }
 
             // Also update the Visitor entity exit time if found
             try {

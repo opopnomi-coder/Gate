@@ -196,6 +196,7 @@ export interface ActivePerson {
   qrCode: string;
   userId?: string;
   department?: string;
+  scanId?: number;
 }
 
 // Vehicle History

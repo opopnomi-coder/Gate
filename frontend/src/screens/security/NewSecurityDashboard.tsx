@@ -153,6 +153,8 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
             inTime: r.entryTime || r.inTime,
             outTime: null,
             qrCode: r.qrCode || '',
+            userId: r.userId || r.id?.toString(),
+            scanId: r.scanId || r.id, // Try to pick up scanId from history
           };
         });
 
@@ -223,7 +225,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
   const handleManualExit = async (person: ActivePerson) => {
     try {
       lock('Marking exit for ' + person.name + '...');
-      const response = await apiService.manualExit(person.name, user.securityId);
+      const response = await apiService.manualExit(person.name, user.securityId, person.userId, person.scanId, person.purpose);
       if (response.success) {
         // Optimistically remove from list immediately
         setActivePersons(prev => prev.filter(p => p.id !== person.id));
