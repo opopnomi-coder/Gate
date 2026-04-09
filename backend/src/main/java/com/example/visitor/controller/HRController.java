@@ -652,7 +652,7 @@ public class HRController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", "exit-" + e.getId());
         map.put("scanType", scanType);
-        map.put("userType", e.getUserType());
+        map.put("userType", normalizeUserTypeLabel(e.getUserType()));
         map.put("userId", e.getUserId());
         map.put("time", e.getExitTime());
 
@@ -693,7 +693,7 @@ public class HRController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", "entry-" + e.getId());
         map.put("scanType", scanType);
-        map.put("userType", e.getUserType());
+        map.put("userType", normalizeUserTypeLabel(e.getUserType()));
         map.put("userId", e.getUserId());
         map.put("time", e.getTimestamp());
 
@@ -797,6 +797,19 @@ public class HRController {
         } catch (NumberFormatException nfe) {
             return null;
         } catch (Exception ex) { return null; }
+    }
+
+    private String normalizeUserTypeLabel(String rawType) {
+        if (rawType == null) return "UNKNOWN";
+        switch (rawType.toUpperCase()) {
+            case "VG":       return "VISITOR";
+            case "VENDOR":   return "VENDOR";
+            case "VISITOR":  return "VISITOR";
+            case "STUDENT":  return "STUDENT";
+            case "STAFF":    return "STAFF";
+            case "HOD":      return "HOD";
+            default:         return rawType.toUpperCase();
+        }
     }
 
 }
