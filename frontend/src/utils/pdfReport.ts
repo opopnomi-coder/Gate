@@ -13,6 +13,31 @@ const escapeHtml = (value: any): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+// Load ritheader.png as base64 for embedding in HTML
+async function getHeaderImageBase64(): Promise<string> {
+  try {
+    // Android: assets are accessible via readFileAssets
+    if (Platform.OS === 'android') {
+      try {
+        const b64 = await RNFS.readFileAssets('ritheader.png', 'base64');
+        if (b64) return `data:image/png;base64,${b64}`;
+      } catch {}
+    }
+    // iOS: try main bundle
+    if (Platform.OS === 'ios') {
+      try {
+        const p = `${RNFS.MainBundlePath}/ritheader.png`;
+        const exists = await RNFS.exists(p);
+        if (exists) {
+          const b64 = await RNFS.readFile(p, 'base64');
+          return `data:image/png;base64,${b64}`;
+        }
+      } catch {}
+    }
+  } catch {}
+  return '';
+}
+
 export async function exportStyledPdfReport(params: {
   title: string;
   subtitle?: string;
@@ -29,6 +54,12 @@ export async function exportStyledPdfReport(params: {
   const sectionHeading = params.sectionHeading ?? 'Report Details';
   const brandFooterLine = params.brandFooterLine ?? 'RIT Gate Management System';
   const timeStamp = params.generatedAt || new Date().toLocaleString();
+
+  // Load header image
+  const headerImgSrc = await getHeaderImageBase64();
+  const headerImgHtml = headerImgSrc
+    ? `<img src="${headerImgSrc}" style="height:60px;object-fit:contain;" />`
+    : `<span style="font-size:22px;font-weight:700;color:#667eea;">RIT</span>`;
 
   const headerCols = columns
     .map((c) => `<th>${escapeHtml(String(c.label).toUpperCase())}</th>`)
@@ -49,44 +80,53 @@ export async function exportStyledPdfReport(params: {
         <meta charset="utf-8" />
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Arial, Helvetica, sans-serif; padding: 28px 32px; color: #333; background: #fff; }
+          body { font-family: Arial, Helvetica, sans-serif; padding: 28px 36px; color: #333; background: #fff; }
 
           /* ── Header ── */
-          .header { display: flex; align-items: center; margin-bottom: 14px; }
-          .header-text { flex: 1; }
-          .header-title { font-size: 24px; font-weight: 700; color: #667eea; margin-bottom: 3px; }
+          .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding-bottom: 14px;
+            margin-bottom: 0;
+          }
+          .header-logo { display: flex; align-items: center; }
+          .header-text { text-align: left; }
+          .header-title { font-size: 22px; font-weight: 700; color: #667eea; margin-bottom: 3px; }
           .header-date { font-size: 11px; color: #666; }
-          .header-divider { border: none; border-top: 2px solid #667eea; margin-bottom: 24px; }
+          .header-divider { border: none; border-top: 2px solid #667eea; margin: 14px 0 20px 0; }
 
           /* ── Section label ── */
-          .section { font-size: 11px; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+          .section { font-size: 10px; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
 
           /* ── Table ── */
-          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          table { width: 100%; border-collapse: collapse; font-size: 10px; }
           th {
             background: #667eea;
             color: #fff;
-            padding: 9px 8px;
+            padding: 8px 7px;
             text-align: left;
-            border: 1px solid #ddd;
+            border: 1px solid #5a6fd6;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             font-size: 9px;
             font-weight: 700;
           }
-          td { padding: 8px; border: 1px solid #ddd; vertical-align: top; color: #333; font-size: 11px; }
+          td { padding: 7px; border: 1px solid #ddd; vertical-align: top; color: #333; font-size: 10px; }
           tr:nth-child(even) td { background: #f9f9f9; }
           tr:nth-child(odd) td { background: #fff; }
           td.name-col { font-weight: 700; }
 
           /* ── Footer ── */
-          .footer-line { border: none; border-top: 1px solid #ddd; margin-top: 28px; margin-bottom: 12px; }
-          .footer { text-align: center; font-size: 11px; color: #666; line-height: 1.8; }
-          .footer-brand { font-weight: 700; color: #667eea; }
+          .footer-line { border: none; border-top: 1px solid #ddd; margin-top: 32px; margin-bottom: 14px; }
+          .footer { text-align: center; font-size: 11px; color: #666; line-height: 2; }
+          .footer-brand { font-weight: 400; color: #333; }
         </style>
       </head>
       <body>
         <div class="header">
+          <div class="header-logo">${headerImgHtml}</div>
           <div class="header-text">
             <div class="header-title">${escapeHtml(title)}</div>
             <div class="header-date">Generated on ${escapeHtml(timeStamp)}${subtitle ? ' &nbsp;·&nbsp; ' + escapeHtml(subtitle) : ''}</div>
@@ -106,7 +146,7 @@ export async function exportStyledPdfReport(params: {
         <div class="footer">
           <div class="footer-brand">${escapeHtml(brandFooterLine)}</div>
           <div>This report contains confidential information. Handle with care.</div>
-          <div>Total Records: ${rows.length} &nbsp;|&nbsp; Report Generated: ${escapeHtml(timeStamp)}</div>
+          <div>Total Records: ${rows.length}</div>
         </div>
       </body>
     </html>
