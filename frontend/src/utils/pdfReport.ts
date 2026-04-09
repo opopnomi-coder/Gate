@@ -35,7 +35,10 @@ export async function exportStyledPdfReport(params: {
     .join('');
   const bodyRows = rows
     .map((row) => {
-      const tds = columns.map((c) => `<td>${escapeHtml(row[c.key])}</td>`).join('');
+      const tds = columns.map((c) => {
+        const isName = c.key === 'name' || c.label.toLowerCase() === 'name';
+        return `<td${isName ? ' class="name-col"' : ''}>${escapeHtml(row[c.key])}</td>`;
+      }).join('');
       return `<tr>${tds}</tr>`;
     })
     .join('');
@@ -45,64 +48,65 @@ export async function exportStyledPdfReport(params: {
       <head>
         <meta charset="utf-8" />
         <style>
-          * { box-sizing: border-box; }
-          body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 24px; color: #1f2937; background: #fff; }
-          .banner {
-            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #7c3aed 100%);
-            padding: 20px 22px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(79, 70, 235, 0.28);
-          }
-          .title { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: 0.02em; }
-          .sub { color: rgba(255,255,255,0.92); font-size: 12px; margin: 0; line-height: 1.4; }
-          .section {
-            font-size: 13px;
-            color: #4338ca;
-            margin: 0 0 12px 0;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-          }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: Arial, Helvetica, sans-serif; padding: 28px 32px; color: #333; background: #fff; }
+
+          /* ── Header ── */
+          .header { display: flex; align-items: center; margin-bottom: 14px; }
+          .header-text { flex: 1; }
+          .header-title { font-size: 24px; font-weight: 700; color: #667eea; margin-bottom: 3px; }
+          .header-date { font-size: 11px; color: #666; }
+          .header-divider { border: none; border-top: 2px solid #667eea; margin-bottom: 24px; }
+
+          /* ── Section label ── */
+          .section { font-size: 11px; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+
+          /* ── Table ── */
           table { width: 100%; border-collapse: collapse; font-size: 11px; }
           th {
-            background: #4338ca;
+            background: #667eea;
             color: #fff;
-            padding: 10px 8px;
+            padding: 9px 8px;
             text-align: left;
-            border: 1px solid #3730a3;
+            border: 1px solid #ddd;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             font-size: 9px;
+            font-weight: 700;
           }
-          td { padding: 9px 8px; border: 1px solid #e5e7eb; vertical-align: top; }
-          tr:nth-child(even) td { background: #f3f4f6; }
+          td { padding: 8px; border: 1px solid #ddd; vertical-align: top; color: #333; font-size: 11px; }
+          tr:nth-child(even) td { background: #f9f9f9; }
           tr:nth-child(odd) td { background: #fff; }
-          .footer {
-            margin-top: 28px;
-            padding-top: 14px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            font-size: 10px;
-            color: #6b7280;
-          }
-          .footer-brand { font-weight: 700; color: #4f46e5; margin: 0 0 6px 0; font-size: 11px; }
-          .footer-ts { margin: 0; }
+          td.name-col { font-weight: 700; }
+
+          /* ── Footer ── */
+          .footer-line { border: none; border-top: 1px solid #ddd; margin-top: 28px; margin-bottom: 12px; }
+          .footer { text-align: center; font-size: 11px; color: #666; line-height: 1.8; }
+          .footer-brand { font-weight: 700; color: #667eea; }
         </style>
       </head>
       <body>
-        <div class="banner">
-          <p class="title">${escapeHtml(title)}</p>
-          <p class="sub">${escapeHtml(subtitle || '')}</p>
+        <div class="header">
+          <div class="header-text">
+            <div class="header-title">${escapeHtml(title)}</div>
+            <div class="header-date">Generated on ${escapeHtml(timeStamp)}${subtitle ? ' &nbsp;·&nbsp; ' + escapeHtml(subtitle) : ''}</div>
+          </div>
         </div>
+        <hr class="header-divider" />
         <div class="section">${escapeHtml(sectionHeading)}</div>
         <table>
-          <thead><tr>${headerCols}</tr></thead>
-          <tbody>${bodyRows || `<tr><td colspan="${columns.length}">No records</td></tr>`}</tbody>
+          <thead>
+            <tr>${headerCols}</tr>
+          </thead>
+          <tbody>
+            ${bodyRows || `<tr><td colspan="${columns.length}" style="text-align:center;padding:20px;color:#666;">No records available</td></tr>`}
+          </tbody>
         </table>
+        <hr class="footer-line" />
         <div class="footer">
-          <p class="footer-brand">${escapeHtml(brandFooterLine)}</p>
-          <p class="footer-ts">Generated: ${escapeHtml(timeStamp)}</p>
+          <div class="footer-brand">${escapeHtml(brandFooterLine)}</div>
+          <div>This report contains confidential information. Handle with care.</div>
+          <div>Total Records: ${rows.length} &nbsp;|&nbsp; Report Generated: ${escapeHtml(timeStamp)}</div>
         </div>
       </body>
     </html>
