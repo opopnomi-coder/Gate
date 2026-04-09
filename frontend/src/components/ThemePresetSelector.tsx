@@ -66,7 +66,6 @@ const ThemePresetSelector: React.FC<ThemePresetSelectorProps> = () => {
               ))}
             </View>
             <ThemedText style={[styles.triggerName, { color: theme.text }]}>{activeTheme.name}</ThemedText>
-            <ThemedText style={[styles.triggerDesc, { color: theme.textSecondary }]}>{activeTheme.description}</ThemedText>
           </View>
         )}
         <Ionicons name="chevron-down" size={18} color={theme.textSecondary} />
