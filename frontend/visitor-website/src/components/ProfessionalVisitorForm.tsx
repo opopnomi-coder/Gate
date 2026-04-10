@@ -301,7 +301,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
         body: JSON.stringify({
           name: visitorNames[0],
           email: mainPersonEmail,
-          phone: countryCode + mainPersonPhone,
+          phone: mainPersonPhone,
           role,
           machineId,
           department: selectedDepartment,
