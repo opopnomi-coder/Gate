@@ -75,9 +75,35 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
   const [approvedManualCode, setApprovedManualCode] = useState<string>('');
   const [error, setError] = useState<string>('');
   
-  const [focusedField, setFocusedField] = useState<string>('');
+  const [countryCode, setCountryCode] = useState<string>('+91');
+  const [showCountryDropdown, setShowCountryDropdown] = useState<boolean>(false);
+
+  const COUNTRIES = [
+    { code: '+91', flag: '🇮🇳', name: 'India' },
+    { code: '+1', flag: '🇺🇸', name: 'USA' },
+    { code: '+44', flag: '🇬🇧', name: 'UK' },
+    { code: '+61', flag: '🇦🇺', name: 'Australia' },
+    { code: '+971', flag: '🇦🇪', name: 'UAE' },
+    { code: '+65', flag: '🇸🇬', name: 'Singapore' },
+    { code: '+60', flag: '🇲🇾', name: 'Malaysia' },
+    { code: '+49', flag: '🇩🇪', name: 'Germany' },
+    { code: '+33', flag: '🇫🇷', name: 'France' },
+    { code: '+81', flag: '🇯🇵', name: 'Japan' },
+    { code: '+86', flag: '🇨🇳', name: 'China' },
+    { code: '+7', flag: '🇷🇺', name: 'Russia' },
+    { code: '+55', flag: '🇧🇷', name: 'Brazil' },
+    { code: '+27', flag: '🇿🇦', name: 'South Africa' },
+    { code: '+92', flag: '🇵🇰', name: 'Pakistan' },
+    { code: '+880', flag: '🇧🇩', name: 'Bangladesh' },
+    { code: '+94', flag: '🇱🇰', name: 'Sri Lanka' },
+    { code: '+977', flag: '🇳🇵', name: 'Nepal' },
+  ];
+
+  const selectedCountry = COUNTRIES.find(c => c.code === countryCode) || COUNTRIES[0];
+  const [showRoleDropdown, setShowRoleDropdown] = useState<boolean>(false);
   const [hoveredCard, setHoveredCard] = useState<string>('');
   const [hoveredBack, setHoveredBack] = useState<boolean>(false);
+  const [focusedField, setFocusedField] = useState<string>('');
   const [showApprovalBanner, setShowApprovalBanner] = useState(false);
   const prevApprovalRef = useRef<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING');
   const [machineId] = useState<string>(() => {
@@ -226,7 +252,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
       return false;
     }
     
-    if (!mainPersonPhone.trim() || mainPersonPhone.length < 10) {
+    if (!mainPersonPhone.trim() || mainPersonPhone.replace(/\D/g, '').length < 10) {
       setError('Please enter a valid phone number (minimum 10 digits)');
       return false;
     }
@@ -275,7 +301,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
         body: JSON.stringify({
           name: visitorNames[0],
           email: mainPersonEmail,
-          phone: mainPersonPhone,
+          phone: countryCode + mainPersonPhone,
           role,
           machineId,
           department: selectedDepartment,
@@ -1023,7 +1049,7 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
               <label style={styles.label}>Email Address</label>
               <input
                 type="email"
-                placeholder="your.email@example.com"
+                placeholder="youremail@example.com"
                 value={mainPersonEmail}
                 onChange={(e) => setMainPersonEmail(e.target.value)}
                 onFocus={() => setFocusedField('email')}
@@ -1035,31 +1061,89 @@ const ProfessionalVisitorForm: React.FC<ProfessionalVisitorFormProps> = ({ onBac
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Phone Number</label>
-              <input
-                type="tel"
-                placeholder="+91 XXXXX XXXXX"
-                value={mainPersonPhone}
-                onChange={(e) => setMainPersonPhone(e.target.value)}
-                onFocus={() => setFocusedField('phone')}
-                onBlur={() => setFocusedField('')}
-                style={styles.input(focusedField === 'phone', false)}
-                required
-              />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Country code picker */}
+                <div style={{ position: 'relative' as const, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      padding: '14px 12px', height: '100%',
+                      fontSize: '15px', fontWeight: '600' as const,
+                      border: `2px solid ${focusedField === 'phone' ? '#00BCD4' : '#e5e7eb'}`,
+                      borderRadius: '12px', background: '#f9fafb',
+                      cursor: 'pointer', whiteSpace: 'nowrap' as const,
+                      color: '#1f2937', transition: 'all 0.3s ease',
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>{selectedCountry.flag}</span>
+                    <span>{selectedCountry.code}</span>
+                    <span style={{ fontSize: '11px', color: '#9ca3af' }}>▼</span>
+                  </button>
+                  {showCountryDropdown && (
+                    <div style={{ ...styles.dropdownMenu, width: '220px', maxHeight: '260px' }}>
+                      {COUNTRIES.map(c => (
+                        <div
+                          key={c.code}
+                          style={{
+                            ...styles.dropdownItem(hoveredCard === `cc-${c.code}`, countryCode === c.code),
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                          }}
+                          onMouseEnter={() => setHoveredCard(`cc-${c.code}`)}
+                          onMouseLeave={() => setHoveredCard('')}
+                          onClick={() => { setCountryCode(c.code); setShowCountryDropdown(false); }}
+                        >
+                          <span style={{ fontSize: '18px' }}>{c.flag}</span>
+                          <span style={{ flex: 1 }}>{c.name}</span>
+                          <span style={{ opacity: 0.7 }}>{c.code}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="tel"
+                  placeholder="XXXXX XXXXX"
+                  value={mainPersonPhone}
+                  onChange={(e) => setMainPersonPhone(e.target.value.replace(/\D/g, ''))}
+                  onFocus={() => setFocusedField('phone')}
+                  onBlur={() => setFocusedField('')}
+                  style={{ ...styles.input(focusedField === 'phone', false), flex: 1 }}
+                  required
+                />
+              </div>
             </div>
 
-            {/* Department */}
+            {/* Visitor or Vendor — custom dropdown matching department/staff style */}
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Visitor or vendor</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as 'VISITOR' | 'VENDOR')}
-                style={styles.input(focusedField === 'role', false)}
-                onFocus={() => setFocusedField('role')}
-                onBlur={() => setFocusedField('')}
-              >
-                <option value="VISITOR">Visitor</option>
-                <option value="VENDOR">Vendor</option>
-              </select>
+              <label style={styles.label}>Visitor or Vendor</label>
+              <div style={styles.dropdown}>
+                <input
+                  type="text"
+                  value={role === 'VISITOR' ? 'Visitor' : 'Vendor'}
+                  readOnly
+                  onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+                  onFocus={() => setFocusedField('role')}
+                  onBlur={() => { setFocusedField(''); setTimeout(() => setShowRoleDropdown(false), 200); }}
+                  style={{ ...styles.input(focusedField === 'role', false), cursor: 'pointer' }}
+                />
+                {showRoleDropdown && (
+                  <div style={styles.dropdownMenu}>
+                    {(['VISITOR', 'VENDOR'] as const).map(r => (
+                      <div
+                        key={r}
+                        style={styles.dropdownItem(hoveredCard === `role-${r}`, role === r)}
+                        onMouseEnter={() => setHoveredCard(`role-${r}`)}
+                        onMouseLeave={() => setHoveredCard('')}
+                        onClick={() => { setRole(r); setShowRoleDropdown(false); }}
+                      >
+                        {role === r && '✓ '}{r === 'VISITOR' ? 'Visitor' : 'Vendor'}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Department */}
