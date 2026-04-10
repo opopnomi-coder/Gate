@@ -122,7 +122,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           if (!name || name === 'Visitor-null' || name.includes('-null')) {
             name = person.type === 'VISITOR' ? 'Visitor' : (name || 'User');
           }
-          return { ...person, name };
+          return { ...person, name, type: (person as any).role || person.type };
         });
       }
 
@@ -147,7 +147,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           return {
             id: r.id || Math.random(),
             name: normalizedName,
-            type: r.type || 'VISITOR',
+            type: r.role || r.type || 'VISITOR',
             purpose: r.purpose || r.reason || 'Visit',
             status: 'PENDING' as 'PENDING',
             inTime: r.entryTime || r.inTime,
@@ -229,11 +229,11 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       if (response.success) {
         // Optimistically remove from list immediately
         setActivePersons(prev => prev.filter(p => p.id !== person.id));
-        
+        setShowDetailModal(false);
+        // Reload data silently before showing success
+        await loadDashboardData();
         setSuccessMessage(`${person.name} has been marked as exited`);
         setShowSuccessModal(true);
-        setShowDetailModal(false);
-        await loadDashboardData();
       } else {
         setErrorMessage(response.message || 'Failed to mark exit');
         setShowErrorModal(true);
