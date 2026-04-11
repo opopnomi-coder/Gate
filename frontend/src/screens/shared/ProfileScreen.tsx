@@ -28,6 +28,7 @@ import ThemedText from '../../components/ThemedText';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import { VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import TopRefreshControl from '../../components/TopRefreshControl';
+import { StatsSkeleton, ProfileSkeleton } from '../../components/SkeletonCard';
 
 
 interface ProfileScreenProps {
@@ -223,16 +224,19 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <ThemedText style={{ color: theme.textSecondary, marginTop: 10, fontWeight: '600' }}>Loading profile...</ThemedText>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={onBack} style={[styles.backButton, { backgroundColor: theme.surface }]}>
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
+          </TouchableOpacity>
         </View>
+        <ScreenContentContainer>
+          <ProfileSkeleton />
+        </ScreenContentContainer>
       </SafeAreaView>
     );
   }
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+  return (    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
       <View style={styles.topBar}>
         <TouchableOpacity onPress={onBack} style={[styles.backButton, { backgroundColor: theme.surface }]}>
@@ -260,20 +264,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </View>
 
         <View style={[styles.statsCard, { backgroundColor: theme.surface }]}>
-          <View style={styles.statItem}>
-            {loadingStats ? <ActivityIndicator size="small" color={theme.accent} /> : <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat1}</ThemedText>}
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'ACTIVE' : 'APPROVED'}</ThemedText>
-          </View>
-          <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            {loadingStats ? <ActivityIndicator size="small" color={theme.error} /> : <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat2}</ThemedText>}
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'EXITED' : 'REJECTED'}</ThemedText>
-          </View>
-          <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            {loadingStats ? <ActivityIndicator size="small" color={theme.warning} /> : <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat3}</ThemedText>}
-            <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'TOTAL' : 'PENDING'}</ThemedText>
-          </View>
+          {loadingStats ? <StatsSkeleton /> : (
+            <>
+              <View style={styles.statItem}>
+                <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat1}</ThemedText>
+                <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'ACTIVE' : 'APPROVED'}</ThemedText>
+              </View>
+              <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
+              <View style={styles.statItem}>
+                <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat2}</ThemedText>
+                <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'EXITED' : 'REJECTED'}</ThemedText>
+              </View>
+              <View style={[styles.verticalDivider, { backgroundColor: theme.border }]} />
+              <View style={styles.statItem}>
+                <ThemedText style={[styles.statNumber, { color: theme.primary }]}>{stats.stat3}</ThemedText>
+                <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>{userType.toUpperCase() === 'SECURITY' ? 'TOTAL' : 'PENDING'}</ThemedText>
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.sectionHeaderContainer}>

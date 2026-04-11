@@ -57,6 +57,54 @@ export const SkeletonList: React.FC<{ count?: number }> = ({ count = 5 }) => (
   </View>
 );
 
+/** Skeleton for the full profile page */
+export const ProfileSkeleton: React.FC = () => {
+  const { isDark } = useTheme();
+  const bg = isDark ? '#2A2A2A' : '#E8E8E8';
+  const highlight = isDark ? '#3A3A3A' : '#F5F5F5';
+  return (
+    <SkeletonPlaceholder backgroundColor={bg} highlightColor={highlight} speed={900} borderRadius={8}>
+      <View style={{ padding: 20 }}>
+        {/* Avatar */}
+        <View style={{ alignItems: 'center', marginBottom: 24, marginTop: 8 }}>
+          <View style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 12 }} />
+          <View style={{ width: 160, height: 18, borderRadius: 9, marginBottom: 8 }} />
+          <View style={{ width: 120, height: 13, borderRadius: 6 }} />
+        </View>
+        {/* Stats card */}
+        <View style={{ flexDirection: 'row', borderRadius: 16, padding: 20, marginBottom: 32, gap: 8 }}>
+          {[0, 1, 2].map(i => (
+            <View key={i} style={{ flex: 1, alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 40, height: 22, borderRadius: 6 }} />
+              <View style={{ width: 60, height: 11, borderRadius: 5 }} />
+            </View>
+          ))}
+        </View>
+        {/* Section header */}
+        <View style={{ width: 120, height: 12, borderRadius: 6, marginBottom: 12 }} />
+        {/* Theme selector placeholder */}
+        <View style={{ height: 80, borderRadius: 16, marginBottom: 32 }} />
+        {/* Section header */}
+        <View style={{ width: 160, height: 12, borderRadius: 6, marginBottom: 12 }} />
+        {/* Info card */}
+        <View style={{ borderRadius: 16, padding: 16, marginBottom: 32, gap: 16 }}>
+          {[0, 1, 2].map(i => (
+            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 44, height: 44, borderRadius: 12 }} />
+              <View style={{ gap: 6 }}>
+                <View style={{ width: 60, height: 10, borderRadius: 5 }} />
+                <View style={{ width: 140, height: 14, borderRadius: 7 }} />
+              </View>
+            </View>
+          ))}
+        </View>
+        {/* Logout button */}
+        <View style={{ height: 52, borderRadius: 16 }} />
+      </View>
+    </SkeletonPlaceholder>
+  );
+};
+
 /** Skeleton for a stats row (3 numbers side by side: PENDING / APPROVED / REJECTED or ACTIVE / EXITED / TOTAL) */
 export const StatsSkeleton: React.FC = () => {
   const { isDark } = useTheme();

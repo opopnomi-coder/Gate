@@ -107,8 +107,11 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
   const loadDashboardData = async () => {
     try {
-      const personsResponse = await apiService.getActivePersons();
-      const historyResponse = await apiService.getScanHistory(user.securityId);
+      // Run both API calls in parallel for faster loading
+      const [personsResponse, historyResponse] = await Promise.all([
+        apiService.getActivePersons(),
+        apiService.getScanHistory(user.securityId),
+      ]);
       
       let mergedPersons: ActivePerson[] = [];
 
