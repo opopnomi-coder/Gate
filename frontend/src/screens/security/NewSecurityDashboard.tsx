@@ -30,7 +30,7 @@ import { formatTime as fmtTime, getRelativeTimeShort } from '../../utils/dateUti
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
-import TopRefreshControl from '../../components/TopRefreshControl';
+import { SkeletonList, StatsSkeleton } from '../../components/SkeletonCard';
 
 
 interface NewSecurityDashboardProps {
@@ -87,6 +87,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
     exited: 0,
     total: 0,
   });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -184,6 +185,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       console.error('Error loading dashboard data:', error);
     } finally {
       setRefreshing(false);
+      setStatsLoading(false);
     }
   };
 
@@ -354,6 +356,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           ListHeaderComponent={
             <>
               <View style={[styles.controlCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                {statsLoading ? <StatsSkeleton /> : (
                 <View style={styles.statsGrid}>
                   <View style={styles.statBox}>
                     <View style={[styles.statIcon, { backgroundColor: theme.success + '20' }]}>
@@ -383,6 +386,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
                     <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>TOTAL</ThemedText>
                   </View>
                 </View>
+                )}
               </View>
 
               {/* Visitor Requests Section */}

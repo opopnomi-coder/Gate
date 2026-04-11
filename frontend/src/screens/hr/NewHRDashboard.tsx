@@ -37,7 +37,7 @@ import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 import TopRefreshControl from '../../components/TopRefreshControl';
-import { SkeletonList } from '../../components/SkeletonCard';
+import { SkeletonList, StatsSkeleton } from '../../components/SkeletonCard';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
 
 
@@ -377,6 +377,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
             </View>
 
             {/* Stats Tabs */}
+            {refreshing ? <StatsSkeleton /> : (
             <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
               <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.primary }]} onPress={() => setActiveTab('PENDING')}>
                 <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.primary }]}>PENDING</ThemedText>
@@ -391,6 +392,7 @@ const NewHRDashboard: React.FC<NewHRDashboardProps> = ({
                 <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
               </TouchableOpacity>
             </View>
+            )}
           </View>
 
           <ScreenContentContainer style={{ flex: 1 }}>

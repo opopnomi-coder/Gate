@@ -19,7 +19,7 @@ import { useRefresh } from '../../context/RefreshContext';
 import { useProfile } from '../../context/ProfileContext';
 import { useTheme } from '../../context/ThemeContext';
 import TopRefreshControl, { RefreshBlurOverlay } from '../../components/TopRefreshControl';
-import { SkeletonList } from '../../components/SkeletonCard';
+import { SkeletonList, StatsSkeleton } from '../../components/SkeletonCard';
 import { useActionLock } from '../../context/ActionLockContext';
 import { getRelativeTime, formatDateShort } from '../../utils/dateUtils';
 import PassTypeBottomSheet from '../../components/PassTypeBottomSheet';
@@ -368,6 +368,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
           />
         </View>
         {/* Stats Tabs */}
+        {loading ? <StatsSkeleton /> : (
         <View style={[styles.statsContainer, { backgroundColor: theme.surface }]}>
           <TouchableOpacity style={[styles.statTab, activeTab === 'PENDING' && { borderBottomColor: theme.warning }]} onPress={() => setActiveTab('PENDING')}>
             <ThemedText style={[styles.statLabel, { color: theme.textTertiary }, activeTab === 'PENDING' && { color: theme.warning }]}>PENDING</ThemedText>
@@ -382,6 +383,7 @@ const NewStaffDashboard: React.FC<NewStaffDashboardProps> = ({
             <ThemedText style={[styles.statValue, { color: theme.textSecondary }, activeTab === 'REJECTED' && { color: theme.text }]}>{stats.rejected}</ThemedText>
           </TouchableOpacity>
         </View>
+        )}
       </View>
 
       <ScreenContentContainer style={{ flex: 1 }}>

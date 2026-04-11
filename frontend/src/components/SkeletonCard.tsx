@@ -57,6 +57,25 @@ export const SkeletonList: React.FC<{ count?: number }> = ({ count = 5 }) => (
   </View>
 );
 
+/** Skeleton for a stats row (3 numbers side by side: PENDING / APPROVED / REJECTED or ACTIVE / EXITED / TOTAL) */
+export const StatsSkeleton: React.FC = () => {
+  const { isDark } = useTheme();
+  const bg = isDark ? '#2A2A2A' : '#E8E8E8';
+  const highlight = isDark ? '#3A3A3A' : '#F5F5F5';
+  return (
+    <SkeletonPlaceholder backgroundColor={bg} highlightColor={highlight} speed={900} borderRadius={8}>
+      <View style={styles.statsRow}>
+        {[0, 1, 2].map(i => (
+          <View key={i} style={styles.statCell}>
+            <View style={styles.statNumLine} />
+            <View style={styles.statLabelLine} />
+          </View>
+        ))}
+      </View>
+    </SkeletonPlaceholder>
+  );
+};
+
 const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingTop: 16, gap: 12 },
   card: {
@@ -81,6 +100,10 @@ const styles = StyleSheet.create({
   infoLine: { width: '90%', height: 13, borderRadius: 6 },
   infoLineShort: { width: '60%', height: 13, borderRadius: 6 },
   statusPill: { width: 80, height: 26, borderRadius: 13 },
+  statsRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 12, borderRadius: 16, padding: 16, gap: 8 },
+  statCell: { flex: 1, alignItems: 'center', gap: 8 },
+  statNumLine: { width: 40, height: 22, borderRadius: 6 },
+  statLabelLine: { width: 60, height: 11, borderRadius: 5 },
 });
 
 export default SkeletonCard;

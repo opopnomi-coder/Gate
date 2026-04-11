@@ -33,6 +33,7 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 import TopRefreshControl from '../../components/TopRefreshControl';
+import { StatsSkeleton } from '../../components/SkeletonCard';
 
 
 interface StudentHomeScreenProps {
@@ -62,6 +63,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
     entries: 0,
     exits: 0,
   });
+  const [statsLoading, setStatsLoading] = useState(true);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -97,6 +99,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       console.error('❌ Error loading data:', error);
     } finally {
       setRefreshing(false);
+      setStatsLoading(false);
     }
   };
 
@@ -230,6 +233,9 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
 
       <ScreenContentContainer>
           <View style={styles.staticHeaderContainer}>
+            {statsLoading ? (
+              <StatsSkeleton />
+            ) : (
             <View style={[styles.statsCard, { backgroundColor: theme.cardBackground, marginTop: 0 }]}>
               <View style={styles.statItem}>
                 <ThemedText style={[styles.statValue, { color: theme.text }]}>{stats.entries}</ThemedText>
@@ -241,6 +247,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                 <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>EXITS</ThemedText>
               </View>
             </View>
+            )}
 
             <TouchableOpacity style={[styles.requestCard, { backgroundColor: theme.cardBackground }]} onPress={onRequestGatePass}>
               <View style={[styles.requestCardTop, { backgroundColor: theme.primary }]}>
