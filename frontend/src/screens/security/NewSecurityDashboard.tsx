@@ -31,6 +31,7 @@ import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import { useBottomSheetSwipe } from '../../hooks/useBottomSheetSwipe';
 import { SkeletonList, StatsSkeleton } from '../../components/SkeletonCard';
+import TopRefreshControl from '../../components/TopRefreshControl';
 
 
 interface NewSecurityDashboardProps {
