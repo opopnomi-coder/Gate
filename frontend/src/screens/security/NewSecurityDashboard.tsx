@@ -787,6 +787,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       <ErrorModal
         visible={showErrorModal}
         type="general"
+        title="Action Failed"
         message={errorMessage}
         onClose={() => setShowErrorModal(false)}
       />

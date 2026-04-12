@@ -92,7 +92,9 @@ class ApiService {
         if (data && typeof data === 'object' && 'accessGranted' in data) {
           return { success: false, message: data.message || 'Access denied', ...data };
         }
-        throw new Error(`HTTP ${res.status}: ${JSON.stringify(data)}`);
+        // Extract a clean message from the response — never expose raw JSON to the user
+        const errMsg = (data && (data.message || data.error || data.errorMessage)) || 'Something went wrong. Please try again.';
+        throw new Error(errMsg);
       }
       return data;
     } catch (err: any) {

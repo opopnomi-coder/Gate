@@ -104,7 +104,7 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
       case 'timeout':
         return { icon: 'time-outline' as const, color: '#F59E0B', defaultTitle: 'Request Timed Out' };
       default:
-        return { icon: 'warning' as const, color: '#EF4444', defaultTitle: 'Unexpected Application Error' };
+        return { icon: 'warning' as const, color: '#EF4444', defaultTitle: 'Something Went Wrong' };
     }
   };
 
