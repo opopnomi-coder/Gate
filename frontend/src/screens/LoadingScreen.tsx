@@ -146,7 +146,7 @@ const LoadingDots = React.memo(function LoadingDots({ visible }: { visible: bool
   );
 });
 
-const LoadingScreen: React.FC = () => {
+const LoadingScreen: React.FC<{ onFinish?: () => void }> = ({ onFinish }) => {
   const bgA    = useRef(new Animated.Value(0)).current;
   const cardY  = useRef(new Animated.Value(-40)).current;
   const cardS  = useRef(new Animated.Value(0.62)).current;
@@ -198,13 +198,14 @@ const LoadingScreen: React.FC = () => {
         Animated.delay(1200),
         Animated.timing(barA, { toValue: 1, duration: 400, easing: SMOOTH, useNativeDriver: true }),
         Animated.timing(barW, { toValue: W, duration: 1400, easing: MATERIAL, useNativeDriver: false }),
-      ]),
-      Animated.sequence([
+      ]),      Animated.sequence([
         Animated.delay(1000),
         runAction(() => setShowDots(true)),
         Animated.timing(dotsA, { toValue: 1, duration: 500, easing: SMOOTH, useNativeDriver: true }),
       ]),
-    ]).start();
+    ]).start(() => {
+      if (onFinish) setTimeout(() => onFinish(), 500);
+    });
   }, []);
 
   const ROW1 = ['R', 'I', 'T'];

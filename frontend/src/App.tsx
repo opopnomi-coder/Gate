@@ -1398,15 +1398,26 @@ const App: React.FC = () => {
         );
       }
 
-      // Handle home screen
+      // Handle home screen — show cinematic splash, then go to login
       if (currentScreen === 'HOME' || !userType) {
-        console.log('🏠 Rendering HomeScreen');
-        return <HomeScreen onSelectUserType={handleUserTypeSelection} />;
+        console.log('🏠 Rendering CinematicSplash');
+        return (
+          <LoadingScreen
+            onFinish={() => {
+              console.log('🚀 Splash finished → UNIFIED_LOGIN');
+              setCurrentScreen('UNIFIED_LOGIN');
+            }}
+          />
+        );
       }
 
       // Default fallback
-      console.log('📱 Rendering HomeScreen (default fallback)');
-      return <HomeScreen onSelectUserType={handleUserTypeSelection} />;
+      console.log('📱 Rendering CinematicSplash (default fallback)');
+      return (
+        <LoadingScreen
+          onFinish={() => setCurrentScreen('UNIFIED_LOGIN')}
+        />
+      );
     } catch (error) {
       console.error('❌ Error in renderCurrentScreen:', error);
       return (
