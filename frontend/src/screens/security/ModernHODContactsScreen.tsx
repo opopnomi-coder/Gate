@@ -23,6 +23,7 @@ import { VerticalFlatList, VerticalScrollView } from '../../components/navigatio
 import { useTheme } from '../../context/ThemeContext';
 import TopRefreshControl from '../../components/TopRefreshControl';
 import SearchableDropdown, { DropdownItem } from '../../components/SearchableDropdown';
+import { SkeletonList } from '../../components/SkeletonCard';
 
 interface HODContactsScreenProps {
   security: SecurityPersonnel;
@@ -204,12 +205,7 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[theme.primary]} />}
         ListHeaderComponent={
           <>
-            {isLoading && (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.primary} />
-                <ThemedText style={[styles.loadingText, { color: theme.textSecondary }]}>Loading HOD contacts...</ThemedText>
-              </View>
-            )}
+            {isLoading && <SkeletonList count={6} />}
 
             {!isLoading && filteredHods.length === 0 && (
               <View style={styles.emptyState}>

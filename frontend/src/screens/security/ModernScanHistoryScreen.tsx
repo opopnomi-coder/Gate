@@ -26,6 +26,7 @@ import ErrorModal from '../../components/ErrorModal';
 import { useTheme } from '../../context/ThemeContext';
 import { VerticalFlatList, VerticalScrollView } from '../../components/navigation/VerticalScrollViews';
 import TopRefreshControl from '../../components/TopRefreshControl';
+import { SkeletonList } from '../../components/SkeletonCard';
 
 
 interface ModernScanHistoryScreenProps {
@@ -1045,6 +1046,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
             }
           }}
           ListEmptyComponent={
+            loading ? <SkeletonList count={5} /> : (
             <View style={styles.emptyState}>
               <Ionicons 
                 name={activeTab === 'SCANS' ? "time-outline" : "car-outline"} 
@@ -1055,6 +1057,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
                 No {activeTab === 'SCANS' ? 'scan' : 'vehicle'} records found
               </ThemedText>
             </View>
+            )
           }
         />
       </ScreenContentContainer>
