@@ -118,7 +118,9 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
       if (personsResponse.success && personsResponse.data) {
         mergedPersons = personsResponse.data.filter((person: ActivePerson) => {
           const name = person.name || (person as any).fullName || (person as any).studentName;
-          return name && !name.startsWith('QR Not Found') && !name.includes('Unknown');
+          return name && 
+            !name.startsWith('QR Not Found') && 
+            !name.includes('Unknown');
         }).map((person: ActivePerson) => {
           let name = person.name || (person as any).fullName || (person as any).studentName;
           if (!name || name === 'Visitor-null' || name.includes('-null')) {
@@ -130,7 +132,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
 
       setActivePersons(mergedPersons);
 
-      // Use fast stats endpoint for counts
+      // Use fast stats endpoint for ACTIVE / EXITED / TOTAL counts
       if (statsResponse.success && statsResponse.data) {
         setStats({
           active: statsResponse.data.active,
