@@ -74,17 +74,21 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
     Animated.spring(translateY, { toValue, useNativeDriver: true, tension: 80, friction: 10 }).start(cb);
   };
 
+  // Use a ref so PanResponder always reads the latest pullEnabled value
+  const pullEnabledRef = useRef(pullEnabled);
+  useEffect(() => { pullEnabledRef.current = pullEnabled; }, [pullEnabled]);
+
   // Only create PanResponder for dashboards (pullEnabled=true)
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, g) => {
-        if (!pullEnabled || refreshing) return false;
+        if (!pullEnabledRef.current || refreshing) return false;
         // Only capture clear downward swipes, not ambiguous ones
         return g.dy > 12 && g.dy > Math.abs(g.dx) * 2.5;
       },
       onMoveShouldSetPanResponderCapture: (_, g) => {
-        if (!pullEnabled || refreshing) return false;
+        if (!pullEnabledRef.current || refreshing) return false;
         return g.dy > 20 && g.dy > Math.abs(g.dx) * 3;
       },
       onPanResponderGrant: () => {

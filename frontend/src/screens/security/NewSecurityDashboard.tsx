@@ -10,7 +10,6 @@ import {
   TextInput,
   Platform,
   Animated,
-  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -318,7 +317,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           refreshing={refreshing}
           onRefresh={onRefresh}
           color={theme.primary}
-          pullEnabled={!personsLoading && activePersons.filter(p => p.status === 'PENDING').length === 0}
+          pullEnabled={true}
         >
         <VerticalFlatList
           style={styles.outerScroll}
@@ -327,11 +326,7 @@ const NewSecurityDashboard: React.FC<NewSecurityDashboardProps> = ({
           decelerationRate="normal"
           data={personsLoading ? [] : activePersons.filter(p => p.status === 'PENDING')}
           keyExtractor={(person, index) => `${person.id}-${index}`}
-          refreshControl={
-            (!personsLoading && activePersons.filter(p => p.status === 'PENDING').length > 0)
-              ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
-              : undefined
-          }
+          refreshControl={undefined}
           ListHeaderComponent={
             <>
               <View style={[styles.controlCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
