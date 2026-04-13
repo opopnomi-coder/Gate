@@ -3,7 +3,7 @@ package com.example.visitor.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "staff")
+@Table(name = "teaching_staffs")
 public class StaffMember {
     @Id
     @Column(name = "staff_code", nullable = false, unique = true, length = 50)
@@ -15,26 +15,22 @@ public class StaffMember {
     @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "contact_no", length = 20)
+    @Column(name = "phone", length = 20)
     private String phone;
 
     @Column(name = "department", length = 100)
     private String department;
 
-    @Column(name = "role", length = 100)
+    @Column(name = "designation", length = 100)
     private String role;
 
     @Transient private boolean isActive = true;
     @Transient private String password;
 
-    public String getId() { return staffCode; }
-    public void setId(String id) { this.staffCode = id; }
     public String getStaffCode() { return staffCode; }
     public void setStaffCode(String staffCode) { this.staffCode = staffCode; }
     public String getStaffName() { return staffName; }
     public void setStaffName(String staffName) { this.staffName = staffName; }
-    public String getName() { return staffName; }
-    public void setName(String name) { this.staffName = name; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
@@ -45,6 +41,6 @@ public class StaffMember {
     public void setRole(String role) { this.role = role; }
     public boolean getIsActive() { return true; }
     public void setIsActive(boolean isActive) { this.isActive = isActive; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getPassword() { return null; }
+    public void setPassword(String p) { this.password = p; }
 }

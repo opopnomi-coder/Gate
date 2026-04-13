@@ -1,20 +1,13 @@
 package com.example.visitor.repository;
 
-import com.example.visitor.entity.HODBulkPassParticipant;
+import com.example.visitor.entity.GatePassRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
+/**
+ * Participants are stored as comma-separated lists in Gatepass.student_list / staff_list.
+ * This repository delegates to GatePassRequest.
+ */
 @Repository
-public interface HODBulkPassParticipantRepository extends JpaRepository<HODBulkPassParticipant, Long> {
-
-    // Find all participants for a request
-    List<HODBulkPassParticipant> findByRequestId(Long requestId);
-
-    // Find receiver for a request
-    HODBulkPassParticipant findByRequestIdAndIsReceiverTrue(Long requestId);
-
-    // Delete all participants for a request
-    void deleteByRequestId(Long requestId);
+public interface HODBulkPassParticipantRepository extends JpaRepository<GatePassRequest, Long> {
 }

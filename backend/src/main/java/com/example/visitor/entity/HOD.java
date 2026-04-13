@@ -2,28 +2,29 @@ package com.example.visitor.entity;
 
 import jakarta.persistence.*;
 
+/**
+ * HOD details come from the departments table.
+ * staff_code = HOD's staff code (login ID)
+ * hod        = HOD's name
+ * name       = department name
+ */
 @Entity
-@Table(name = "staff")
+@Table(name = "departments")
 public class HOD {
     @Id
     @Column(name = "staff_code", nullable = false, unique = true, length = 50)
     private String hodCode;
 
-    @Column(name = "name", length = 200)
+    @Column(name = "hod", length = 200)
     private String hodName;
 
-    @Column(name = "email", length = 100)
-    private String email;
-
-    @Column(name = "contact_no", length = 20)
-    private String phone;
-
-    @Column(name = "department", length = 100)
+    @Column(name = "name", length = 100)
     private String department;
 
-    @Column(name = "role", length = 100)
-    private String role;
-
+    // email and phone are not in departments — fetched from teaching_staffs if needed
+    @Transient private String email;
+    @Transient private String phone;
+    @Transient private String role = "HOD";
     @Transient private boolean isActive = true;
 
     public String getId() { return hodCode; }

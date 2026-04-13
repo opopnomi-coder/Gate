@@ -2,8 +2,12 @@ package com.example.visitor.entity;
 
 import jakarta.persistence.*;
 
+/**
+ * teaching_staffs table — covers STAFF and NCI roles.
+ * Columns: name, staff_code, department, designation, email, phone
+ */
 @Entity
-@Table(name = "staff")
+@Table(name = "teaching_staffs")
 public class Staff {
     @Id
     @Column(name = "staff_code", nullable = false, unique = true, length = 50)
@@ -15,13 +19,13 @@ public class Staff {
     @Column(name = "department", length = 100)
     private String department;
 
-    @Column(name = "role", length = 100)
+    @Column(name = "designation", length = 100)
     private String role;
 
     @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "contact_no", length = 20)
+    @Column(name = "phone", length = 20)
     private String phone;
 
     @Transient private boolean isActive = true;
@@ -42,7 +46,6 @@ public class Staff {
     public void setPhone(String phone) { this.phone = phone; }
     public boolean getIsActive() { return true; }
     public void setIsActive(boolean isActive) { this.isActive = isActive; }
-    // compat
     public String getPassword() { return null; }
     public void setPassword(String p) {}
 }

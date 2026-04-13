@@ -1,7 +1,7 @@
 package com.example.visitor.repository;
 
-import com.example.visitor.entity.HODBulkGatePassRequest;
-import com.example.visitor.entity.HODBulkGatePassRequest.RequestStatus;
+import com.example.visitor.entity.GatePassRequest;
+import com.example.visitor.entity.GatePassRequest.RequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,25 +10,35 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * HOD bulk gate pass requests are stored in the Gatepass table (pass_type='BULK').
+ */
 @Repository
-public interface HODBulkGatePassRequestRepository extends JpaRepository<HODBulkGatePassRequest, Long> {
+public interface HODBulkGatePassRequestRepository extends JpaRepository<GatePassRequest, Long> {
 
-    // Find all requests by HOD code
-    List<HODBulkGatePassRequest> findByHodCodeOrderByCreatedAtDesc(String hodCode);
+    List<GatePassRequest> findByRequestedByStaffCodeAndPassTypeOrderByCreatedAtDesc(String hodCode, String passType);
 
-    // Find requests by HOD code and status
-    List<HODBulkGatePassRequest> findByHodCodeAndStatusOrderByCreatedAtDesc(String hodCode, RequestStatus status);
+    List<GatePassRequest> findByRequestedByStaffCodeAndPassTypeAndStatusOrderByCreatedAtDesc(String hodCode, String passType, RequestStatus status);
 
-    // Find all pending requests (for HR broadcast)
-    List<HODBulkGatePassRequest> findByStatusOrderByCreatedAtDesc(RequestStatus status);
+    List<GatePassRequest> findByPassTypeAndStatusOrderByCreatedAtDesc(String passType, RequestStatus status);
 
-    // Find request by ID with participants
-    @Query("SELECT r FROM HODBulkGatePassRequest r LEFT JOIN FETCH r.participants WHERE r.id = :id")
-    Optional<HODBulkGatePassRequest> findByIdWithParticipants(@Param("id") Long id);
+    @Query("SELECT r FROM GatePassRequest r WHERE r.id = :id AND r.passType = 'BULK'")
+    Optional<GatePassRequest> findByIdWithParticipants(@Param("id") Long id);
 
-    // Count pending requests
-    long countByStatus(RequestStatus status);
+    long countByPassTypeAndStatus(String passType, RequestStatus status);
 
-    // Count pending requests for specific HOD
-    long countByHodCodeAndStatus(String hodCode, RequestStatus status);
+    long countByRequestedByStaffCodeAndPassTypeAndStatus(String hodCode, String passType, RequestStatus status);
+
+    // Convenience: find by hodCode (maps to requestedByStaffCode for bulk)
+    default List<GatePassRequest> findByHodCodeOrderByCreatedAtDesc(String hodCode) {
+        return findByRequestedByStaffCodeAndPassTypeOrderByCreatedAtDesc(hodCode, "BULK");
+    }
+
+    default List<GatePassRequest> findByStatusOrderByCreatedAtDesc(RequestStatus status) {
+        return findByPassTypeAndStatusOrderByCreatedAtDesc("BULK", status);
+    }
+
+    default long countByStatus(RequestStatus status) {
+        return countByPassTypeAndStatus("BULK", status);
+    }
 }

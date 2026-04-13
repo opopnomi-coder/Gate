@@ -2,8 +2,12 @@ package com.example.visitor.entity;
 
 import jakarta.persistence.*;
 
+/**
+ * non_teaching_staffs table — covers NTF and AO (Admin Officer) roles.
+ * Columns: name, staff_code, department, designation, email, phone
+ */
 @Entity
-@Table(name = "staff")
+@Table(name = "non_teaching_staffs")
 public class HR {
     @Id
     @Column(name = "staff_code", nullable = false, unique = true, length = 50)
@@ -15,13 +19,13 @@ public class HR {
     @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "contact_no", length = 20)
+    @Column(name = "phone", length = 20)
     private String phone;
 
     @Column(name = "department", length = 100)
     private String department;
 
-    @Column(name = "role", length = 100)
+    @Column(name = "designation", length = 100)
     private String role;
 
     @Transient private boolean isActive = true;

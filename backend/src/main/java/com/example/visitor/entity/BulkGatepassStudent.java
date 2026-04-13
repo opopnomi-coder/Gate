@@ -1,40 +1,24 @@
 package com.example.visitor.entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "bulk_gatepass_students")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * Bulk gatepass students are stored as comma-separated reg_nos in Gatepass.student_list.
+ * This class is kept for backward compatibility only — not mapped to any table.
+ */
 public class BulkGatepassStudent {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(name = "pass_request_id", nullable = false)
-    private Long passRequestId; // FK to gate_pass_requests
-    
-    @Column(name = "reg_no", nullable = false)
-    private String regNo; // Student registration number
-    
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-    
-    // Constructor for easy creation
+    private Long passRequestId;
+    private String regNo;
+
+    public BulkGatepassStudent() {}
     public BulkGatepassStudent(Long passRequestId, String regNo) {
         this.passRequestId = passRequestId;
         this.regNo = regNo;
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getPassRequestId() { return passRequestId; }
+    public void setPassRequestId(Long passRequestId) { this.passRequestId = passRequestId; }
+    public String getRegNo() { return regNo; }
+    public void setRegNo(String regNo) { this.regNo = regNo; }
 }
