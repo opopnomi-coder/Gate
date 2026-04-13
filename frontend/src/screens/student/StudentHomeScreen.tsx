@@ -33,7 +33,7 @@ import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
 import TopRefreshControl from '../../components/TopRefreshControl';
-import { StatsSkeleton } from '../../components/SkeletonCard';
+import { StatsSkeleton, SkeletonList } from '../../components/SkeletonCard';
 
 
 interface StudentHomeScreenProps {
@@ -59,6 +59,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   const { refreshCount } = useRefresh();
   const { profileImage } = useProfile();
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
   const [stats, setStats] = useState({
     entries: 0,
     exits: 0,
@@ -100,12 +101,15 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
     } finally {
       setRefreshing(false);
       setStatsLoading(false);
+      setRequestsLoading(false);
     }
   };
 
   const onRefresh = () => {
+    console.log('🔄 [REFRESH] Student/Home');
     setRefreshing(true);
     setStatsLoading(true);
+    setRequestsLoading(true);
     loadData();
   };
 
@@ -273,6 +277,9 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1 }}
           >
+          {(requestsLoading || refreshing) ? (
+            <SkeletonList count={3} />
+          ) : (
           <VerticalFlatList
             style={styles.content}
             scrollEnabled={false}
@@ -307,6 +314,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
             </View>
           }
         />
+          )}
           </ScrollView>
       </ScreenContentContainer>
 
