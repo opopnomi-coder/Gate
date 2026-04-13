@@ -98,7 +98,14 @@ const MyRequestsBulkModal: React.FC<MyRequestsBulkModalProps> = ({
   const isRejected = statusStr === 'REJECTED';
   const hasQR = !!(details?.qrCode || details?.qrData?.qrString);
   const isQROwner = currentUserId
-    ? String(currentUserId).trim() === String(details?.qrOwnerId || '').trim()
+    ? (
+        // Explicit qrOwnerId match
+        String(currentUserId).trim() === String(details?.qrOwnerId || '').trim() ||
+        // Staff who created the pass is always an owner when includeStaff=true
+        (details?.includeStaff && String(currentUserId).trim() === String(details?.requestedByStaffCode || details?.staffCode || '').trim()) ||
+        // If no qrOwnerId set, the requester owns it
+        (!details?.qrOwnerId && String(currentUserId).trim() === String(details?.requestedByStaffCode || details?.staffCode || '').trim())
+      )
     : true;
 
   // "Applied by" — shown when the viewer is a receiver but someone else created the pass
