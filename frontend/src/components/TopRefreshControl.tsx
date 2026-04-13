@@ -1,16 +1,9 @@
 /**
  * TopRefreshControl
  *
- * Two modes:
- * 1. Default (dashboards): Custom pull-from-anywhere gesture.
- *    The FlatList inside should NOT have a RefreshControl.
- *
- * 2. Blur-only (other screens): Just wraps children.
- *    The FlatList inside uses native RefreshControl.
- *    Pass pullEnabled={false} to use this mode.
- *
- * RefreshBlurOverlay is kept as a no-op for backward compat.
- * Use <SkeletonList /> from SkeletonCard.tsx for loading states instead.
+ * Custom pull-to-refresh that works regardless of font size or device density.
+ * Uses a scroll position tracker + PanResponder to intercept downward swipes
+ * only when the inner scroll is at the top (scrollY === 0).
  */
 import React, { useRef, useEffect, createContext } from 'react';
 import {
@@ -19,19 +12,24 @@ import {
   PanResponder,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from 'react-native';
 
-const PULL_THRESHOLD = 70;
+const PULL_THRESHOLD = 60;   // px to drag before triggering refresh
 const INDICATOR_HEIGHT = 52;
+const MIN_DY = 8;            // minimum downward movement to start capturing
 
-export const RefreshContext = createContext<Animated.Value>(new Animated.Value(0));
+export const RefreshContext = createContext<{ scrollY: Animated.Value; onScroll: any }>({
+  scrollY: new Animated.Value(0),
+  onScroll: null,
+});
 
 interface TopRefreshControlProps {
   refreshing: boolean;
   onRefresh: () => void;
   children: React.ReactNode;
   color?: string;
-  pullEnabled?: boolean; // default true for dashboards, false for other screens
+  pullEnabled?: boolean;
 }
 
 const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
@@ -45,7 +43,20 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulling      = useRef(false);
   const triggered    = useRef(false);
+  const scrollY      = useRef(new Animated.Value(0)).current;
+  const scrollYValue = useRef(0);
   const progressLoop = useRef<Animated.CompositeAnimation | null>(null);
+  const pullEnabledRef = useRef(pullEnabled);
+  const refreshingRef  = useRef(refreshing);
+
+  useEffect(() => { pullEnabledRef.current = pullEnabled; }, [pullEnabled]);
+  useEffect(() => { refreshingRef.current = refreshing; }, [refreshing]);
+
+  // Track scroll position so we only intercept when at top
+  useEffect(() => {
+    const id = scrollY.addListener(({ value }) => { scrollYValue.current = value; });
+    return () => scrollY.removeListener(id);
+  }, []);
 
   useEffect(() => {
     if (refreshing) {
@@ -74,35 +85,38 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
     Animated.spring(translateY, { toValue, useNativeDriver: true, tension: 80, friction: 10 }).start(cb);
   };
 
-  // Use a ref so PanResponder always reads the latest pullEnabled value
-  const pullEnabledRef = useRef(pullEnabled);
-  useEffect(() => { pullEnabledRef.current = pullEnabled; }, [pullEnabled]);
+  const isAtTop = () => scrollYValue.current <= 2;
 
-  // Only create PanResponder for dashboards (pullEnabled=true)
   const panResponder = useRef(
     PanResponder.create({
+      // Capture at start if clearly pulling down from top
       onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
+
       onMoveShouldSetPanResponder: (_, g) => {
-        if (!pullEnabledRef.current || refreshing) return false;
-        // Only capture clear downward swipes, not ambiguous ones
-        return g.dy > 12 && g.dy > Math.abs(g.dx) * 2.5;
+        if (!pullEnabledRef.current || refreshingRef.current) return false;
+        if (!isAtTop()) return false;
+        return g.dy > MIN_DY && g.dy > Math.abs(g.dx) * 1.5;
       },
       onMoveShouldSetPanResponderCapture: (_, g) => {
-        if (!pullEnabledRef.current || refreshing) return false;
-        return g.dy > 20 && g.dy > Math.abs(g.dx) * 3;
+        if (!pullEnabledRef.current || refreshingRef.current) return false;
+        if (!isAtTop()) return false;
+        // More aggressive capture — lower ratio requirement
+        return g.dy > MIN_DY * 1.5 && g.dy > Math.abs(g.dx) * 1.2;
       },
+
       onPanResponderGrant: () => {
         pulling.current = true;
         triggered.current = false;
       },
       onPanResponderMove: (_, g) => {
         if (!pulling.current) return;
-        const drag = Math.min(g.dy * 0.45, PULL_THRESHOLD + 20);
+        const drag = Math.min(g.dy * 0.5, PULL_THRESHOLD + 20);
         if (drag > 0) translateY.setValue(drag);
       },
       onPanResponderRelease: (_, g) => {
         pulling.current = false;
-        const drag = g.dy * 0.45;
+        const drag = g.dy * 0.5;
         if (drag >= PULL_THRESHOLD && !triggered.current) {
           triggered.current = true;
           console.log('🔄 [TopRefreshControl] Pull-to-refresh triggered');
@@ -129,10 +143,15 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
     outputRange: ['0%', '100%'],
   });
 
+  // Scroll event handler to pass to inner FlatList/ScrollView via context
+  const onScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: false }
+  );
+
   if (!pullEnabled) {
-    // Blur-only mode: no gesture, no spinner, just context + progress bar
     return (
-      <RefreshContext.Provider value={new Animated.Value(0)}>
+      <RefreshContext.Provider value={{ scrollY, onScroll }}>
         <View style={styles.container}>
           <Animated.View
             pointerEvents="none"
@@ -145,7 +164,7 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
   }
 
   return (
-    <RefreshContext.Provider value={new Animated.Value(0)}>
+    <RefreshContext.Provider value={{ scrollY, onScroll }}>
       <View style={styles.container}>
         {/* Spinner at top */}
         <Animated.View pointerEvents="none" style={[styles.indicator, { opacity: refreshing ? 1 : indicatorOpacity }]}>
@@ -170,14 +189,7 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
   );
 };
 
-/**
- * RefreshBlurOverlay — kept as no-op for backward compatibility.
- * Use <SkeletonList /> from SkeletonCard.tsx for loading states instead.
- */
-export const RefreshBlurOverlay: React.FC<{
-  cardBg: string;
-  refreshing?: boolean;
-}> = () => null;
+export const RefreshBlurOverlay: React.FC<{ cardBg: string; refreshing?: boolean }> = () => null;
 
 const styles = StyleSheet.create({
   container: { flex: 1, overflow: 'hidden' },

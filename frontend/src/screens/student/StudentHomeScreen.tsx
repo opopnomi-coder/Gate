@@ -292,7 +292,14 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
             <TouchableOpacity style={[styles.requestItem, { backgroundColor: theme.cardBackground }]} onPress={() => handleRequestClick(request)}>
               <View style={styles.requestItemTop}>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={[styles.requestId, { color: theme.text }]}>{request.purpose || 'Gate Pass Request'}</ThemedText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                    <ThemedText style={[styles.requestId, { color: theme.text }]} numberOfLines={1}>{request.purpose || 'Gate Pass Request'}</ThemedText>
+                    <View style={[styles.passTypePill, { backgroundColor: request.passType === 'BULK' ? theme.primary + '20' : theme.success + '20' }]}>
+                      <ThemedText style={[styles.passTypeText, { color: request.passType === 'BULK' ? theme.primary : theme.success }]}>
+                        {request.passType === 'BULK' ? 'Bulk' : 'Single'}
+                      </ThemedText>
+                    </View>
+                  </View>
                   <ThemedText style={[styles.requestReason, { color: theme.textSecondary }]}>{formatDate(request.requestDate)}</ThemedText>
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(request.status) }]}>
@@ -301,7 +308,7 @@ const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               </View>
               {request.status === 'APPROVED' && (
                 <TouchableOpacity style={[styles.viewQRButton, { backgroundColor: theme.primary }]} onPress={() => handleViewQR(request)}>
-                  <Ionicons name="qr-code-outline" size={16} color="#FFFFFF" />
+                  <Ionicons name="qr-code-outline" size={13} color="#FFFFFF" />
                   <ThemedText style={styles.viewQRButtonText}>View QR</ThemedText>
                 </TouchableOpacity>
               )}
@@ -427,12 +434,14 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 16, fontWeight: '600', marginTop: 12 },
   requestItem: { marginBottom: 12, padding: 16, borderRadius: 12, elevation: 2 },
   requestItemTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  viewQRButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14, marginTop: 12, gap: 6, alignSelf: 'flex-start' },
-  viewQRButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-  requestId: { fontSize: 16, fontWeight: '700' },
-  requestReason: { fontSize: 13, marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
+  viewQRButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 10, marginTop: 8, gap: 4, alignSelf: 'flex-start' },
+  viewQRButtonText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  requestId: { fontSize: 14, fontWeight: '700', flex: 1 },
+  requestReason: { fontSize: 12, marginTop: 2 },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  statusText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.3 },
+  passTypePill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  passTypeText: { fontSize: 10, fontWeight: '700' },
   bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 8, borderTopWidth: 1, elevation: 8 },
   navItem: { flex: 1, alignItems: 'center', paddingVertical: 8, position: 'relative' },
   navLabelActive: { fontSize: 12, marginTop: 4, fontWeight: '700' },
