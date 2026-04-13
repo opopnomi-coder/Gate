@@ -543,55 +543,43 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(createErrorResponse("Staff code is required"));
             }
             
-            // Check rate limiting
             ResponseEntity<?> rateLimitResponse = checkRateLimit(staffCode, "STAFF");
-            if (rateLimitResponse != null) {
-                return rateLimitResponse;
-            }
+            if (rateLimitResponse != null) return rateLimitResponse;
             
+            // Check teaching_staffs first, then non_teaching_staffs
+            String staffName, email, department, role;
             Optional<Staff> staffOpt = staffRepository.findByStaffCode(staffCode);
-            
-            if (staffOpt.isEmpty()) {
-                logAuthEvent(staffCode, "STAFF", "OTP_SENT", "FAILED", "Staff not found");
-                return ResponseEntity.status(404).body(createErrorResponse("Staff not found"));
+            if (staffOpt.isPresent()) {
+                Staff staff = staffOpt.get();
+                staffName = staff.getStaffName(); email = staff.getEmail();
+                department = staff.getDepartment(); role = staff.getRole();
+            } else {
+                Optional<HR> ntfOpt = hrRepository.findByHrCode(staffCode);
+                if (ntfOpt.isEmpty()) {
+                    logAuthEvent(staffCode, "STAFF", "OTP_SENT", "FAILED", "Staff not found");
+                    return ResponseEntity.status(404).body(createErrorResponse("Staff not found"));
+                }
+                HR ntf = ntfOpt.get();
+                staffName = ntf.getHrName(); email = ntf.getEmail();
+                department = ntf.getDepartment(); role = ntf.getRole();
             }
             
-            Staff staff = staffOpt.get();
-            
-            // Generate and store OTP with BCrypt hashing
             String otp = generateOTP();
-            String hashedOTP = passwordEncoder.encode(otp);
-            otpStore.put(staff.getEmail(), hashedOTP);
-            otpTimestamp.put(staff.getEmail(), System.currentTimeMillis());
+            otpStore.put(email, passwordEncoder.encode(otp));
+            otpTimestamp.put(email, System.currentTimeMillis());
+            sendOTPEmail(email, otp, staffName);
+            System.out.println("🔐 OTP [STAFF/NTF] " + staffCode + " → " + otp);
             
-            // Send OTP via Email
-            sendOTPEmail(staff.getEmail(), otp, staff.getStaffName());
-            // Log OTP to console
-            System.out.println("\n" + "=".repeat(70));
-            System.out.println("🔐 OTP GENERATED - STAFF LOGIN");
-            System.out.println("=".repeat(70));
-            System.out.println("│ Staff Code  : " + staff.getStaffCode());
-            System.out.println("│ Name        : " + staff.getStaffName());
-            System.out.println("│ Email       : " + staff.getEmail());
-            System.out.println("│ Department  : " + staff.getDepartment());
-            System.out.println("├" + "─".repeat(68));
-            System.out.println("│ ⚡ OTP CODE : " + otp);
-            System.out.println("│ ⏰ Valid for: " + otpExpiryMinutes + " minutes");
-            System.out.println("=".repeat(70) + "\n");
-            
-            logAuthEvent(staffCode, "STAFF", "OTP_SENT", "SUCCESS", "OTP sent to " + maskEmail(staff.getEmail()));
-            
+            logAuthEvent(staffCode, "STAFF", "OTP_SENT", "SUCCESS", "OTP sent to " + maskEmail(email));
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "OTP sent to registered email");
-            response.put("email", maskEmail(staff.getEmail()));
-            response.put("staffCode", staff.getStaffCode());
-            
+            response.put("email", maskEmail(email));
+            response.put("staffCode", staffCode);
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             System.err.println("Error in sendStaffOTP: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(createErrorResponse("Failed to send OTP"));
         }
     }
@@ -606,48 +594,40 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(createErrorResponse("Staff code and OTP are required"));
             }
             
+            // Check teaching_staffs first, then non_teaching_staffs
+            String staffName, email, department, role;
             Optional<Staff> staffOpt = staffRepository.findByStaffCode(staffCode);
-            
-            if (staffOpt.isEmpty()) {
-                logAuthEvent(staffCode, "STAFF", "LOGIN", "FAILED", "Staff not found");
-                return ResponseEntity.status(404).body(createErrorResponse("Staff not found"));
+            if (staffOpt.isPresent()) {
+                Staff staff = staffOpt.get();
+                staffName = staff.getStaffName(); email = staff.getEmail();
+                department = staff.getDepartment(); role = staff.getRole();
+            } else {
+                Optional<HR> ntfOpt = hrRepository.findByHrCode(staffCode);
+                if (ntfOpt.isEmpty()) {
+                    logAuthEvent(staffCode, "STAFF", "LOGIN", "FAILED", "Staff not found");
+                    return ResponseEntity.status(404).body(createErrorResponse("Staff not found"));
+                }
+                HR ntf = ntfOpt.get();
+                staffName = ntf.getHrName(); email = ntf.getEmail();
+                department = ntf.getDepartment(); role = ntf.getRole();
             }
             
-            Staff staff = staffOpt.get();
-            String email = staff.getEmail();
-            
-            // Use unified verification with attempt limiting
             ResponseEntity<?> verificationError = verifyOTPWithAttempts(email, otp, staffCode, "STAFF");
-            if (verificationError != null) {
-                return verificationError;
-            }
+            if (verificationError != null) return verificationError;
             
-            // OTP verified successfully - use DTO
-            UserResponseDTO userDTO = new UserResponseDTO(
-                null,
-                staff.getStaffCode(),
-                staff.getStaffName(),
-                staff.getEmail(),
-                staff.getPhone(),
-                staff.getDepartment(),
-                staff.getIsActive()
-            );
-            
-            // Set staffName explicitly for frontend compatibility
-            userDTO.setStaffName(staff.getStaffName());
-            userDTO.setStaffCode(staff.getStaffCode());
-            userDTO.setRole(staff.getRole()); // Pass role so frontend can detect Principal/Director
+            UserResponseDTO userDTO = new UserResponseDTO(null, staffCode, staffName, email, null, department, true);
+            userDTO.setStaffName(staffName);
+            userDTO.setStaffCode(staffCode);
+            userDTO.setRole(role);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Login successful");
             response.put("staff", userDTO);
-            
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             System.err.println("Error in verifyStaffOTP: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.internalServerError().body(createErrorResponse("Verification failed"));
         }
     }
