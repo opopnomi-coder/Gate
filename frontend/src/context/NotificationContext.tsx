@@ -8,6 +8,8 @@ import {
   requestNotificationPermission,
   onNotificationTap,
 } from '../services/localNotification.service';
+import { updateBadgeCount, clearBadge } from '../services/pushNotification.service';
+import { offlineQueue } from '../services/offlineQueue.service';
 
 interface Notification {
   id: number;
@@ -98,6 +100,15 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  // Sync badge count whenever unread count changes (Feature 5)
+  useEffect(() => {
+    if (unreadCount > 0) {
+      updateBadgeCount(unreadCount).catch(() => {});
+    } else {
+      clearBadge().catch(() => {});
+    }
+  }, [unreadCount]);
+
   /**
    * Fetch notifications from backend and optionally show OS banners for new ones.
    * 
@@ -183,26 +194,34 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
   };
 
   const markAsRead = async (notificationId: number) => {
+    // Optimistic update immediately
+    setNotifications(prev =>
+      prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
+    );
+    // Use offline queue so it retries if network is slow (Feature 2)
     try {
-      await fetch(`${API_CONFIG.BASE_URL}/notifications/${notificationId}/read`, {
+      await fetch(`${API_CONFIG.BASE_URL}/notifications/${notificationId}/read`, { method: 'PUT' });
+    } catch {
+      offlineQueue.enqueue({
+        type: 'MARK_READ',
+        url: `${API_CONFIG.BASE_URL}/notifications/${notificationId}/read`,
         method: 'PUT',
       });
-      setNotifications(prev =>
-        prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
     }
   };
 
   const markAllAsRead = async (userId: string) => {
+    // Optimistic update immediately
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    clearBadge().catch(() => {});
     try {
-      await fetch(`${API_CONFIG.BASE_URL}/notifications/user/${userId}/read-all`, {
+      await fetch(`${API_CONFIG.BASE_URL}/notifications/user/${userId}/read-all`, { method: 'PUT' });
+    } catch {
+      offlineQueue.enqueue({
+        type: 'MARK_ALL_READ',
+        url: `${API_CONFIG.BASE_URL}/notifications/user/${userId}/read-all`,
         method: 'PUT',
       });
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch (error) {
-      console.error('Error marking all as read:', error);
     }
   };
 
@@ -233,6 +252,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode; onNavigate?: 
       if (nextState === 'active') {
         // Delay tray clear slightly so notifee press events fire before notifications are cancelled
         setTimeout(() => cancelAllNotifications(), 500);
+        // Clear badge when user opens the app (Feature 5)
+        clearBadge().catch(() => {});
         loadShownIds().then(ids => { shownNotificationIdsRef.current = ids; });
         // Also refresh notifications immediately
         if (currentUserRef.current && initialLoadDoneRef.current) {

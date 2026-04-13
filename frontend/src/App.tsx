@@ -59,13 +59,17 @@ import NotificationsScreen from './screens/shared/NotificationsScreen';
 import SwipeBackWrapper from './components/SwipeBackWrapper';
 import ErrorBoundary from './components/ErrorBoundary';
 import ExitConfirmModal from './components/navigation/ExitConfirmModal';
-import { initPushNotifications, unregisterPushToken, setupNotificationTapHandler, handleInitialNotification, setupFCMForegroundHandler } from './services/pushNotification.service';
+import { initPushNotifications, unregisterPushToken, setupNotificationTapHandler, handleInitialNotification, setupFCMForegroundHandler, registerBackgroundHandler } from './services/pushNotification.service';
 import { getInitialNotificationData } from './services/localNotification.service';
 import { biometricAuthService } from './services/biometricAuth.service';
 import { runNotificationOnboarding, logDeviceNotificationInfo } from './utils/notificationOnboarding';
 import BatteryOptimizationGateScreen from './screens/auth/BatteryOptimizationGateScreen';
 import { getAllNotificationSettings } from './services/batteryOptimization.service';
 import { apiService } from './services/api.service';
+import { offlineQueue } from './services/offlineQueue.service';
+
+// Register FCM background handler immediately (Feature 1 — must be outside React tree)
+registerBackgroundHandler();
 
 // Inner component that can access ThemeContext for transition animation
 const ThemedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -148,20 +152,42 @@ const App: React.FC = () => {
     if (!route) return;
     const r = route.toLowerCase();
     const ut = userTypeRef.current;
+    // My requests / own gate pass
     if (r.includes('my-requests') || r.includes('my_requests')) {
       if (ut === 'STUDENT') setCurrentScreen('REQUESTS');
       else if (ut === 'STAFF') setCurrentScreen('MY_REQUESTS');
       else if (ut === 'HOD') setCurrentScreen('HOD_MY_REQUESTS');
       else if (ut === 'NON_TEACHING') setCurrentScreen('NTF_MY_REQUESTS');
       else if (ut === 'NON_CLASS_INCHARGE') setCurrentScreen('NCI_MY_REQUESTS');
-    } else if (r.includes('pending-approvals') || r.includes('pending_approvals')) {
+    }
+    // Pending approvals — go to the approver's dashboard
+    else if (r.includes('pending-approvals') || r.includes('pending_approvals') ||
+             r.includes('pending-requests') || r.includes('pending_requests')) {
       if (ut === 'STAFF') setCurrentScreen('STAFF_DASHBOARD');
       else if (ut === 'HOD') setCurrentScreen('HOD_DASHBOARD');
       else if (ut === 'HR') setCurrentScreen('HR_DASHBOARD');
       else if (ut === 'SECURITY') setCurrentScreen('SECURITY_DASHBOARD');
-    } else if (r.includes('hod/pending') || r.includes('hr/pending')) {
+    }
+    // HOD/HR specific pending
+    else if (r.includes('hod/pending') || r.includes('hr/pending')) {
       if (ut === 'HOD') setCurrentScreen('HOD_DASHBOARD');
       else if (ut === 'HR') setCurrentScreen('HR_DASHBOARD');
+    }
+    // Notifications screen
+    else if (r.includes('notifications')) {
+      setCurrentScreen('NOTIFICATIONS');
+    }
+    // Gate pass approved — go to QR screen
+    else if (r.includes('approved') || r.includes('qr-code') || r.includes('qr_code')) {
+      if (ut === 'STUDENT') setCurrentScreen('REQUESTS');
+      else if (ut === 'STAFF') setCurrentScreen('MY_REQUESTS');
+      else if (ut === 'HOD') setCurrentScreen('HOD_MY_REQUESTS');
+    }
+    // Visitor requests
+    else if (r.includes('visitor')) {
+      if (ut === 'STAFF') setCurrentScreen('STAFF_DASHBOARD');
+      else if (ut === 'HOD') setCurrentScreen('HOD_DASHBOARD');
+      else if (ut === 'SECURITY') setCurrentScreen('SECURITY_DASHBOARD');
     }
   }, []);
 
@@ -263,6 +289,8 @@ const App: React.FC = () => {
 
   React.useEffect(() => {
     console.log('🚀 App mounted - starting initialization');
+    // Start offline queue (Feature 2)
+    offlineQueue.start();
     // Log device info and run notification onboarding (battery opt + OEM auto-launch)
     logDeviceNotificationInfo();
     runNotificationOnboarding();

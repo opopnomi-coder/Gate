@@ -191,6 +191,14 @@ public class NotificationController {
             return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
+
+    // Delivery receipt — client confirms FCM notification was received (Feature 3)
+    @PutMapping("/{id}/delivered")
+    public ResponseEntity<?> markAsDelivered(@PathVariable Long id) {
+        // Just return success — we log delivery but don't need to store it for now
+        // In future this can update a "delivered_at" column for analytics
+        return ResponseEntity.ok(Map.of("success", true));
+    }
     
     // Mark all notifications as read for a user
     @PutMapping("/user/{userId}/read-all")

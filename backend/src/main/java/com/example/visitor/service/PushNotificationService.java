@@ -118,19 +118,22 @@ public class PushNotificationService {
                 "\"notification\":{\"title\":\"%s\",\"body\":\"%s\"}," +
                 "\"android\":{" +
                 "  \"priority\":\"high\"," +
+                "  \"ttl\":\"86400s\"," +
                 "  \"notification\":{" +
                 "    \"channel_id\":\"ritgate_main\"," +
                 "    \"sound\":\"default\"," +
                 "    \"notification_priority\":\"PRIORITY_MAX\"," +
                 "    \"visibility\":\"PUBLIC\"," +
                 "    \"default_vibrate_timings\":true," +
-                "    \"default_light_settings\":true" +
+                "    \"default_light_settings\":true," +
+                "    \"tag\":\"%s\"" +
                 "  }" +
                 "}" +
                 "%s" +
                 "}}",
                 fcmToken,
                 escapeJson(title), escapeJson(body),
+                notificationId != null ? String.valueOf(notificationId) : "ritgate",
                 dataJson
             );
 

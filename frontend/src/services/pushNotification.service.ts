@@ -153,6 +153,8 @@ export function setupFCMForegroundHandler(): () => void {
       const numericId = parseInt(dbNotifId, 10);
       if (!isNaN(numericId)) {
         await addToShownIds(numericId);
+        // Send delivery receipt (Feature 3)
+        sendDeliveryReceipt(numericId).catch(() => {});
       }
     }
 
@@ -215,8 +217,45 @@ export function registerBackgroundHandler(): void {
       const numericId = parseInt(dbNotifId, 10);
       if (!isNaN(numericId)) {
         await addToShownIds(numericId);
+        // Send delivery receipt to backend
+        sendDeliveryReceipt(numericId).catch(() => {});
       }
     }
     // FCM notification field handles the OS banner natively — no notifee call needed
   });
+}
+
+/**
+ * Send a delivery receipt to the backend confirming the notification was received.
+ * This lets the backend know FCM delivery succeeded (Feature 3).
+ */
+export async function sendDeliveryReceipt(notificationId: number): Promise<void> {
+  try {
+    await fetch(`${API_CONFIG.BASE_URL}/notifications/${notificationId}/delivered`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch {
+    // Non-critical — fire and forget
+  }
+}
+
+/**
+ * Update the app icon badge count (Feature 5).
+ * Uses notifee's setBadgeCount for Android/iOS.
+ */
+export async function updateBadgeCount(count: number): Promise<void> {
+  try {
+    const notifee = require('@notifee/react-native').default;
+    await notifee.setBadgeCount(count);
+  } catch {
+    // notifee may not support badges on all devices
+  }
+}
+
+/**
+ * Clear the app icon badge (call on app foreground or all-read).
+ */
+export async function clearBadge(): Promise<void> {
+  await updateBadgeCount(0);
 }
