@@ -105,6 +105,7 @@ const TopRefreshControl: React.FC<TopRefreshControlProps> = ({
         const drag = g.dy * 0.45;
         if (drag >= PULL_THRESHOLD && !triggered.current) {
           triggered.current = true;
+          console.log('🔄 [TopRefreshControl] Pull-to-refresh triggered');
           animateTo(INDICATOR_HEIGHT, () => onRefresh());
         } else {
           animateTo(0);

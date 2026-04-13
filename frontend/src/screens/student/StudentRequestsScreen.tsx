@@ -82,7 +82,8 @@ const StudentRequestsScreen: React.FC<StudentRequestsScreenProps> = ({ student, 
     }
   };
 
-  const onRefresh = () => { setRefreshing(true); loadRequests(); };
+  const onRefresh = () => {
+    console.log('🔄 [REFRESH] Student/StudentRequests'); setRefreshing(true); loadRequests(); };
 
   const filteredRequests = requests.filter(r =>
     searchQuery === '' ||

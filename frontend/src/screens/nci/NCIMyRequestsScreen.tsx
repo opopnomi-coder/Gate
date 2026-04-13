@@ -49,7 +49,8 @@ const NCIMyRequestsScreen: React.FC<NCIMyRequestsScreenProps> = ({ user, onBack 
     }
   };
 
-  const onRefresh = () => { setRefreshing(true); fetchRequests(); };
+  const onRefresh = () => {
+    console.log('🔄 [REFRESH] NCI/MyRequests'); setRefreshing(true); fetchRequests(); };
 
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);

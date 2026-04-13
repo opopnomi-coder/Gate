@@ -129,6 +129,7 @@ const RequestsScreen: React.FC<RequestsScreenProps> = ({ user, onBack, onNavigat
   };
 
   const onRefresh = async () => {
+    console.log('🔄 [REFRESH] Student/Requests');
     setRefreshing(true);
     await loadRequests();
     setRefreshing(false);

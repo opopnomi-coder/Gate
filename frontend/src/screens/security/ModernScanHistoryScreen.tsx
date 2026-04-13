@@ -171,6 +171,7 @@ const ModernScanHistoryScreen: React.FC<ModernScanHistoryScreenProps> = ({
   };
 
   const onRefresh = () => {
+    console.log('🔄 [REFRESH] Security/ScanHistory');
     setRefreshing(true);
     if (activeTab === 'SCANS') {
       loadScanHistory();

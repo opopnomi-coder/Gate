@@ -156,6 +156,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   const onRefresh = () => {
+    console.log('🔄 [REFRESH] Shared/Profile');
     setRefreshing(true);
     fetchStats();
   };

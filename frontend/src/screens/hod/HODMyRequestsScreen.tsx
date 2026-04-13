@@ -93,6 +93,7 @@ const HODMyRequestsScreen: React.FC<HODMyRequestsScreenProps> = ({ user, onBack 
   }, []);
 
   const onRefresh = useCallback(() => {
+    console.log('🔄 [REFRESH] HOD/MyRequests');
     setRefreshing(true);
     fetchRequests();
   }, []);

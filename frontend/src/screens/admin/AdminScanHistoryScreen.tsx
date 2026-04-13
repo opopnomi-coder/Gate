@@ -59,7 +59,8 @@ const AdminScanHistoryScreen: React.FC<AdminScanHistoryScreenProps> = ({ admin, 
     }
   };
 
-  const onRefresh = () => { setRefreshing(true); loadGateLogs(fromDate || undefined, toDate || undefined); };
+  const onRefresh = () => {
+    console.log('🔄 [REFRESH] Admin/ScanHistory'); setRefreshing(true); loadGateLogs(fromDate || undefined, toDate || undefined); };
 
   const exportPdf = async () => {
     if (gateLogs.length === 0) {

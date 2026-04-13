@@ -89,7 +89,8 @@ const MyRequestsScreen: React.FC<MyRequestsScreenProps> = ({ user, onBack }) => 
     const timer = setTimeout(() => fetchRequests(), nextMidnight.getTime() - now.getTime() + 500);
     return () => clearTimeout(timer);
   }, []);
-  const onRefresh = useCallback(() => { setRefreshing(true); fetchRequests(); }, []);
+  const onRefresh = useCallback(() => {
+    console.log('🔄 [REFRESH] Staff/MyRequests'); setRefreshing(true); fetchRequests(); }, []);
 
   const getStatusBadge = (status: string) => {
     if (status === 'APPROVED') return { text: 'ACTIVE', color: '#FFFFFF', bgColor: theme.success };

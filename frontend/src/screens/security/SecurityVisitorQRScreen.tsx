@@ -77,6 +77,7 @@ const SecurityVisitorQRScreen: React.FC<Props> = ({ security, onBack, onNavigate
   };
 
   const onRefresh = async () => {
+    console.log('🔄 [REFRESH] Security/VisitorQR');
     setRefreshing(true);
     await fetchVisitors();
     setRefreshing(false);

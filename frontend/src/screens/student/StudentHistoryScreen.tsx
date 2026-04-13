@@ -105,6 +105,7 @@ const StudentHistoryScreen: React.FC<StudentHistoryScreenProps> = ({
   };
 
   const onRefresh = () => {
+    console.log('🔄 [REFRESH] Student/History');
     setRefreshing(true);
     loadHistory();
   };

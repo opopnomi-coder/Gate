@@ -52,7 +52,8 @@ const AdminMyRequestsScreen: React.FC<AdminMyRequestsScreenProps> = ({ admin, on
   }, [admin.staffCode]);
 
   useEffect(() => { fetchRequests(); }, []);
-  const onRefresh = () => { setRefreshing(true); fetchRequests(); };
+  const onRefresh = () => {
+    console.log('🔄 [REFRESH] Admin/MyRequests'); setRefreshing(true); fetchRequests(); };
 
   const handleViewQR = async (req: any) => {
     if (req.status !== 'APPROVED') return;

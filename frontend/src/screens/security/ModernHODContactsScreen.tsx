@@ -71,6 +71,7 @@ export default function HODContactsScreen({ security, onBack, onNavigate }: HODC
   };
 
   const handleRefresh = async () => {
+    console.log('🔄 [REFRESH] Security/HODContacts');
     setRefreshing(true);
     await fetchHODs();
     setRefreshing(false);

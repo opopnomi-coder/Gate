@@ -76,6 +76,7 @@ const EntryExitHistoryScreen: React.FC<EntryExitHistoryScreenProps> = ({ user, n
   };
 
   const onRefresh = async () => {
+    console.log('🔄 [REFRESH] Student/EntryExitHistory');
     setRefreshing(true);
     await loadHistory();
   };

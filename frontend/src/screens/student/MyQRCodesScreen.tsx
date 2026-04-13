@@ -60,6 +60,7 @@ const MyQRCodesScreen: React.FC<MyQRCodesScreenProps> = ({ user, navigation, onB
   };
 
   const onRefresh = async () => {
+    console.log('🔄 [REFRESH] Student/MyQRCodes');
     setRefreshing(true);
     await loadQRCodes();
     setRefreshing(false);

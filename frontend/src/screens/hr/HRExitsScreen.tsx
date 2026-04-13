@@ -59,7 +59,8 @@ const HRExitsScreen: React.FC<HRExitsScreenProps> = ({ hr, onBack }) => {
     }
   };
 
-  const onRefresh = () => { setRefreshing(true); loadGateLogs(fromDate || undefined, toDate || undefined); };
+  const onRefresh = () => {
+    console.log('🔄 [REFRESH] HR/Exits'); setRefreshing(true); loadGateLogs(fromDate || undefined, toDate || undefined); };
 
   const exportPdf = async () => {
     if (gateLogs.length === 0) {

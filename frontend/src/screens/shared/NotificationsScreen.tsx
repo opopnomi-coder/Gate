@@ -118,6 +118,7 @@ export default function NotificationsScreen({ userId, userType, onBack }: Notifi
   }, [onBack]);
 
   const onRefresh = () => {
+    console.log('🔄 [REFRESH] Shared/Notifications');
     setRefreshing(true);
     fetchNotifications();
   };

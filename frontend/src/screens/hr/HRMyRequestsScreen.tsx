@@ -63,7 +63,8 @@ const HRMyRequestsScreen: React.FC<HRMyRequestsScreenProps> = ({ hr, onBack }) =
   }, [hr.hrCode]);
 
   useEffect(() => { fetchRequests(); }, []);
-  const onRefresh = () => { setRefreshing(true); fetchRequests(); };
+  const onRefresh = () => {
+    console.log('🔄 [REFRESH] HR/MyRequests'); setRefreshing(true); fetchRequests(); };
 
   const handleViewQR = async (req: any) => {
     if (req.status !== 'APPROVED') return;
