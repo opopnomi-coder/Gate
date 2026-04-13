@@ -36,18 +36,26 @@ const BatteryOptimizationGateScreen: React.FC<Props> = ({ onAllDone }) => {
 
   useEffect(() => { doCheck(); }, []);
 
-  // Auto-proceed the moment all 3 checks pass
+  // Auto-proceed the moment all checks pass
   useEffect(() => {
     if (!settings) return;
-    if (settings.batteryOptimizationDisabled && settings.notificationsEnabled && settings.channelsEnabled) {
+    const brand = (settings.brand || '').toLowerCase();
+    const isMotorolaOrStock = brand.includes('motorola') || brand.includes('moto') || brand.includes('google') || brand.includes('pixel');
+    const battOk = isMotorolaOrStock || settings.batteryOptimizationDisabled;
+    if (battOk && settings.notificationsEnabled && settings.channelsEnabled) {
       onAllDoneRef.current();
     }
   }, [settings]);
 
   const handleRecheck = async () => {
     const s = await doCheck();
-    if (s && s.batteryOptimizationDisabled && s.notificationsEnabled && s.channelsEnabled) {
-      onAllDoneRef.current();
+    if (s) {
+      const b = (s.brand || '').toLowerCase();
+      const isMotorolaOrStock = b.includes('motorola') || b.includes('moto') || b.includes('google') || b.includes('pixel');
+      const battOk = isMotorolaOrStock || s.batteryOptimizationDisabled;
+      if (battOk && s.notificationsEnabled && s.channelsEnabled) {
+        onAllDoneRef.current();
+      }
     }
   };
 
@@ -60,7 +68,11 @@ const BatteryOptimizationGateScreen: React.FC<Props> = ({ onAllDone }) => {
     );
   }
 
-  const allDone = settings.batteryOptimizationDisabled && settings.notificationsEnabled && settings.channelsEnabled;
+  const brand = (settings.brand || '').toLowerCase();
+  const isMotorolaOrStock = brand.includes('motorola') || brand.includes('moto') || brand.includes('google') || brand.includes('pixel');
+
+  // On Motorola/stock Android, battery optimization is not an issue — skip that check
+  const allDone = (isMotorolaOrStock || settings.batteryOptimizationDisabled) && settings.notificationsEnabled && settings.channelsEnabled;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -75,7 +87,8 @@ const BatteryOptimizationGateScreen: React.FC<Props> = ({ onAllDone }) => {
           These settings must be configured before you can log in. They ensure you receive gate pass approvals and security alerts instantly.
         </ThemedText>
 
-        {/* Check 1 — Battery Optimization */}
+        {/* Check 1 — Battery Optimization (skip on Motorola/stock Android) */}
+        {!isMotorolaOrStock && (
         <CheckCard
           index={1}
           title="Battery Optimization"
@@ -91,6 +104,7 @@ const BatteryOptimizationGateScreen: React.FC<Props> = ({ onAllDone }) => {
           onDone={handleRecheck}
           recheckLoading={rechecking}
         />
+        )}
 
         {/* Check 2 — Notification Permission */}
         <CheckCard
