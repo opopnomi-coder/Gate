@@ -31,8 +31,12 @@ public interface HODRepository extends JpaRepository<HOD, String> {
     List<HOD> findAllHODs();
 
     // Check if a staff_code is a HOD
-    @Query("SELECT COUNT(h) > 0 FROM HOD h WHERE h.hodCode = :staffCode")
-    boolean isHOD(@Param("staffCode") String staffCode);
+    @Query("SELECT COUNT(h) FROM HOD h WHERE h.hodCode = :staffCode")
+    long countByHodCode(@Param("staffCode") String staffCode);
+
+    default boolean isHOD(String staffCode) {
+        return countByHodCode(staffCode) > 0;
+    }
 
     // Find HOD by department name (case-insensitive)
     @Query("SELECT h FROM HOD h WHERE LOWER(h.department) = LOWER(:department)")

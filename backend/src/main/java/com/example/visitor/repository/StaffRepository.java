@@ -34,8 +34,12 @@ public interface StaffRepository extends JpaRepository<Staff, String> {
     List<Staff> findByStaffNameContainingIgnoreCase(@Param("name") String name);
 
     // Check if a staff_code is a class incharge (appears in students.staff_code)
-    @Query(value = "SELECT COUNT(*) > 0 FROM students WHERE staff_code = :staffCode", nativeQuery = true)
-    boolean isClassIncharge(@Param("staffCode") String staffCode);
+    @Query(value = "SELECT COUNT(*) FROM students WHERE staff_code = :staffCode", nativeQuery = true)
+    long countClassInchargeByStaffCode(@Param("staffCode") String staffCode);
+
+    default boolean isClassIncharge(String staffCode) {
+        return countClassInchargeByStaffCode(staffCode) > 0;
+    }
 
     // Get all class incharge staff codes from students table
     @Query(value = "SELECT DISTINCT staff_code FROM students WHERE staff_code IS NOT NULL", nativeQuery = true)

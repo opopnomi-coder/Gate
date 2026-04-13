@@ -42,8 +42,12 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     List<Student> findFirstYearStudents();
 
     // Check if a staff code is a class incharge
-    @Query("SELECT COUNT(s) > 0 FROM Student s WHERE s.staffCode = :staffCode")
-    boolean isClassIncharge(@Param("staffCode") String staffCode);
+    @Query(value = "SELECT COUNT(*) FROM students WHERE staff_code = :staffCode", nativeQuery = true)
+    long countClassInchargeByCode(@Param("staffCode") String staffCode);
+
+    default boolean isClassIncharge(String staffCode) {
+        return countClassInchargeByCode(staffCode) > 0;
+    }
 
     // Count students by class incharge staff code
     @Query("SELECT COUNT(s) FROM Student s WHERE s.staffCode = :staffCode")

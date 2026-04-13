@@ -33,8 +33,12 @@ public interface HRRepository extends JpaRepository<HR, String> {
     List<HR> findAllAO();
 
     // Check if a staff_code is HR or AO
-    @Query("SELECT COUNT(h) > 0 FROM HR h WHERE h.hrCode = :staffCode AND (h.role = 'Senior Manager - HR' OR h.role = 'Administrative Officer')")
-    boolean isHRorAO(@Param("staffCode") String staffCode);
+    @Query("SELECT COUNT(h) FROM HR h WHERE h.hrCode = :staffCode AND (h.role = 'Senior Manager - HR' OR h.role = 'Administrative Officer')")
+    long countHRorAO(@Param("staffCode") String staffCode);
+
+    default boolean isHRorAO(String staffCode) {
+        return countHRorAO(staffCode) > 0;
+    }
 
     // Find by designation
     List<HR> findByRole(String role);
