@@ -7,6 +7,7 @@ import { apiService } from '../../services/api.service';
 import { useTheme } from '../../context/ThemeContext';
 import GatePassQRModal from '../../components/GatePassQRModal';
 import SinglePassDetailsModal from '../../components/SinglePassDetailsModal';
+import MyRequestsBulkModal from '../../components/MyRequestsBulkModal';
 import ScreenContentContainer from '../../components/ScreenContentContainer';
 import ThemedText from '../../components/ThemedText';
 import { VerticalFlatList } from '../../components/navigation/VerticalScrollViews';
@@ -26,6 +27,8 @@ const NCIMyRequestsScreen: React.FC<NCIMyRequestsScreenProps> = ({ user, onBack 
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [selectedBulkId, setSelectedBulkId] = useState<number | null>(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState<string | null>(null);
@@ -108,8 +111,15 @@ const NCIMyRequestsScreen: React.FC<NCIMyRequestsScreenProps> = ({ user, onBack 
                     style={styles.card}
                     activeOpacity={0.85}
                     onPress={() => {
-                      if (req.status === 'APPROVED') handleViewQR(req);
-                      else { setSelectedRequest(req); setShowDetailModal(true); }
+                      if (req.passType === 'BULK') {
+                        setSelectedBulkId(req.id);
+                        setShowBulkModal(true);
+                      } else if (req.status === 'APPROVED') {
+                        handleViewQR(req);
+                      } else {
+                        setSelectedRequest(req);
+                        setShowDetailModal(true);
+                      }
                     }}
                   >
                     <View style={styles.cardTop}>
@@ -166,8 +176,31 @@ const NCIMyRequestsScreen: React.FC<NCIMyRequestsScreenProps> = ({ user, onBack 
         visible={showDetailModal}
         onClose={() => { setShowDetailModal(false); setSelectedRequest(null); }}
         request={selectedRequest}
+        viewerRole="staff"
         onApprove={undefined}
         onReject={undefined}
+        timelineSteps={selectedRequest ? (() => {
+          const s = selectedRequest.status;
+          const hodDone = s === 'APPROVED' || s === 'PENDING_HR';
+          const hodRejected = s === 'REJECTED' && selectedRequest.hodApproval === 'REJECTED';
+          const hrDone = s === 'APPROVED';
+          const hrRejected = s === 'REJECTED' && selectedRequest.hrApproval === 'REJECTED';
+          return [
+            { label: 'Request Submitted', status: 'done' as const },
+            { label: 'HOD Approval', status: hodDone ? 'done' as const : hodRejected ? 'rejected' as const : 'pending' as const, remark: selectedRequest.hodRemark },
+            { label: 'HR Approval', status: hrDone ? 'done' as const : hrRejected ? 'rejected' as const : 'pending' as const, remark: selectedRequest.hrRemark || (hrRejected ? selectedRequest.rejectionReason : undefined) },
+          ];
+        })() : []}
+      />
+
+      <MyRequestsBulkModal
+        visible={showBulkModal}
+        onClose={() => { setShowBulkModal(false); setSelectedBulkId(null); }}
+        requestId={selectedBulkId || 0}
+        userRole="STAFF"
+        viewerRole="STAFF"
+        currentUserId={user.staffCode}
+        requesterInfo={{ name: user.staffName || 'Staff', role: 'NCI', department: user.department || '' }}
       />
       <GatePassQRModal
         visible={showQRModal}
