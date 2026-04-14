@@ -91,6 +91,7 @@ public class HRController {
     public ResponseEntity<?> approveRequest(@PathVariable Long id, @RequestBody Map<String, String> data) {
         try {
             String hrCode = data.get("hrCode");
+            String remark = data.get("remark");
             
             if (hrCode == null) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -99,7 +100,7 @@ public class HRController {
                 ));
             }
             
-            GatePassRequest request = gatePassRequestService.approveByHR(id, hrCode);
+            GatePassRequest request = gatePassRequestService.approveByHR(id, hrCode, remark);
             
             log.info("✅ Request {} approved by HR {}", id, hrCode);
             

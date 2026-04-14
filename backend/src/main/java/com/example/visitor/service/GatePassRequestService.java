@@ -1182,6 +1182,10 @@ public class GatePassRequestService {
     // Approve by HR
     @Transactional
     public GatePassRequest approveByHR(Long requestId, String hrCode) {
+        return approveByHR(requestId, hrCode, null);
+    }
+
+    public GatePassRequest approveByHR(Long requestId, String hrCode, String hrRemark) {
         log.info("HR {} approving request {}", hrCode, requestId);
         
         Optional<GatePassRequest> requestOpt = gatePassRequestRepository.findById(requestId);
@@ -1201,6 +1205,9 @@ public class GatePassRequestService {
         request.setHrApproval(GatePassRequest.ApprovalStatus.APPROVED);
         request.setHrApprovedBy(hrCode);
         request.setHrApprovalDate(LocalDateTime.now());
+        if (hrRemark != null && !hrRemark.isBlank()) {
+            request.setHrRemark(hrRemark);
+        }
         
         // Check if all approvals are complete
         if (request.getStaffApproval() == GatePassRequest.ApprovalStatus.APPROVED &&
@@ -1270,6 +1277,7 @@ public class GatePassRequestService {
         request.setHrApprovalDate(LocalDateTime.now());
         request.setRejectedBy(hrCode);
         request.setRejectionReason(reason);
+        request.setHrRemark(reason);  // store in dedicated hrRemark field
         request.setRejectedAt(LocalDateTime.now());
         
         GatePassRequest saved = gatePassRequestRepository.save(request);

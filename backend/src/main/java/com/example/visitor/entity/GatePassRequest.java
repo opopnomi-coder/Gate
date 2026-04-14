@@ -84,6 +84,9 @@ public class GatePassRequest {
     
     @Column(name = "hod_remark", columnDefinition = "TEXT")
     private String hodRemark;
+
+    @Column(name = "hr_remark", columnDefinition = "TEXT")
+    private String hrRemark;
     
     @Column(name = "rejected_by")
     private String rejectedBy;

@@ -75,9 +75,10 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
 
   const statusColor = getStatusColor(request.status || request.hrApproval);
   const statusLabel = (request.hrApproval || request.status || 'PENDING').toUpperCase();
-  const showStaffRemark = (viewerRole === 'hod' || viewerRole === 'hr') && !!request.staffRemark;
-  const showHodRemark = viewerRole === 'hr' && !!request.hodRemark;
-  const hasAnyRemark = showStaffRemark || showHodRemark;
+  const showStaffRemark = !!request.staffRemark;
+  const showHodRemark = !!request.hodRemark;
+  const showHrRemark = !!request.hrRemark || !!request.hrApprovalRemark;
+  const hasAnyRemark = showStaffRemark || showHodRemark || showHrRemark;
 
   const isReadOnly = !showActions;
   const isApproved = request.status === 'APPROVED';
@@ -206,6 +207,12 @@ const SinglePassDetailsModal: React.FC<SinglePassDetailsModalProps> = ({
                 <View style={[styles.remarkChip, showStaffRemark && { marginTop: 8 }, { backgroundColor: theme.primary + '15', borderLeftColor: theme.primary }]}>
                   <ThemedText style={[styles.remarkChipRole, { color: theme.primary }]}>HOD</ThemedText>
                   <ThemedText style={[styles.remarkChipText, { color: theme.text }]} numberOfLines={3}>{request.hodRemark}</ThemedText>
+                </View>
+              )}
+              {showHrRemark && (
+                <View style={[styles.remarkChip, (showStaffRemark || showHodRemark) && { marginTop: 8 }, { backgroundColor: theme.success + '15', borderLeftColor: theme.success }]}>
+                  <ThemedText style={[styles.remarkChipRole, { color: theme.success }]}>HR</ThemedText>
+                  <ThemedText style={[styles.remarkChipText, { color: theme.text }]} numberOfLines={3}>{request.hrRemark || request.hrApprovalRemark}</ThemedText>
                 </View>
               )}
             </View>
